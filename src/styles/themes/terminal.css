@@ -1,11 +1,33 @@
+/* ============================================================
+   THEME: TERMINAL — dark + lime, grid bg, HUD, mono
+   ============================================================ */
 [data-theme="terminal"] {
-  --bg: #0a0a0a;
-  --fg: #00ff00;
-  --acc: #7DF9FF;
-  --card-bg: #1a1a1a;
-  --card-border: #333;
-  --font-mono: 'JetBrains Mono', monospace;
-  --font-sans: 'JetBrains Mono', monospace;
-  --radius: 0;
-  --shadow: none;
+  --bg: #0A0C0F;
+  --panel: #10141A;
+  --panel2: #141922;
+  --line: #232B36;
+  --txt: #E9EDF1;
+  --dim: #8B95A3;
+  --acc: #D8FF3E;
+  --ink: #0A0C0F;
+  --f-display: 'Syne', sans-serif;
+  --f-body: 'Space Grotesk', sans-serif;
+  --f-mono: 'JetBrains Mono', monospace;
+  --ease: cubic-bezier(.22, .68, .24, 1);
+  color-scheme: dark;
 }
+
+[data-theme="terminal"] body {
+  background: var(--bg);
+  color: var(--txt);
+  font-family: var(--f-body);
+}
+[data-theme="terminal"] ::selection { background: var(--acc); color: var(--ink); }
+[data-theme="terminal"] :focus-visible { outline: 2px solid var(--acc); outline-offset: 3px; }
+[data-theme="terminal"] .bg-grid {
+  background-image: linear-gradient(rgba(233, 237, 241, .03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(233, 237, 241, .03) 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+[data-theme="terminal"] a { color: var(--acc); }
+[data-theme="terminal"] a:hover { opacity: .8; }

@@ -1,10 +1,31 @@
+/* ============================================================
+   THEME: SWISS — paper + blue/red, Anton, hard shadow, thick borders
+   ============================================================ */
 [data-theme="swiss"] {
-  --bg: #ffffff;
-  --fg: #000000;
-  --acc: #ff0000;
-  --card-bg: #f5f5f5;
-  --card-border: #000000;
-  --font-sans: 'Helvetica Neue', sans-serif;
-  --radius: 0;
-  --shadow: 2px 2px 0 #000000;
+  --bg: #F5F3EC;
+  --panel: #FFFFFF;
+  --panel2: #EDEAE0;
+  --line: #141414;
+  --txt: #141414;
+  --dim: #5E5A50;
+  --acc: #1B3BDB;
+  --acc2: #FF3D1F;
+  --ink: #141414;
+  --f-display: 'Anton', sans-serif;
+  --f-body: 'Archivo', sans-serif;
+  --f-mono: 'Space Mono', monospace;
+  --ease: cubic-bezier(.22, .68, .24, 1);
+  color-scheme: light;
 }
+
+[data-theme="swiss"] body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  line-height: 1.6;
+}
+[data-theme="swiss"] ::selection { background: var(--acc); color: #fff; }
+[data-theme="swiss"] :focus-visible { outline: 3px solid var(--acc2); outline-offset: 2px; }
+[data-theme="swiss"] .bg-grid { opacity: 0; }
+[data-theme="swiss"] a { color: var(--acc); }
+[data-theme="swiss"] a:hover { color: var(--acc2); }

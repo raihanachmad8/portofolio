@@ -1,11 +1,29 @@
+/* ============================================================
+   THEME: EDITORIAL — paper cream + orange, serif Fraunces
+   ============================================================ */
 [data-theme="editorial"] {
-  --bg: #fafafa;
-  --fg: #1a1a1a;
-  --acc: #2563eb;
-  --card-bg: #ffffff;
-  --card-border: #e5e5e5;
-  --font-serif: 'Georgia', serif;
-  --font-sans: 'Georgia', serif;
-  --radius: 0.5rem;
-  --shadow: 0 1px 3px rgba(0,0,0,0.1);
+  --bg: #F4F1EA;
+  --panel: #EDE8DC;
+  --panel2: #E6E0D2;
+  --line: rgba(24, 21, 16, .15);
+  --txt: #181510;
+  --dim: #6F6A5E;
+  --acc: #E8480C;
+  --ink: #181510;
+  --f-display: 'Fraunces', Georgia, serif;
+  --f-body: 'Sora', sans-serif;
+  --f-mono: 'IBM Plex Mono', monospace;
+  --ease: cubic-bezier(.22, .68, .24, 1);
+  color-scheme: light;
 }
+
+[data-theme="editorial"] body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+}
+[data-theme="editorial"] ::selection { background: var(--acc); color: var(--bg); }
+[data-theme="editorial"] :focus-visible { outline: 2px solid var(--acc); outline-offset: 3px; }
+[data-theme="editorial"] .bg-grid { opacity: 0; }
+[data-theme="editorial"] a { color: var(--acc); }
+[data-theme="editorial"] a:hover { opacity: .8; }

@@ -1,10 +1,30 @@
+/* ============================================================
+   THEME: GALLERY — dark burgundy + gold, serif Instrument
+   ============================================================ */
 [data-theme="gallery"] {
-  --bg: #111111;
-  --fg: #ffffff;
-  --acc: #f59e0b;
-  --card-bg: #1a1a1a;
-  --card-border: #333;
-  --font-sans: 'Inter', sans-serif;
-  --radius: 0.75rem;
-  --shadow: 0 4px 6px rgba(0,0,0,0.3);
+  --bg: #171310;
+  --panel: #2B121C;
+  --panel2: #220E17;
+  --line: rgba(239, 230, 214, .14);
+  --txt: #EFE6D6;
+  --dim: #9A8F80;
+  --acc: #D9A44B;
+  --ink: #221208;
+  --f-display: 'Instrument Serif', serif;
+  --f-body: 'Instrument Sans', sans-serif;
+  --f-mono: 'Fragment Mono', monospace;
+  --ease: cubic-bezier(.22, .68, .24, 1);
+  color-scheme: dark;
 }
+
+[data-theme="gallery"] body {
+  background: var(--bg);
+  color: var(--txt);
+  font-family: var(--f-body);
+  line-height: 1.7;
+}
+[data-theme="gallery"] ::selection { background: var(--acc); color: var(--ink); }
+[data-theme="gallery"] :focus-visible { outline: 2px solid var(--acc); outline-offset: 3px; }
+[data-theme="gallery"] .bg-grid { opacity: 0; }
+[data-theme="gallery"] a { color: var(--acc); }
+[data-theme="gallery"] a:hover { opacity: .8; }
