@@ -1,0 +1,61 @@
+---
+import Layout from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import { getAllPosts, getPostBySlug } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const posts = await getAllPosts();
+  return posts.map(post => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+---
+
+<Layout title={post.title}>
+  <Nav />
+  <main class="pt-20 min-h-screen">
+    <article class="container mx-auto px-4 py-20 max-w-3xl">
+      <nav class="mb-8 text-sm" style="color: var(--fg); opacity: 0.6;">
+        <a href="/" style="color: var(--acc);">Home</a>
+        <span class="mx-2">/</span>
+        <a href="/blog" style="color: var(--acc);">Blog</a>
+        <span class="mx-2">/</span>
+        <span>{post.title}</span>
+      </nav>
+
+      <header class="mb-12">
+        <div class="text-sm mb-2" style="color: var(--acc);">
+          {post.category}
+        </div>
+
+        <h1 class="text-4xl md:text-5xl font-bold mb-4" style="color: var(--fg);">
+          {post.title}
+        </h1>
+
+        <div class="flex gap-4 text-sm opacity-70" style="color: var(--fg);">
+          <span>{post.published_date}</span>
+          <span>{post.read_time} min read</span>
+        </div>
+      </header>
+
+      <div class="prose" style="color: var(--fg);">
+        <p class="text-lg leading-relaxed mb-6">{post.excerpt}</p>
+        
+        {post.content && (
+          <div set:html={post.content} />
+        )}
+      </div>
+
+      <div class="mt-12">
+        <a href="/blog" style="color: var(--acc);">
+          ← Back to Blog
+        </a>
+      </div>
+    </article>
+  </main>
+  <Footer />
+</Layout>
