@@ -1,0 +1,34 @@
+---
+const themes = ['terminal', 'editorial', 'gallery', 'swiss'];
+---
+
+<div class="theme-switcher flex gap-1" role="radiogroup" aria-label="Theme selection">
+  {themes.map(theme => (
+    <button
+      class="theme-btn px-2 py-1 text-xs rounded transition-opacity hover:opacity-80"
+      data-theme={theme}
+      role="radio"
+      aria-checked={theme === 'terminal'}
+      aria-label={`${theme} theme`}
+      style="background: var(--card-bg); color: var(--fg); border: 1px solid var(--card-border);"
+    >
+      {theme}
+    </button>
+  ))}
+</div>
+
+<script>
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const theme = btn.getAttribute('data-theme');
+      if (theme && window.switchTheme) {
+        window.switchTheme(theme);
+        
+        document.querySelectorAll('.theme-btn').forEach(b => {
+          b.setAttribute('aria-checked', 'false');
+        });
+        btn.setAttribute('aria-checked', 'true');
+      }
+    });
+  });
+</script>
