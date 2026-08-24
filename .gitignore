@@ -1,0 +1,21 @@
+# build output
+dist/
+
+# environment variables
+.env
+.env.production
+.env.local
+
+# editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# logs
+npm-debug.log*
+
+# dependencies
+node_modules/
