@@ -25,3 +25,37 @@ const { title } = Astro.props;
     <slot />
   </body>
 </html>
+
+<script is:inline>
+  (function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlTheme = urlParams.get('theme');
+    const savedTheme = localStorage.getItem('theme');
+    
+    fetch('/config.json')
+      .then(r => r.json())
+      .then(config => {
+        const theme = urlTheme || savedTheme || config.theme || 'terminal';
+        applyTheme(theme);
+        
+        if (config.sections) {
+          Object.entries(config.sections).forEach(([section, theme]) => {
+            const el = document.getElementById(section);
+            if (el) el.dataset.theme = theme;
+          });
+        }
+      })
+      .catch(() => {
+        applyTheme(urlTheme || savedTheme || 'terminal');
+      });
+
+    function applyTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      localStorage.setItem('theme', theme);
+    }
+
+    window.switchTheme = function(theme) {
+      applyTheme(theme);
+    };
+  })();
+</script>
