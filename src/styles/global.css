@@ -45,6 +45,9 @@ section { scroll-margin-top: 92px; padding-block: clamp(4.5rem, 9vw, 7.5rem); }
 .nav a:hover::after, .nav a.act::after { width: 100%; }
 .ai-btn { padding: .55rem 1.05rem; border-radius: 6px; font-family: var(--f-mono); font-size: .58rem; letter-spacing: .14em; font-weight: 700; transition: .25s var(--ease); }
 .ai-btn:hover { transform: translateY(-2px); }
+.theme-switcher { display: flex; gap: .3rem; align-items: center; }
+.theme-btn { width: 28px; height: 28px; border-radius: 50%; font-family: var(--f-mono); font-size: .6rem; font-weight: 700; display: grid; place-items: center; transition: .25s var(--ease); border: 1px solid var(--line); background: transparent; color: var(--dim); }
+.theme-btn:hover, .theme-btn[aria-checked="true"] { border-color: var(--acc); color: var(--acc); }
 .status { display: flex; gap: .5rem; align-items: center; color: var(--dim); }
 .dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(0,0,0,.0); } 55% { box-shadow: 0 0 0 7px rgba(0,0,0,0); } }

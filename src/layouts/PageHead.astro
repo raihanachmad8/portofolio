@@ -1,0 +1,170 @@
+---
+import '../styles/global.css';
+import '../styles/themes/terminal.css';
+import '../styles/themes/editorial.css';
+import '../styles/themes/gallery.css';
+import '../styles/themes/swiss.css';
+
+interface Props {
+  lang: string;
+  title: string;
+  description: string;
+  themeDefault: string;
+}
+
+const { lang, title, description, themeDefault } = Astro.props;
+---
+
+<!doctype html>
+<html lang={lang} data-theme={themeDefault}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;600;700&family=Space+Mono:wght@400;700&family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Sora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600;700&family=Fragment+Mono:wght@400&family=Syne:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <slot />
+  </body>
+</html>
+
+<script is:inline>
+  (function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlTheme = urlParams.get('theme');
+    const savedTheme = localStorage.getItem('theme');
+    
+    fetch('/config.json')
+      .then(r => r.json())
+      .then(config => {
+        const theme = urlTheme || savedTheme || config.theme || window.__THEME_DEFAULT__ || 'terminal';
+        applyTheme(theme);
+        
+        if (config.sections) {
+          Object.entries(config.sections).forEach(([section, theme]) => {
+            const el = document.getElementById(section);
+            if (el) el.dataset.theme = theme;
+          });
+        }
+      })
+      .catch(() => {
+        applyTheme(urlTheme || savedTheme || window.__THEME_DEFAULT__ || 'terminal');
+      });
+
+    function applyTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      localStorage.setItem('theme', theme);
+    }
+
+    window.switchTheme = function(theme) {
+      applyTheme(theme);
+    };
+
+    // Burger menu
+    const burger = document.querySelector('.burger');
+    const mobileMenu = document.getElementById('mmenu');
+    burger?.addEventListener('click', () => {
+      document.body.classList.toggle('menu-open');
+      burger.setAttribute('aria-expanded', document.body.classList.contains('menu-open'));
+    });
+
+    // Close mobile menu on link click
+    mobileMenu?.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        document.body.classList.remove('menu-open');
+        burger?.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('[data-reveal], .mask').forEach(el => {
+      observer.observe(el);
+    });
+
+    // Header scroll effect
+    const header = document.getElementById('hdr');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        header?.classList.add('scrolled');
+      } else {
+        header?.classList.remove('scrolled');
+      }
+    });
+
+    // Skill bar animation
+    const skillObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const span = entry.target.querySelector('span');
+          if (span) {
+            const lv = span.dataset.lv;
+            span.style.width = lv;
+          }
+        }
+      });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.sb').forEach(bar => {
+      skillObserver.observe(bar);
+    });
+
+    // Active nav link
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav a');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (scrollY >= sectionTop - 200) {
+          current = section.getAttribute('id') || '';
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('act');
+        if (link.getAttribute('href') === `#${current}`) {
+          link.classList.add('act');
+        }
+      });
+    });
+
+    // Time display
+    function updateTime() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      document.querySelectorAll('.time').forEach(el => {
+        el.textContent = timeStr;
+      });
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    // Theme switcher
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const theme = btn.getAttribute('data-theme');
+        if (theme && window.switchTheme) {
+          window.switchTheme(theme);
+          document.querySelectorAll('.theme-btn').forEach(b => {
+            b.setAttribute('aria-checked', 'false');
+          });
+          btn.setAttribute('aria-checked', 'true');
+        }
+      });
+    });
+  })();
+</script>

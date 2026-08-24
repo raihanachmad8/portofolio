@@ -1,55 +1,25 @@
 ---
+import SectionHead from './SectionHead.astro';
 import { getExperience } from '../lib/content';
 
 const experience = await getExperience();
 ---
 
-<section id="experience" class="py-20">
-  <div class="container mx-auto px-4">
-    <h2 class="text-3xl font-bold mb-8" style="color: var(--fg);">
-      Experience
-    </h2>
-
-    {experience.length === 0 ? (
-      <div class="text-center py-12" style="color: var(--fg); opacity: 0.5;">
-        <p>No experience added yet.</p>
-      </div>
-    ) : (
-      <div class="timeline relative">
-        {experience.map((exp, i) => (
-          <div
-            class="timeline-item mb-8 pl-8 relative"
-            style={`border-left: 2px solid var(--acc);`}
-          >
-            <div
-              class="absolute w-4 h-4 rounded-full"
-              style={`left: -9px; background: var(--acc);`}
-            />
-
-            <div class="flex flex-wrap items-baseline gap-2 mb-1">
-              <h3 class="text-lg font-bold" style="color: var(--fg);">
-                {exp.title}
-              </h3>
-              <span class="text-sm" style="color: var(--acc);">
-                @ {exp.company}
-              </span>
-            </div>
-
-            <div class="text-sm mb-2 opacity-70" style="color: var(--fg);">
-              {exp.year} — {exp.year_end || 'Present'}
-              <span class="ml-2 px-2 py-0.5 rounded text-xs" style="background: var(--card-border);">
-                {exp.type}
-              </span>
-            </div>
-
-            {exp.description && (
-              <p class="text-sm" style="color: var(--fg);">
-                {exp.description}
-              </p>
-            )}
+<section id="journey">
+  <div class="wrap">
+    <SectionHead tag="03" title="Experience" code="//career" />
+    <div data-reveal>
+      {experience.map((xp) => (
+        <div class={`xp-row${xp.now ? ' now' : ''}`}>
+          <span class="period">{xp.period}</span>
+          <div>
+            <h3>{xp.title}</h3>
+            <span class="co">{xp.company}</span>
+            <span class="loc">{xp.location}</span>
           </div>
-        ))}
-      </div>
-    )}
+          <p>{xp.detail}</p>
+        </div>
+      ))}
+    </div>
   </div>
 </section>

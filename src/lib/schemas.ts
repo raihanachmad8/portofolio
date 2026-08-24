@@ -8,11 +8,11 @@ export const ProjectSchema = z.object({
   year: z.number().int().min(2020, 'Too old').max(2030, 'Too far future'),
   description: z.string().min(10, 'Description too short').max(300, 'Description too long'),
   stack: z.string().min(1, 'Stack required'),
-  github_url: z.string().url('Invalid URL').optional().nullable(),
-  live_url: z.string().url('Invalid URL').optional().nullable(),
+  github_url: z.string().optional().nullable(),
+  live_url: z.string().optional().nullable(),
   featured: z.boolean().default(false),
   card_color: z.enum(['dark', 'green', 'amber', 'blue', 'purple', 'red']).default('dark'),
-  image_url: z.string().url('Invalid URL').optional().nullable(),
+  image_url: z.string().optional().nullable(),
   order: z.number().int().min(0).default(0),
   created_at: z.string().datetime().optional(),
   last_edited_at: z.string().datetime().optional(),
@@ -31,15 +31,16 @@ export const ExperienceSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(1, 'Title required').max(100, 'Title too long'),
   company: z.string().min(1, 'Company required').max(100, 'Company too long'),
-  year: z.number().int().min(2015, 'Too old').max(2030, 'Too far future'),
+  period: z.string().optional(),
+  location: z.string().optional(),
+  detail: z.string().max(500, 'Detail too long').optional(),
+  year: z.number().int().min(2015, 'Too old').max(2030, 'Too far future').optional(),
   year_end: z.number().int().min(2015).max(2030).optional().nullable(),
-  type: z.enum(['work', 'internship', 'freelance', 'milestone', 'education', 'volunteer']),
+  type: z.enum(['work', 'internship', 'freelance', 'milestone', 'education', 'volunteer']).optional(),
   description: z.string().max(500, 'Description too long').optional(),
+  now: z.boolean().optional(),
   order: z.number().int().min(0).default(0),
-}).refine(
-  (data) => !data.year_end || data.year_end >= data.year,
-  { message: 'End year must be after start year', path: ['year_end'] }
-);
+});
 
 export const BlogSchema = z.object({
   id: z.string().optional(),

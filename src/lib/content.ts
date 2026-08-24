@@ -32,18 +32,18 @@ export async function getPostBySlug(slug: string) {
 }
 
 export async function getSkillsByCategory() {
-  const skills = (snapshot.skills || []).map(s => SkillSchema.parse(s));
-  return skills.reduce((acc, skill) => {
-    if (!acc[skill.category]) acc[skill.category] = [];
-    acc[skill.category].push(skill);
-    return acc;
-  }, {} as Record<string, typeof skills>);
+  const skills = snapshot.skills || {};
+  return skills;
 }
 
 export async function getExperience() {
   return (snapshot.experience || [])
     .map(e => ExperienceSchema.parse(e))
     .sort((a, b) => a.order - b.order);
+}
+
+export async function getProfile() {
+  return snapshot.profile || {};
 }
 
 export async function getSettings() {

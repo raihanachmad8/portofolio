@@ -1,14 +1,130 @@
 {
   "version": 1,
   "synced_at": "2026-08-24T00:00:00Z",
-  "projects": [],
-  "skills": [],
-  "experience": [],
+  "profile": {
+    "name": "Raihan Achmad",
+    "shortName": "Raihan Achmad",
+    "roleTitle": "Full Stack Developer",
+    "heroSub": "Backend-focused full stack developer passionate about building scalable systems.",
+    "email": "raihan@example.com",
+    "github": "https://github.com/raihanachmad8",
+    "linkedin": "https://linkedin.com/in/raihanachmad",
+    "website": "https://raihan.dev",
+    "location": "Malang, Indonesia",
+    "coordinates": "-7.9666, 112.6326",
+    "marquee": ["Backend Engineer", "REST API", "Node.js", "TypeScript", "PostgreSQL", "Docker"],
+    "aboutLead": "Backend-focused full stack developer passionate about building scalable systems.",
+    "aboutParas": [
+      "I specialize in designing and building robust backend systems, RESTful APIs, and microservices architecture.",
+      "While my core expertise is backend development with Node.js and TypeScript, I also build modern frontends with React/Vue and handle DevOps tasks like Docker, CI/CD, and deployment."
+    ],
+    "facts": [
+      { "value": 2, "label": "Years Experience" },
+      { "value": 10, "label": "Projects Completed" },
+      { "value": 10, "label": "Technologies" }
+    ],
+    "principles": [
+      { "no": "01", "title": "Backend First", "description": "Strong APIs power great experiences" },
+      { "no": "02", "title": "Scalability", "description": "Build systems that grow with the business" },
+      { "no": "03", "title": "DevOps Mindset", "description": "Automate everything, deploy with confidence" }
+    ]
+  },
+  "projects": [
+    {
+      "id": "01",
+      "title": "Inventory ERP",
+      "slug": "inventory-erp",
+      "category": "web-app",
+      "year": 2026,
+      "description": "Full-stack inventory management system with Drizzle ORM, Redis Event Bus, and multi-warehouse support.",
+      "stack": "React,TypeScript,Hono,Drizzle,PostgreSQL,Redis",
+      "github_url": "https://github.com/raihanachmad8/inventory",
+      "live_url": null,
+      "featured": true,
+      "card_color": "dark",
+      "image_url": "/images/projects/inventory.jpg",
+      "order": 1
+    },
+    {
+      "id": "02",
+      "title": "Portfolio v2",
+      "slug": "portfolio-v2",
+      "category": "web-app",
+      "year": 2026,
+      "description": "Personal portfolio with multi-theme system, Notion CMS, and Aruna AI assistant.",
+      "stack": "Astro,TypeScript,Tailwind,Notion API",
+      "github_url": "https://github.com/raihanachmad8/portofolio",
+      "live_url": "https://raihan.dev",
+      "featured": true,
+      "card_color": "blue",
+      "image_url": "/images/projects/portfolio.jpg",
+      "order": 2
+    },
+    {
+      "id": "03",
+      "title": "REST API Boilerplate",
+      "slug": "rest-api-boilerplate",
+      "category": "backend",
+      "year": 2025,
+      "description": "Production-ready Node.js REST API boilerplate with authentication, rate limiting, and logging.",
+      "stack": "Node.js,TypeScript,Express,PostgreSQL,Redis,Docker",
+      "github_url": "https://github.com/raihanachmad8/api-boilerplate",
+      "live_url": null,
+      "featured": true,
+      "card_color": "green",
+      "image_url": "/images/projects/api-boilerplate.jpg",
+      "order": 3
+    }
+  ],
+  "skills": {
+    "backend": [
+      { "name": "Node.js", "level": 90 },
+      { "name": "TypeScript", "level": 85 },
+      { "name": "Python", "level": 75 }
+    ],
+    "frontend": [
+      { "name": "React", "level": 85 },
+      { "name": "Vue", "level": 75 },
+      { "name": "Astro", "level": 80 }
+    ],
+    "devops": [
+      { "name": "Docker", "level": 80 },
+      { "name": "PostgreSQL", "level": 85 },
+      { "name": "Redis", "level": 75 }
+    ],
+    "tools": {
+      "backend": ["Express", "Fastify", "Hono", "NestJS"],
+      "frontend": ["Tailwind", "Next.js", "Nuxt", "Svelte"],
+      "devops": ["GitHub Actions", "Nginx", "Linux", "CI/CD"]
+    }
+  },
+  "experience": [
+    {
+      "id": "01",
+      "title": "Backend Engineer",
+      "company": "PT Maju Jaya",
+      "period": "2024 — PRESENT",
+      "location": "Malang, Indonesia",
+      "detail": "Building scalable backend systems, APIs, and infrastructure that power modern web applications.",
+      "now": true,
+      "order": 1
+    },
+    {
+      "id": "02",
+      "title": "Full Stack Developer",
+      "company": "Freelance",
+      "period": "2022 — 2024",
+      "location": "Remote",
+      "detail": "Web development for various clients, building custom solutions and APIs.",
+      "now": false,
+      "order": 2
+    }
+  ],
   "blog": [],
   "settings": {
-    "site_title": "Raihan Effendy — Backend Engineer",
-    "site_description": "Personal portfolio",
+    "site_title": "Raihan Achmad — Full Stack Developer",
+    "site_description": "Full Stack Developer with Backend Focus",
     "theme": "terminal",
-    "language": "id"
+    "language": "en"
   }
 }

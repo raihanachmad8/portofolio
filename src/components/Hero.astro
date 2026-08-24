@@ -6,29 +6,48 @@ interface Props {
 }
 
 const { name, tagline, subtitle } = Astro.props;
+const [name1, name2] = name.split(' ');
 ---
 
-<section id="hero" class="min-h-screen flex items-center justify-center">
-  <div class="container mx-auto px-4 text-center">
-    <h1 class="text-4xl md:text-6xl font-bold mb-4" style="color: var(--fg);">
-      {name}
-    </h1>
-    <p class="text-xl md:text-2xl mb-2" style="color: var(--acc);">
-      {tagline}
-    </p>
-    {subtitle && (
-      <p class="text-lg opacity-70" style="color: var(--fg);">
-        {subtitle}
-      </p>
-    )}
-
-    <div class="mt-8 flex gap-4 justify-center">
-      <a href="#works" class="px-6 py-3 rounded" style="background: var(--acc); color: var(--bg);">
-        View Work
-      </a>
-      <a href="#contact" class="px-6 py-3 rounded border" style="border-color: var(--fg); color: var(--fg);">
-        Contact
-      </a>
+<section class="hero" id="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <pre id="boot" aria-hidden="true"></pre>
+      <h1>
+        <span class="mask"><span style="--d:.05s">{name1.toUpperCase()}</span></span>
+        <span class="mask"><span style="--d:.16s"><span class="outl">{name2.toUpperCase()}</span></span></span>
+      </h1>
+      <p class="role-line scr" data-text={tagline}>{tagline}</p>
+      <p class="hero-sub" data-reveal style="--d:.4s">{subtitle}</p>
+      <div class="hero-cta" data-reveal style="--d:.5s">
+        <a href="#work" class="btn solid">View Work</a>
+        <a href="#contact" class="btn ghost">Contact</a>
+      </div>
+    </div>
+    <div class="hud" data-reveal style="--d:.3s">
+      <div class="hud-img"><img src="/images/profile.jpg" alt="Profile" /></div>
+      <div class="hud-row"><span class="k">LOCATION</span><span class="v">Indonesia</span></div>
+      <div class="hud-row"><span class="k">TIME</span><span class="v time">--:--:--</span></div>
+      <div class="hud-row"><span class="k">STATUS</span><span class="v acc"><span class="dot"></span>Available</span></div>
+      <div class="hud-row"><span class="k">MODE</span><span class="v">Backend Focused</span></div>
     </div>
   </div>
+  <div class="scroll-hint mono"><span class="line"></span>Scroll</div>
 </section>
+
+<div class="marquee" aria-hidden="true">
+  <div class="mq-track">
+    <span>Backend Engineer</span>
+    <span>REST API</span>
+    <span>Node.js</span>
+    <span>TypeScript</span>
+    <span>PostgreSQL</span>
+    <span>Docker</span>
+    <span>Backend Engineer</span>
+    <span>REST API</span>
+    <span>Node.js</span>
+    <span>TypeScript</span>
+    <span>PostgreSQL</span>
+    <span>Docker</span>
+  </div>
+</div>

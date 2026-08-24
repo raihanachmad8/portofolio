@@ -1,50 +1,45 @@
 ---
+import SectionHead from './SectionHead.astro';
 import { getSkillsByCategory } from '../lib/content';
 
-const skillsByCategory = await getSkillsByCategory();
-const categories = Object.keys(skillsByCategory);
+const skills = await getSkillsByCategory();
 ---
 
-<section id="skills" class="py-20">
-  <div class="container mx-auto px-4">
-    <h2 class="text-3xl font-bold mb-8" style="color: var(--fg);">
-      Skills
-    </h2>
-
-    {categories.length === 0 ? (
-      <div class="text-center py-12" style="color: var(--fg); opacity: 0.5;">
-        <p>No skills added yet.</p>
-      </div>
-    ) : (
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {categories.map(category => (
-          <div class="p-6 rounded-lg" style="background: var(--card-bg); border: 1px solid var(--card-border);">
-            <h3 class="text-lg font-semibold mb-4 capitalize" style="color: var(--acc);">
-              {category}
-            </h3>
-
-            <div class="space-y-4">
-              {skillsByCategory[category].map(skill => (
-                <div class="skill-bar">
-                  <div class="flex justify-between mb-1">
-                    <span class="text-sm" style="color: var(--fg);">{skill.title}</span>
-                    <span class="text-xs opacity-70" style="color: var(--fg);">
-                      {skill.level}/5
-                    </span>
-                  </div>
-
-                  <div class="h-2 rounded-full" style="background: var(--card-border);">
-                    <div
-                      class="h-full rounded-full transition-all duration-500"
-                      style={`width: ${skill.level * 20}%; background: var(--acc);`}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+<section id="skills">
+  <div class="wrap">
+    <SectionHead tag="02" title="Skills" code="//tech" />
+    <div class="skills-grid">
+      <div class="skill-col" data-reveal>
+        <h3>&gt; Backend (Core)</h3>
+        {skills.backend?.map((sk: any) => (
+          <div class="sk">
+            <div class="row"><span>{sk.name}</span><span>{sk.level}%</span></div>
+            <div class="sb"><span data-lv={`${sk.level}%`}></span></div>
           </div>
         ))}
+        <div class="tools">{skills.tools?.backend?.map((t: string) => <i>{t}</i>)}</div>
       </div>
-    )}
+      <div class="skill-col" data-reveal style="--d:.1s">
+        <h3>&gt; Frontend</h3>
+        {skills.frontend?.map((sk: any) => (
+          <div class="sk">
+            <div class="row"><span>{sk.name}</span><span>{sk.level}%</span></div>
+            <div class="sb"><span data-lv={`${sk.level}%`}></span></div>
+          </div>
+        ))}
+        <div class="tools">{skills.tools?.frontend?.map((t: string) => <i>{t}</i>)}</div>
+      </div>
+      <div class="skill-col" data-reveal style="--d:.2s">
+        <h3>&gt; DevOps &amp; Database</h3>
+        {skills.devops?.map((sk: any) => (
+          <div class="sk">
+            <div class="row"><span>{sk.name}</span><span>{sk.level}%</span></div>
+            <div class="sb"><span data-lv={`${sk.level}%`}></span></div>
+          </div>
+        ))}
+        <div class="tools">{skills.tools?.devops?.map((t: string) => <i>{t}</i>)}</div>
+      </div>
+    </div>
+    <p class="sk-note" data-reveal><b>Database</b> — PostgreSQL · MongoDB · Redis · Prisma · Drizzle &nbsp;✳&nbsp; <b>Soft Skills</b> — Communication · Teamwork · Problem Solving</p>
   </div>
 </section>
