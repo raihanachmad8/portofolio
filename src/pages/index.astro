@@ -1,11 +1,16 @@
 ---
 import Layout from '../layouts/Base.astro';
 import Nav from '../components/Nav.astro';
+import Hero from '../components/Hero.astro';
 ---
 
 <Layout title="Home">
   <Nav />
-  <main class="pt-20">
-    <h1>Welcome to Portfolio</h1>
+  <main>
+    <Hero
+      name="Raihan Effendy"
+      tagline="Backend Engineer"
+      subtitle="Building scalable systems and beautiful experiences"
+    />
   </main>
 </Layout>
