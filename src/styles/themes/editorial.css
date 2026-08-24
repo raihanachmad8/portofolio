@@ -1,0 +1,11 @@
+[data-theme="editorial"] {
+  --bg: #fafafa;
+  --fg: #1a1a1a;
+  --acc: #2563eb;
+  --card-bg: #ffffff;
+  --card-border: #e5e5e5;
+  --font-serif: 'Georgia', serif;
+  --font-sans: 'Georgia', serif;
+  --radius: 0.5rem;
+  --shadow: 0 1px 3px rgba(0,0,0,0.1);
+}

@@ -1,0 +1,10 @@
+[data-theme="gallery"] {
+  --bg: #111111;
+  --fg: #ffffff;
+  --acc: #f59e0b;
+  --card-bg: #1a1a1a;
+  --card-border: #333;
+  --font-sans: 'Inter', sans-serif;
+  --radius: 0.75rem;
+  --shadow: 0 4px 6px rgba(0,0,0,0.3);
+}

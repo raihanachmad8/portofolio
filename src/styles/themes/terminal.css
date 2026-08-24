@@ -1,0 +1,11 @@
+[data-theme="terminal"] {
+  --bg: #0a0a0a;
+  --fg: #00ff00;
+  --acc: #7DF9FF;
+  --card-bg: #1a1a1a;
+  --card-border: #333;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'JetBrains Mono', monospace;
+  --radius: 0;
+  --shadow: none;
+}
