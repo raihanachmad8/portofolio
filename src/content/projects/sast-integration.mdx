@@ -1,0 +1,104 @@
+---
+title: SAST Integration
+slug: sast-integration
+category: Thesis Project
+year: 2026
+has_ui: true
+description: "Static Application Security Testing platform with AI-powered verification using fine-tuned LLMs, built with Next.js, Ant Design, and Drizzle ORM."
+role: "Full-stack developer — platform design, AI integration, scanner integration, backend architecture, frontend development."
+stack: "Next.js 16,TypeScript,Ant Design,Drizzle ORM,PostgreSQL,TanStack Query,Zod,Vitest,Playwright"
+github_url: "https://github.com/raihanachmad8/sast-integration"
+live_url: null
+featured: true
+card_color: red
+image_url: null
+images: []
+order: 8
+---
+
+## Overview
+
+SAST Integration is my thesis project — a Static Application Security Testing platform that integrates multiple security scanners (Semgrep, Gitleaks, Flawfinder) into a unified dashboard and uses fine-tuned LLMs (Qwen2.5-Coder, Llama3 via QLoRA) to verify findings and reduce false positives. The platform features multi-workspace RBAC with 24 permissions and 4 roles, SCM integration (GitHub/GitLab/Gitea), scan policies, PDF/XLSX reports, and scheduled scans.
+
+## Problem
+
+- Traditional SAST tools produce high false-positive rates, making it difficult for developers to focus on real vulnerabilities
+- Security teams must manually triage findings from multiple scanners, which is time-consuming and error-prone
+- Existing SAST tools do not leverage AI to verify findings, leaving developers to manually validate each alert
+
+## Goal
+
+- Build a platform that integrates Semgrep, Gitleaks, and Flawfinder into a unified dashboard
+- Use fine-tuned LLMs (QLoRA) to classify findings as True or False Positives
+- Implement multi-workspace RBAC with granular permissions for team collaboration
+- Provide SCM integration for automatic scanning on push/PR events
+
+## Role
+
+I built the entire platform independently — backend, frontend, AI integration, scanner orchestration, and deployment.
+
+**Team:** Achmad Raihan Fahrezi Effendy (Full-Stack Developer)
+
+## Architecture
+
+<div class="mermaid" set:html={`flowchart TD
+  A["Next.js 16 App Router"] --> B["API Routes"]
+  A --> C["React 19 Components"]
+  B --> D["Drizzle ORM"]
+  B --> E["pg-boss Queue"]
+  D --> F[("PostgreSQL")]
+  E --> G["Scanner Workers"]
+  G --> H["Semgrep"]
+  G --> I["Gitleaks"]
+  G --> J["Flawfinder"]
+  B --> K["AI Verification"]
+  K --> L["QLoRA Fine-tuned LLMs"]
+  C --> M["Ant Design 6"]
+  C --> N["TanStack Query"]
+  O["SCM Webhooks"] --> B
+`} />
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| Frontend | Next.js 16, React 19 | App Router, server components |
+| UI | Ant Design 6 | Component library |
+| State | TanStack Query | Server state management |
+| Backend | Next.js API Routes | Server-side logic |
+| ORM | Drizzle ORM | Type-safe database access |
+| Database | PostgreSQL | Persistent storage |
+| Queue | pg-boss | Background scan processing |
+| AI | QLoRA (Qwen2.5-Coder, Llama3) | Vulnerability verification |
+| Validation | Zod | Schema validation |
+| Testing | Vitest, Playwright | Unit + E2E tests |
+
+## Key Features
+
+- **Multi-Scanner Integration** — Semgrep (SAST), Gitleaks (secrets), Flawfinder (C/C++) in one dashboard
+- **AI Verification** — QLoRA fine-tuned LLMs classify findings as True/False Positives
+- **Multi-Workspace RBAC** — 24 permissions, 4 roles for team collaboration
+- **SCM Integration** — GitHub, GitLab, Gitea webhooks for automatic scanning
+- **Scan Policies** — Configure which scanners run on which repositories
+- **Reports** — PDF and XLSX export of scan results
+- **Scheduled Scans** — Automated scanning on cron schedules
+
+## Technical Decisions
+
+- Next.js 16 with App Router for server components and API routes in one framework
+- Drizzle ORM over Prisma for lighter bundle size and SQL-like syntax
+- Ant Design for enterprise-grade components without building from scratch
+- pg-boss for background job processing without external queue infrastructure
+- QLoRA for fine-tuning LLMs on consumer hardware without full model training
+
+## Challenges
+
+- Integrating 3 different scanner outputs into a unified format required custom parsers for each tool
+- Fine-tuning LLMs for vulnerability classification required curating training data from real scan results
+- Designing RBAC with 24 permissions while keeping the UI intuitive required multiple iterations
+
+## Outcome
+
+The platform successfully scans C/C++, JavaScript, and Python codebases using multiple scanners, verifies findings with AI, and presents results in a unified dashboard. The thesis documents the architecture, implementation, and evaluation of the AI verification approach.
+
+## Final Thoughts
+
+SAST Integration is the most technically complex project I have built. It required understanding security scanners, AI fine-tuning, full-stack development, and academic research methodology. The project reinforced that the best software comes from understanding the problem deeply before writing the code.

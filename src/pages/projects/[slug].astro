@@ -1,116 +1,130 @@
 ---
-import Layout from '../../layouts/Base.astro';
-import Nav from '../../components/Nav.astro';
-import Footer from '../../components/Footer.astro';
-import { getAllProjects, getProjectBySlug } from '../../lib/content';
+import PageHead from '../../layouts/PageHead.astro';
+import Header from '../../components/Header.astro';
+import ContactFooter from '../../components/ContactFooter.astro';
+import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
-  const projects = await getAllProjects();
-  return projects.map(project => ({
-    params: { slug: project.slug },
-    props: { project },
+  const projects = await getCollection('projects');
+  return projects.map(entry => ({
+    params: { slug: entry.id },
+    props: { entry },
   }));
 }
 
-const { project } = Astro.props;
-const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://portofolio.dev';
+const { entry } = Astro.props;
+const { data } = entry;
+const { Content } = await render(entry);
+
+const hasUi = data.has_ui !== false;
+const imgSrc = data.image_url || '/images/placeholder.svg';
+const stackItems = data.stack.split(',').map((t: string) => t.trim());
 ---
 
-<Layout title={project.title}>
-  <Nav />
-  <main class="pt-20 min-h-screen">
-    <article class="container mx-auto px-4 py-20 max-w-4xl">
-      <nav class="mb-8 text-sm" style="color: var(--fg); opacity: 0.6;">
-        <a href="/" style="color: var(--acc);">Home</a>
-        <span class="mx-2">/</span>
-        <a href="/projects" style="color: var(--acc);">Projects</a>
-        <span class="mx-2">/</span>
-        <span>{project.title}</span>
-      </nav>
+<PageHead lang="en" title={`${data.title} — Case Study`} description={data.description} themeDefault="gallery">
+  <Header />
+  <main id="top">
+    <section id="project-detail">
+      <div class="wrap">
 
-      <header class="mb-12">
-        <h1 class="text-4xl md:text-5xl font-bold mb-4" style="color: var(--fg);">
-          {project.title}
-        </h1>
+        <nav class="section-head">
+          <a href="/" class="section-link">Home</a>
+          <span class="rule"></span>
+          <a href="/projects" class="section-link">Projects</a>
+          <span class="rule"></span>
+          <span class="mono code">{data.title}</span>
+        </nav>
 
-        <div class="flex flex-wrap gap-2 mb-6">
-          {project.stack.split(',').map(tech => (
-            <span
-              class="text-sm px-3 py-1 rounded"
-              style="background: var(--acc); color: var(--bg);"
-            >
-              {tech.trim()}
-            </span>
+        {hasUi ? (
+          <div class="proj-hero" data-reveal>
+            <img src={imgSrc} alt={data.title} loading="lazy" />
+          </div>
+        ) : (
+          <div class="proj-terminal" data-reveal>
+            <div class="terminal-bar">
+              <span class="terminal-dot red"></span>
+              <span class="terminal-dot yellow"></span>
+              <span class="terminal-dot green"></span>
+              <span class="terminal-title mono">{data.slug}</span>
+            </div>
+            <div class="terminal-body">
+              <div class="terminal-line"><span class="t-prompt">$</span> <span class="t-cmd">cat</span> README.md</div>
+              <div class="terminal-line t-comment"># {data.title}</div>
+              <div class="terminal-line t-dim">{data.description}</div>
+              <div class="terminal-line"></div>
+              <div class="terminal-line"><span class="t-prompt">$</span> <span class="t-cmd">tree</span> --dirsfirst -L 2</div>
+              <div class="terminal-line t-dim">.</div>
+              <div class="terminal-line t-dim">├── src/</div>
+              <div class="terminal-line t-dim">│   ├── controllers/</div>
+              <div class="terminal-line t-dim">│   ├── services/</div>
+              <div class="terminal-line t-dim">│   ├── models/</div>
+              <div class="terminal-line t-dim">│   └── middleware/</div>
+              <div class="terminal-line t-dim">├── prisma/</div>
+              <div class="terminal-line t-dim">├── docker-compose.yml</div>
+              <div class="terminal-line t-dim">└── package.json</div>
+              <div class="terminal-line"></div>
+              <div class="terminal-line"><span class="t-prompt">$</span> <span class="t-cmd">docker</span> compose ps</div>
+              {stackItems.map((s: string) => (
+                <div class="terminal-line t-stack"><span class="t-check">✓</span> {s}</div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div class="proj-meta" data-reveal>
+          <div class="proj-meta-cell">
+            <div class="label">Category</div>
+            <div class="value">{data.category}</div>
+          </div>
+          <div class="proj-meta-cell">
+            <div class="label">Year</div>
+            <div class="value">{data.year}</div>
+          </div>
+          <div class="proj-meta-cell">
+            <div class="label">Stack</div>
+            <div class="value">{stackItems.length} technologies</div>
+          </div>
+        </div>
+
+        <h1 class="proj-title" data-reveal>{data.title}</h1>
+
+        <div class="proj-tags" data-reveal>
+          {stackItems.map((t: string) => (
+            <span>{t}</span>
           ))}
         </div>
 
-        <div class="flex gap-4">
-          {project.github_url && (
-            <a
-              href={project.github_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="px-4 py-2 rounded text-sm"
-              style="background: var(--card-bg); border: 1px solid var(--card-border); color: var(--fg);"
-            >
-              GitHub →
-            </a>
+        <div class="proj-cta" data-reveal>
+          {data.github_url && (
+            <a href={data.github_url} target="_blank" rel="noopener" class="btn ghost">GitHub ↗</a>
           )}
-          {project.live_url && (
-            <a
-              href={project.live_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="px-4 py-2 rounded text-sm"
-              style="background: var(--acc); color: var(--bg);"
-            >
-              Live Demo →
-            </a>
+          {data.live_url && (
+            <a href={data.live_url} target="_blank" rel="noopener" class="btn solid">Live Demo ↗</a>
           )}
         </div>
-      </header>
 
-      {project.image_url && (
-        <div class="mb-12">
-          <img
-            src={project.image_url}
-            alt={project.title}
-            class="w-full rounded-lg"
-            loading="lazy"
-          />
+        <div class="proj-content prose" data-reveal>
+          <Content />
         </div>
-      )}
 
-      <div class="prose" style="color: var(--fg);">
-        <p class="text-lg leading-relaxed">{project.description}</p>
-      </div>
+        {hasUi && data.images && data.images.length > 1 && (
+          <div class="proj-gallery" data-reveal>
+            <h2 class="proj-section-title">Screenshots</h2>
+            <div class="proj-gallery-grid">
+              {data.images.map((img: string, i: number) => (
+                <figure class="proj-gallery-item">
+                  <img src={img} alt={`${data.title} screenshot ${i + 1}`} loading="lazy" />
+                </figure>
+              ))}
+            </div>
+          </div>
+        )}
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12 p-6 rounded-lg"
-           style="background: var(--card-bg); border: 1px solid var(--card-border);">
-        <div>
-          <div class="text-sm opacity-60 mb-1">Category</div>
-          <div class="font-semibold">{project.category}</div>
-        </div>
-        <div>
-          <div class="text-sm opacity-60 mb-1">Year</div>
-          <div class="font-semibold">{project.year}</div>
-        </div>
-        <div>
-          <div class="text-sm opacity-60 mb-1">Stack</div>
-          <div class="font-semibold">{project.stack.split(',').length} technologies</div>
-        </div>
-        <div>
-          <div class="text-sm opacity-60 mb-1">Status</div>
-          <div class="font-semibold">{project.live_url ? 'Live' : 'Completed'}</div>
+        <div class="proj-back" data-reveal>
+          <a href="/projects" class="arrow-link"><i>→</i><b>View All Projects</b></a>
         </div>
       </div>
-
-      <div class="mt-12">
-        <a href="/projects" style="color: var(--acc);">
-          ← Back to Projects
-        </a>
-      </div>
-    </article>
+    </section>
   </main>
-  <Footer />
-</Layout>
+  <ContactFooter />
+</PageHead>

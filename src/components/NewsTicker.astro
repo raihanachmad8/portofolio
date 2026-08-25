@@ -1,0 +1,59 @@
+---
+const { items = [] } = Astro.props;
+const defaultItems = [
+  "🔧 Under maintenance — updating project images and content",
+  "🎓 GPA 3.90 — Politeknik Negeri Malang",
+  "💼 Open to fullstack engineering opportunities",
+  "🛠️ Portfolio v2.0 — built with Astro, multi-theme, AI assistant",
+];
+const tickerItems = items.length > 0 ? items : defaultItems;
+---
+
+<div class="news-ticker" aria-label="Latest updates">
+  <div class="ticker-track">
+    {[...tickerItems, ...tickerItems].map((item) => (
+      <span class="ticker-item">{item}</span>
+    ))}
+  </div>
+</div>
+
+<style>
+  .news-ticker {
+    width: 100%;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+    padding: .5rem 0;
+    background: var(--panel);
+  }
+  .ticker-track {
+    display: flex;
+    width: max-content;
+    animation: tickerScroll 40s linear infinite;
+  }
+  .ticker-item {
+    font-family: var(--f-mono);
+    font-size: .56rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--dim);
+    white-space: nowrap;
+    padding: 0 3rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .ticker-item::after {
+    content: '•';
+    color: var(--acc);
+  }
+  .ticker-item:last-child::after {
+    content: none;
+  }
+  @keyframes tickerScroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ticker-track { animation: none; }
+  }
+</style>

@@ -1,0 +1,103 @@
+---
+title: Cat Stories
+slug: cat-stories
+category: Campus Project
+year: 2023
+has_ui: true
+description: "Cat adoption platform built with Express.js, Knex.js, React 18, MSSQL, Swagger, Joi validation, and Winston logging."
+role: "Backend Lead — API design, database workflows, Swagger documentation."
+stack: "Express.js,Knex.js,React 18,Vite,Tailwind CSS,MSSQL,JWT,Joi,Winston,Swagger,Jest"
+github_url: "https://github.com/raihanachmad8/Basis-Data-CATSTORIES"
+live_url: null
+featured: false
+card_color: blue
+image_url: "/images/projects/cat-stories/cover.webp"
+images:
+  - "/images/projects/cat-stories/homepage.png"
+  - "/images/projects/cat-stories/dashboard.png"
+  - "/images/projects/cat-stories/database.png"
+  - "/images/projects/cat-stories/report.jpg"
+order: 2
+---
+
+## Overview
+
+Cat Stories (internally named "Platform Adopsi Kucing") was a database-focused project for a university course with a tight 2-week deadline. The system managed cat adoption data — tracking cats, adopters, and adoption records. I deliberately stepped outside my PHP comfort zone and chose Node.js + Express for the backend, making this my first project in the JavaScript backend ecosystem.
+
+## Problem
+
+- The coursework required a complete database application with REST API, validation, and documentation — in 2 weeks
+- I had only worked with PHP before this project — the Node.js ecosystem was unfamiliar territory
+- The team needed API documentation that both frontend and backend developers could reference
+
+## Goal
+
+- Build a REST API with Express.js and Knex.js query builder for MSSQL
+- Implement schema validation with Joi and structured logging with Winston
+- Generate interactive API documentation with Swagger
+- Build a React frontend with Vite and Tailwind CSS
+
+## Role
+
+I led the backend development while my teammate focused on the React frontend.
+
+**Team:** Achmad Raihan Fahrezi Effendy (Backend Lead) + 1 teammate (Frontend)
+
+## Architecture
+
+<div class="mermaid" set:html={`flowchart TD
+  A["React 18 + Vite"] --> B["Express.js API"]
+  B --> C["Joi Validation"]
+  B --> D["Winston Logging"]
+  B --> E["JWT Auth"]
+  B --> F["Knex.js Query Builder"]
+  F --> G[("Microsoft SQL Server")]
+  H["Swagger"] --> B
+  I["Tailwind CSS"] --> A
+`} />
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| Frontend | React 18, Vite | User interface with fast HMR |
+| Styling | Tailwind CSS | Utility-first responsive design |
+| Backend | Express.js | REST API |
+| Query Builder | Knex.js | Database queries |
+| Validation | Joi | Schema validation |
+| Logging | Winston | Structured logging |
+| Auth | JWT | Token-based authentication |
+| Database | Microsoft SQL Server | Persistent storage |
+| Docs | Swagger (swagger-jsdoc + swagger-ui-express) | Interactive API documentation |
+| Testing | Jest + Supertest | Unit and integration tests |
+| Uploads | multer | File upload handling |
+
+## Key Features
+
+- **REST API Architecture** — Clean endpoint design with consistent error handling
+- **Schema Validation** — Joi validation for every request body and query parameter
+- **Structured Logging** — Winston logger for request tracking and debugging
+- **JWT Authentication** — Token-based auth for protected endpoints
+- **Interactive API Docs** — Swagger UI for testing and documenting every endpoint
+- **File Uploads** — Multer for handling multipart form data
+- **SQL Injection Protection** — Knex.js parameterized queries against MSSQL
+
+## Technical Decisions
+
+- Express was chosen to explore Node.js backend development beyond PHP
+- Knex.js provided a clean query builder without the overhead of a full ORM
+- Swagger was added early to keep the API contract visible and documented
+- Joi validation caught errors at the request layer before they reached business logic
+- Vite was used for fast frontend development with React
+
+## Challenges
+
+- Pivoting from PHP to Node.js under a 2-week deadline required rapid learning
+- Knex.js query syntax differs from raw SQL — translating complex queries took adjustment
+- Integrating Swagger with Express required understanding OpenAPI specification format
+
+## Outcome
+
+The project was delivered on time with complete API documentation, validation, and logging. It demonstrated that backend concepts transfer across languages — the patterns I learned in PHP applied directly to Node.js.
+
+## Final Thoughts
+
+Cat Stories taught me that the language matters less than the architecture. REST APIs, validation, logging, and documentation work the same way whether you use PHP, Node.js, or anything else. The 2-week deadline forced efficiency, and the Node.js experience opened doors to TypeScript and NestJS in later projects.

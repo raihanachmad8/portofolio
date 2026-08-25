@@ -1,8 +1,11 @@
 ---
 import SectionHead from './SectionHead.astro';
-import { getAllProjects } from '../lib/content';
+import { getCollection } from 'astro:content';
 
-const projects = await getAllProjects();
+const allProjects = await getCollection('projects');
+const projects = allProjects
+  .sort((a, b) => a.data.order - b.data.order)
+  .filter(p => p.data.featured);
 ---
 
 <section id="work">
@@ -10,25 +13,27 @@ const projects = await getAllProjects();
     <SectionHead tag="01" title="Featured Work" code="//projects" />
     <div class="works-grid">
       <aside class="works-side">
-        <p>A selection of projects I've built, from backend systems to full-stack applications.</p>
+        <p>A selection of projects I've built across backend, frontend, and full-stack applications.</p>
         <nav class="works-index" aria-label="Project navigation">
           {projects.map((pr) => (
-            <a href={`#project-${pr.id}`}><i>/{pr.id}</i><b>{pr.title}</b></a>
+            <a href={`#project-${pr.data.order}`}><i>/{String(pr.data.order).padStart(2, '0')}</i><b>{pr.data.title}</b></a>
           ))}
         </nav>
-        <p class="mono" style="margin-top:2rem;color:var(--acc);font-weight:700">Ask Aruna for case studies</p>
+        <a href="/projects" class="view-more-link mono">View All Projects <i>→</i></a>
       </aside>
       <div>
         {projects.map((pr) => (
-          <article class="proj" id={`project-${pr.id}`} data-reveal>
-            <div class="proj-top mono"><span class="no">/{pr.id}</span><span>{pr.year} · {pr.category}</span></div>
-            <figure data-case={pr.id}><img src={pr.image_url || '/images/placeholder.jpg'} alt={pr.title} loading="lazy" /></figure>
-            <h3>{pr.title}</h3>
-            <p class="desc">{pr.description}</p>
+          <article class="proj" id={`project-${pr.data.order}`} data-reveal>
+            <div class="proj-top mono"><span class="no">/{String(pr.data.order).padStart(2, '0')}</span><span>{pr.data.year} · {pr.data.category}</span></div>
+            <figure data-case={pr.data.order}>
+              <img src={pr.data.image_url || '/images/placeholder.svg'} alt={pr.data.title} loading="lazy" />
+            </figure>
+            <h3>{pr.data.title}</h3>
+            <p class="desc">{pr.data.description}</p>
             <div class="tags">
-              {pr.stack.split(',').map((t) => <span>{t.trim()}</span>)}
+              {pr.data.stack.split(',').map((t: string) => <span>{t.trim()}</span>)}
             </div>
-            <button class="arrow-link" data-case={pr.id}>View Case Study<i>→</i></button>
+            <a href={`/projects/${pr.id}`} class="arrow-link">View Case Study<i>→</i></a>
           </article>
         ))}
       </div>

@@ -1,0 +1,340 @@
+---
+title: "The DevOps Practices That Actually Matter for Small Teams"
+category: Article
+excerpt: "Most DevOps advice is built for large organizations. Here is what actually works when you are a team of two to five people."
+published_date: 2025-04-12
+read_time: 15
+featured: true
+tags: ["devops", "infrastructure", "deployment", "monitoring"]
+order: 0
+---
+
+Most DevOps advice is built for large organizations. Here is what actually works when you are a team of two to five people.
+
+## The enterprise DevOps trap
+
+I spent months implementing Kubernetes clusters, service meshes, and complex CI/CD pipelines for a project that had two developers and ten users. The infrastructure was impressive. The deployment process was automated. The monitoring dashboards were beautiful. And none of it was necessary.
+
+The enterprise DevOps playbook does not scale down. You do not need a service mesh when you have one service. You do not need Kubernetes when a single VPS handles your load. You do not need fifteen monitoring tools when you can read a log file.
+
+The DevOps practices that matter for small teams are the ones that save time and prevent mistakes. Everything else is overhead.
+
+## The three things that matter
+
+For a small team, DevOps comes down to three things: automated deployment, basic monitoring, and environment consistency. Everything else is optional.
+
+### Automated deployment
+
+If you are still deploying by SSH-ing into a server and running git pull, you are one typo away from downtime. Automated deployment does not need to be complex. A simple script that pulls the latest code, installs dependencies, and restarts the application is enough.
+
+Here is a deployment script that works for most small projects:
+
+```bash
+#!/bin/bash
+set -e
+
+echo "Deploying..."
+cd /var/www/app
+
+# Pull latest code
+git pull origin main
+
+# Install dependencies
+npm ci --production
+
+# Run migrations
+npm run migrate
+
+# Restart application
+pm2 restart app
+
+echo "Deployed successfully"
+```
+
+This script runs in thirty seconds. It pulls the code, installs dependencies, runs migrations, and restarts the application. The entire deployment is atomic — if any step fails, the script stops and the previous version keeps running.
+
+For more safety, I add a health check after deployment:
+
+```bash
+# After restart
+sleep 5
+if curl -f http://localhost:3000/health > /dev/null 2>&1; then
+  echo "Health check passed"
+else
+  echo "Health check failed, rolling back"
+  git checkout HEAD~1
+  npm ci --production
+  pm2 restart app
+  exit 1
+fi
+```
+
+The health check verifies that the application started correctly. If it fails, the script rolls back to the previous version automatically. This prevents deploying broken code to production.
+
+### Basic monitoring
+
+You do not need Datadog or New Relic to monitor a small application. You need three things: uptime monitoring, error tracking, and log aggregation.
+
+Uptime monitoring tells you when the application is down. A simple health check every minute from an external service is enough. UptimeRobot, Betterstack, or even a cron job that sends a Slack message when the health check fails.
+
+Error tracking tells you when things go wrong. Sentry has a free tier that is sufficient for most small projects. It captures exceptions, stack traces, and context. When an error occurs, you get a notification with enough information to debug.
+
+Log aggregation tells you what happened. For small projects, SSH-ing into the server and reading the log file is usually sufficient. If you need something more structured, a simple log file with timestamps and log levels is enough.
+
+Here is a logging setup that works for most small projects:
+
+```ts
+// Simple structured logging
+function log(level: string, message: string, context?: Record<string, unknown>) {
+  const entry = {
+    timestamp: new Date().toISOString(),
+    level,
+    message,
+    ...context
+  };
+  console.log(JSON.stringify(entry));
+}
+
+// Usage
+log('info', 'User created', { userId: user.id, email: user.email });
+log('error', 'Database connection failed', { error: error.message });
+```
+
+Structured logs are machine-readable. You can grep them, aggregate them, and search them. This is usually enough for small projects.
+
+### Environment consistency
+
+The biggest source of deployment bugs is the gap between development and production. The application works on your machine but fails in production because of a different Node.js version, a missing environment variable, or a different operating system.
+
+Docker solves this problem by packaging the application with its entire environment. The container runs the same way everywhere — on your machine, in staging, and in production.
+
+Here is a Dockerfile that works for most Node.js applications:
+
+```dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --production
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
+```
+
+This Dockerfile creates a minimal container with Node.js 20, installs production dependencies, copies the application code, and starts the server. The container runs the same way everywhere.
+
+For local development, I use Docker Compose to run the application and its dependencies:
+
+```yaml
+# docker-compose.yml
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db:5432/app
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=app
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+
+volumes:
+  pgdata:
+```
+
+Docker Compose runs the application with PostgreSQL and Redis. The entire development environment is defined in code. A new developer can start working in five minutes by running `docker compose up`.
+
+## The CI/CD pipeline that makes sense
+
+A continuous integration and deployment pipeline for a small team should be simple. It should run tests, build the application, and deploy it. Anything else is overhead.
+
+Here is a GitHub Actions workflow that covers the essentials:
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm test
+      - run: npm run lint
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /var/www/app
+            git pull origin main
+            npm ci --production
+            npm run migrate
+            pm2 restart app
+```
+
+This pipeline runs tests on every push to main. If the tests pass, it deploys to the server. The entire process is automated. A developer pushes code, the tests run, and the application deploys in under five minutes.
+
+## The infrastructure that scales
+
+For most small projects, a single VPS is sufficient. A $20/month DigitalOcean or Hetzner droplet with 2GB of RAM handles most applications with thousands of users.
+
+I use this setup for most small projects:
+
+- **Server**: Ubuntu 22.04 on a $20/month VPS
+- **Process manager**: PM2 for Node.js applications
+- **Reverse proxy**: Nginx for SSL termination and static files
+- **Database**: PostgreSQL on the same server
+- **Cache**: Redis on the same server
+- **Backup**: Daily automated backups to S3
+
+This setup handles most traffic patterns. If the application grows beyond what a single server can handle, I add a second server for the database. If it grows beyond that, I add a load balancer. But most applications never need that.
+
+Here is the Nginx configuration I use:
+
+```nginx
+server {
+    listen 80;
+    server_name example.com;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name example.com;
+
+    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+This configuration handles SSL termination, proxying to the Node.js application, and WebSocket support. It is simple, performant, and easy to maintain.
+
+## The security basics
+
+Small teams often skip security because they think they are too small to be targeted. They are wrong. Automated bots scan the entire internet for vulnerable applications. Being small does not protect you.
+
+The security basics that matter:
+
+1. **SSH key authentication** — disable password authentication
+2. **Firewall** — only open ports 80 and 443
+3. **Automatic updates** — enable unattended-upgrades for security patches
+4. **SSL certificates** — use Let's Encrypt for free SSL
+5. **Environment variables** — never commit secrets to git
+6. **Rate limiting** — prevent brute force attacks
+7. **Input validation** — validate all user input
+
+These basics prevent the most common attacks. They take an hour to implement and protect you from ninety percent of threats.
+
+Here is a simple UFW firewall setup:
+
+```bash
+# Allow SSH
+ufw allow 22/tcp
+
+# Allow HTTP and HTTPS
+ufw allow 80/tcp
+ufw allow 443/tcp
+
+# Deny everything else
+ufw default deny incoming
+ufw default allow outgoing
+
+# Enable firewall
+ufw enable
+```
+
+This firewall allows only SSH, HTTP, and HTTPS. Everything else is blocked. This prevents unauthorized access to your server.
+
+## The monitoring dashboard
+
+For small teams, a simple monitoring dashboard is more useful than a complex observability platform. I create a dashboard that shows the essentials: uptime, response time, error rate, and resource usage.
+
+Here is a simple monitoring script that runs every minute:
+
+```bash
+#!/bin/bash
+# monitor.sh — run every minute via cron
+
+# Check uptime
+if ! curl -f http://localhost:3000/health > /dev/null 2>&1; then
+  echo "$(date): Application is down" >> /var/log/monitor.log
+  # Send alert (Slack, email, etc.)
+fi
+
+# Check response time
+response_time=$(curl -o /dev/null -s -w '%{time_total}' http://localhost:3000/health)
+if (( $(echo "$response_time > 2.0" | bc -l) )); then
+  echo "$(date): Slow response: ${response_time}s" >> /var/log/monitor.log
+fi
+
+# Check disk space
+disk_usage=$(df / | tail -1 | awk '{print $5}' | sed 's/%//')
+if [ "$disk_usage" -gt 80 ]; then
+  echo "$(date): High disk usage: ${disk_usage}%" >> /var/log/monitor.log
+fi
+```
+
+This script checks uptime, response time, and disk space. If any metric exceeds a threshold, it logs a warning. This is usually enough for small projects.
+
+## What I learned
+
+DevOps for small teams is about simplicity. Automated deployment, basic monitoring, and environment consistency. Everything else is overhead that costs more time than it saves.
+
+The key insight is that DevOps is not about tools — it is about practices. A simple deployment script is better than a complex CI/CD pipeline that nobody understands. A log file is better than a monitoring platform that nobody checks. A single VPS is better than a Kubernetes cluster that nobody can debug.
+
+The goal is not to implement every DevOps practice. The goal is to implement the practices that save time and prevent mistakes. For most small teams, that means automated deployment, basic monitoring, and environment consistency. Everything else can wait.
+
+## Resources
+
+- [Docker Documentation](https://docs.docker.com/) — Container platform
+- [Nginx Documentation](https://nginx.org/en/docs/) — Web server and reverse proxy
+- [PM2 Documentation](https://pm2.keymetrics.io/) — Node.js process manager
+- [GitHub Actions Documentation](https://docs.github.com/en/actions) — CI/CD automation
+- [UptimeRobot](https://uptimerobot.com/) — Free uptime monitoring
+- [Sentry](https://sentry.io/) — Error tracking and monitoring

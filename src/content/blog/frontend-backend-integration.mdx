@@ -1,0 +1,359 @@
+---
+title: "Building a Frontend That Does Not Fight the Backend"
+category: Article
+excerpt: "How frontend and backend developers can work together without stepping on each other's toes."
+published_date: 2025-04-05
+read_time: 15
+featured: true
+tags: ["frontend", "fullstack", "api", "collaboration"]
+order: 0
+---
+
+How frontend and backend developers can work together without stepping on each other's toes.
+
+## The integration gap
+
+I have watched frontend and backend teams work in parallel for weeks, only to discover during integration that nothing lines up. The frontend expected a different response shape. The backend returned data the frontend did not need. The error handling was inconsistent. The pagination did not match.
+
+The root cause is almost always the same: the two sides designed their parts independently. The backend built endpoints that made sense from a database perspective. The frontend built components that made sense from a user perspective. Neither side consulted the other.
+
+The fix is not better communication — it is better structure. When both sides follow the same conventions, integration becomes mechanical instead of creative.
+
+## The contract-first approach
+
+I start every feature by writing the API contract before either side writes code. The contract defines the request shape, the response shape, and the error shapes. Both sides implement against the same contract, so they arrive at the same destination.
+
+Here is what a contract looks like for a project listing endpoint:
+
+```ts
+// Contract: GET /api/v1/projects
+// Query params: page (number), limit (number), status (string)
+// Response:
+{
+  success: true,
+  data: Project[],
+  meta: { page, limit, total, totalPages }
+}
+
+// Error response:
+{
+  success: false,
+  error: { code, message }
+}
+
+// Project type:
+{
+  id: string,
+  title: string,
+  status: 'active' | 'archived',
+  createdAt: string,
+  updatedAt: string
+}
+```
+
+The frontend builds the component against this contract. The backend builds the endpoint against this contract. When both sides are done, they match because they implemented the same specification.
+
+## Shared type definitions
+
+When the frontend and backend use the same language (TypeScript), I share type definitions between them. The types are the single source of truth. If the type changes, both sides see the change immediately.
+
+Here is how I structure shared types:
+
+```ts
+// shared/types/project.ts
+export interface Project {
+  id: string;
+  title: string;
+  description: string;
+  status: 'active' | 'archived';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectListResponse {
+  success: true;
+  data: Project[];
+  meta: PaginationMeta;
+}
+
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface ApiError {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    fields?: FieldError[];
+  };
+}
+
+export interface FieldError {
+  path: string;
+  message: string;
+}
+```
+
+The backend imports these types for its responses. The frontend imports these types for its components. Both sides are always in sync because they reference the same definition.
+
+## The fetch wrapper
+
+I write a shared fetch wrapper that handles the common concerns: authentication, error handling, and response parsing. Every request goes through this wrapper, so the behavior is consistent.
+
+```ts
+// shared/api/client.ts
+import type { ApiError } from '../types/project';
+
+export class ApiClient {
+  constructor(private baseUrl: string) {}
+
+  async get<T>(path: string, params?: Record<string, string>): Promise<T> {
+    const url = new URL(path, this.baseUrl);
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        url.searchParams.set(key, value);
+      });
+    }
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        'Authorization': `Bearer ${getToken()}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const body = await response.json();
+
+    if (!body.success) {
+      throw new ApiError(body.error.code, body.error.message, body.error.fields);
+    }
+
+    return body.data;
+  }
+}
+
+export class ApiError extends Error {
+  constructor(
+    public code: string,
+    message: string,
+    public fields?: Array<{ path: string; message: string }>
+  ) {
+    super(message);
+  }
+}
+```
+
+The frontend uses this client for every request. The client handles authentication, error parsing, and response unwrapping. The frontend components do not need to worry about these concerns.
+
+## Error handling that works for both sides
+
+The biggest source of integration friction is error handling. The backend returns errors in one format, the frontend expects a different format, and the user sees a generic "Something went wrong" message.
+
+I solve this with a shared error contract. The backend returns errors in a predictable format. The frontend handles errors in a predictable way.
+
+Backend error response:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid input",
+    "fields": [
+      { "path": "title", "message": "Required" },
+      { "path": "email", "message": "Invalid format" }
+    ]
+  }
+}
+```
+
+Frontend error handling:
+
+```ts
+try {
+  const project = await api.post<Project>('/projects', projectData);
+  showSuccess('Project created');
+} catch (error) {
+  if (error instanceof ApiError && error.fields) {
+    // Map field errors to form inputs
+    error.fields.forEach(field => {
+      setFieldError(field.path, field.message);
+    });
+  } else {
+    // Show generic error message
+    showError(error.message);
+  }
+}
+```
+
+The frontend knows exactly what error shapes are possible. The backend knows exactly what error shapes the frontend expects. Integration is mechanical.
+
+## Loading states that match
+
+The frontend needs to show loading states while the backend processes requests. If the loading states do not match the actual request timing, the user experience feels broken.
+
+I design loading states around the backend's actual performance characteristics. If a list query takes 200ms, I show a skeleton for 200ms. If a file upload takes 3 seconds, I show a progress bar for 3 seconds.
+
+Here is how I coordinate loading states:
+
+```ts
+// Frontend: show skeleton while loading
+const [projects, setProjects] = useState<Project[]>([]);
+const [loading, setLoading] = useState(true);
+
+useEffect(() => {
+  api.get<Project[]>('/projects')
+    .then(data => setProjects(data))
+    .finally(() => setLoading(false));
+}, []);
+
+if (loading) return <ProjectSkeleton count={5} />;
+if (projects.length === 0) return <EmptyState />;
+return <ProjectList projects={projects} />;
+```
+
+The skeleton component matches the actual layout of the project list. The user sees a preview of what is coming, not a generic spinner. This makes the application feel faster even when the backend is slow.
+
+## Optimistic updates
+
+When the user performs an action that should be immediate (like toggling a status), I use optimistic updates. The frontend updates the UI immediately, then sends the request to the backend. If the request fails, the frontend rolls back the change.
+
+```ts
+async function toggleProjectStatus(project: Project) {
+  const newStatus = project.status === 'active' ? 'archived' : 'active';
+
+  // Optimistic update
+  setProjects(prev =>
+    prev.map(p => p.id === project.id ? { ...p, status: newStatus } : p)
+  );
+
+  try {
+    await api.patch(`/projects/${project.id}`, { status: newStatus });
+  } catch (error) {
+    // Rollback on failure
+    setProjects(prev =>
+      prev.map(p => p.id === project.id ? { ...p, status: project.status } : p)
+    );
+    showError('Failed to update project status');
+  }
+}
+```
+
+The user sees the change immediately. The request happens in the background. If the request fails, the change is rolled back silently. This makes the application feel responsive even when the backend is slow.
+
+## Real-time updates
+
+When the backend pushes updates (like new messages or status changes), the frontend needs to receive them without polling. I use WebSockets or Server-Sent Events for this.
+
+Here is a simple pattern for real-time updates:
+
+```ts
+// Backend: SSE endpoint
+app.get('/api/v1/events', (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive'
+  });
+
+  const sendEvent = (event: string, data: unknown) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
+  // Send events when data changes
+  projectService.onUpdate(project => sendEvent('project.updated', project));
+  projectService.onDelete(id => sendEvent('project.deleted', { id }));
+});
+
+// Frontend: listen for events
+const eventSource = new EventSource('/api/v1/events');
+
+eventSource.addEventListener('project.updated', (event) => {
+  const project = JSON.parse(event.data);
+  setProjects(prev =>
+    prev.map(p => p.id === project.id ? project : p)
+  );
+});
+
+eventSource.addEventListener('project.deleted', (event) => {
+  const { id } = JSON.parse(event.data);
+  setProjects(prev => prev.filter(p => p.id !== id));
+});
+```
+
+The backend pushes updates when data changes. The frontend receives them in real time. No polling, no wasted requests, no stale data.
+
+## Testing the integration
+
+I write integration tests that verify the frontend and backend work together. These tests are more valuable than unit tests because they catch the issues that only appear during integration.
+
+Here is an integration test for the project listing flow:
+
+```ts
+describe('Project listing', () => {
+  it('should load and display projects', async () => {
+    // Mock backend response
+    server.use(
+      rest.get('/api/v1/projects', (req, res, ctx) => {
+        return res(ctx.json({
+          success: true,
+          data: [
+            { id: '1', title: 'Test Project', status: 'active' }
+          ],
+          meta: { page: 1, limit: 10, total: 1, totalPages: 1 }
+        }));
+      })
+    );
+
+    render(<ProjectList />);
+
+    // Wait for projects to load
+    await screen.findByText('Test Project');
+
+    // Verify the project is displayed
+    expect(screen.getByText('Test Project')).toBeInTheDocument();
+  });
+
+  it('should show error when request fails', async () => {
+    server.use(
+      rest.get('/api/v1/projects', (req, res, ctx) => {
+        return res(ctx.json({
+          success: false,
+          error: { code: 'SERVER_ERROR', message: 'Internal error' }
+        }));
+      })
+    );
+
+    render(<ProjectList />);
+
+    // Wait for error message
+    await screen.findByText('Internal error');
+
+    // Verify error is displayed
+    expect(screen.getByText('Internal error')).toBeInTheDocument();
+  });
+});
+```
+
+These tests verify that the frontend handles the backend's actual responses correctly. They catch integration issues before they reach production.
+
+## What I learned
+
+The integration gap between frontend and backend is not a communication problem — it is a structure problem. When both sides follow the same conventions, integration becomes mechanical.
+
+The key practices are: shared contracts, shared types, consistent error handling, and integration tests. These practices take time to establish, but they save far more time during development and maintenance.
+
+The goal is not to eliminate all integration issues. The goal is to make them predictable and easy to fix. When both sides know what to expect, surprises become rare and integration becomes routine.
+
+## Resources
+
+- [JSON:API Specification](https://jsonapi.org/) — A specification for building APIs
+- [OpenAPI TypeScript Codegen](https://openapi-ts.dev/) — Generate TypeScript types from OpenAPI specs
+- [tRPC](https://trpc.io/) — End-to-end typesafe APIs
+- [TanStack Query](https://tanstack.com/query) — Data fetching and caching for React
+- [SWR](https://swr.vercel.app/) — React Hooks for data fetching
+- [Vite](https://vitejs.dev/) — Fast frontend build tool

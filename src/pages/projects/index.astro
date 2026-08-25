@@ -1,64 +1,50 @@
 ---
-import Layout from '../../layouts/Base.astro';
-import Nav from '../../components/Nav.astro';
-import Footer from '../../components/Footer.astro';
-import { getAllProjects } from '../../lib/content';
+import PageHead from '../../layouts/PageHead.astro';
+import Header from '../../components/Header.astro';
+import ContactFooter from '../../components/ContactFooter.astro';
+import { getCollection } from 'astro:content';
 
-const projects = await getAllProjects();
+const allProjects = await getCollection('projects');
+const projects = allProjects.sort((a, b) => a.data.order - b.data.order);
 ---
 
-<Layout title="Projects">
-  <Nav />
-  <main class="pt-20 min-h-screen">
-    <div class="container mx-auto px-4 py-20">
-      <h1 class="text-4xl font-bold mb-12" style="color: var(--fg);">
-        All Projects
-      </h1>
-
-      {projects.length === 0 ? (
-        <div class="text-center py-12" style="color: var(--fg); opacity: 0.5;">
-          <p>No projects yet.</p>
+<PageHead lang="en" title="Projects — Raihan Achmad" description="All projects by Raihan Achmad" themeDefault="gallery">
+  <Header />
+  <main id="top">
+    <section id="projects">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 class="section-title">All Projects</h2>
         </div>
-      ) : (
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map(project => (
-            <a
-              href={`/projects/${project.slug}`}
-              class="project-card p-6 rounded-lg block transition-transform hover:-translate-y-1"
-              style={`background: var(--card-bg); border: 1px solid var(--card-border);`}
-            >
-              {project.image_url && (
-                <img
-                  src={project.image_url}
-                  alt={project.title}
-                  class="w-full h-48 object-cover rounded mb-4"
-                  loading="lazy"
-                />
-              )}
 
-              <h2 class="text-xl font-bold mb-2" style="color: var(--fg);">
-                {project.title}
-              </h2>
-
-              <p class="text-sm mb-4 opacity-70" style="color: var(--fg);">
-                {project.description}
-              </p>
-
-              <div class="flex flex-wrap gap-2">
-                {project.stack.split(',').map(tech => (
-                  <span
-                    class="text-xs px-2 py-1 rounded"
-                    style="background: var(--acc); color: var(--bg);"
-                  >
-                    {tech.trim()}
-                  </span>
-                ))}
-              </div>
-            </a>
-          ))}
+        <div class="works-grid">
+          <aside class="works-side">
+            <p>A collection of projects I've built across different technologies.</p>
+            <nav class="works-index" aria-label="Project navigation">
+              {projects.map((pr) => (
+                <a href={`/projects/${pr.id}`}><i>/{String(pr.data.order).padStart(2, '0')}</i><b>{pr.data.title}</b></a>
+              ))}
+            </nav>
+          </aside>
+          <div>
+            {projects.map((pr) => (
+              <article class="proj" data-reveal>
+                <div class="proj-top mono"><span class="no">/{String(pr.data.order).padStart(2, '0')}</span><span>{pr.data.year} · {pr.data.category}</span></div>
+                <figure>
+                  <img src={pr.data.image_url || '/images/placeholder.svg'} alt={pr.data.title} loading="lazy" />
+                </figure>
+                <h3>{pr.data.title}</h3>
+                <p class="desc">{pr.data.description}</p>
+                <div class="tags">
+                  {pr.data.stack.split(',').map((t: string) => <span>{t.trim()}</span>)}
+                </div>
+                <a href={`/projects/${pr.id}`} class="arrow-link">View Details<i>→</i></a>
+              </article>
+            ))}
+          </div>
         </div>
-      )}
-    </div>
+      </div>
+    </section>
   </main>
-  <Footer />
-</Layout>
+  <ContactFooter />
+</PageHead>

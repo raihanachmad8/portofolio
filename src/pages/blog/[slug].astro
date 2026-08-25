@@ -1,61 +1,60 @@
 ---
-import Layout from '../../layouts/Base.astro';
-import Nav from '../../components/Nav.astro';
-import Footer from '../../components/Footer.astro';
-import { getAllPosts, getPostBySlug } from '../../lib/content';
+import PageHead from '../../layouts/PageHead.astro';
+import Header from '../../components/Header.astro';
+import ContactFooter from '../../components/ContactFooter.astro';
+import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
-  const posts = await getAllPosts();
-  return posts.map(post => ({
-    params: { slug: post.slug },
-    props: { post },
+  const posts = await getCollection('blog');
+  return posts.map(entry => ({
+    params: { slug: entry.id },
+    props: { entry },
   }));
 }
 
-const { post } = Astro.props;
+const { entry } = Astro.props;
+const { data } = entry;
+const { Content } = await render(entry);
+
+const fmtDate = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 ---
 
-<Layout title={post.title}>
-  <Nav />
-  <main class="pt-20 min-h-screen">
-    <article class="container mx-auto px-4 py-20 max-w-3xl">
-      <nav class="mb-8 text-sm" style="color: var(--fg); opacity: 0.6;">
-        <a href="/" style="color: var(--acc);">Home</a>
-        <span class="mx-2">/</span>
-        <a href="/blog" style="color: var(--acc);">Blog</a>
-        <span class="mx-2">/</span>
-        <span>{post.title}</span>
-      </nav>
+<PageHead lang="en" title={`${data.title} — Blog`} description={data.excerpt} themeDefault="gallery">
+  <Header />
+  <main id="top">
+    <section id="blog-post">
+      <div class="wrap">
+        <nav class="section-head">
+          <a href="/" class="section-link">Home</a>
+          <span class="rule"></span>
+          <a href="/blog" class="section-link">Blog</a>
+          <span class="rule"></span>
+          <span class="mono code">{data.title}</span>
+        </nav>
 
-      <header class="mb-12">
-        <div class="text-sm mb-2" style="color: var(--acc);">
-          {post.category}
-        </div>
+        <article>
+          <div class="blog-post-meta mono">
+            <span class="blog-post-category">{data.category}</span>
+            <span>{fmtDate(data.published_date)}</span>
+            <span>{data.read_time} min read</span>
+          </div>
+          <h1 class="blog-post-title">{data.title}</h1>
+          <div class="blog-post-tags mono">
+            {data.tags.map((tag: string) => (
+              <span>{tag}</span>
+            ))}
+          </div>
 
-        <h1 class="text-4xl md:text-5xl font-bold mb-4" style="color: var(--fg);">
-          {post.title}
-        </h1>
+          <div class="proj-content prose">
+            <Content />
+          </div>
 
-        <div class="flex gap-4 text-sm opacity-70" style="color: var(--fg);">
-          <span>{post.published_date}</span>
-          <span>{post.read_time} min read</span>
-        </div>
-      </header>
-
-      <div class="prose" style="color: var(--fg);">
-        <p class="text-lg leading-relaxed mb-6">{post.excerpt}</p>
-        
-        {post.content && (
-          <div set:html={post.content} />
-        )}
+          <div class="proj-back">
+            <a href="/blog" class="arrow-link"><i>→</i><b>All Posts</b></a>
+          </div>
+        </article>
       </div>
-
-      <div class="mt-12">
-        <a href="/blog" style="color: var(--acc);">
-          ← Back to Blog
-        </a>
-      </div>
-    </article>
+    </section>
   </main>
-  <Footer />
-</Layout>
+  <ContactFooter />
+</PageHead>

@@ -108,6 +108,33 @@
 [data-theme="terminal"] .arrow-link { color: var(--txt); }
 [data-theme="terminal"] .arrow-link:hover { color: var(--acc); }
 
+/* blog */
+[data-theme="terminal"] .blog-card { background: var(--panel); border-color: var(--line); }
+[data-theme="terminal"] .blog-card:hover { border-color: var(--acc); box-shadow: 8px 8px 0 rgba(216, 255, 62, .15); }
+[data-theme="terminal"] .blog-card h3 { color: var(--txt); }
+[data-theme="terminal"] .blog-card:hover h3 { color: var(--acc); }
+[data-theme="terminal"] .blog-card p { color: var(--dim); }
+[data-theme="terminal"] .blog-card-meta { border-color: var(--line); }
+
+/* project detail */
+[data-theme="terminal"] .proj-hero { box-shadow: 0 8px 30px rgba(0,0,0,.3); }
+[data-theme="terminal"] .proj-hero img { filter: saturate(.8); }
+[data-theme="terminal"] .proj-hero:hover img { filter: saturate(1.05); }
+[data-theme="terminal"] .proj-terminal { border-color: var(--line); }
+[data-theme="terminal"] .terminal-bar { background: var(--panel2); border-color: var(--line); }
+[data-theme="terminal"] .terminal-body { background: var(--bg); }
+[data-theme="terminal"] .terminal-line { color: var(--dim); }
+[data-theme="terminal"] .t-cmd { color: var(--txt); }
+[data-theme="terminal"] .proj-meta-cell { background: var(--panel); }
+[data-theme="terminal"] .proj-meta-cell .label { color: var(--dim); }
+[data-theme="terminal"] .proj-meta-cell .value { color: var(--txt); }
+[data-theme="terminal"] .proj-tags span { color: var(--dim); border-color: var(--line); }
+[data-theme="terminal"] .proj-tags span:hover { border-color: var(--acc); color: var(--acc); }
+[data-theme="terminal"] .proj-section-title { color: var(--acc); }
+[data-theme="terminal"] .proj-section p { color: var(--dim); }
+[data-theme="terminal"] .proj-list li { color: var(--dim); }
+[data-theme="terminal"] .proj-gallery-item { border-color: var(--line); }
+
 /* modal */
 [data-theme="terminal"] .modal-back { background: rgba(5, 7, 9, .75); backdrop-filter: blur(4px); }
 [data-theme="terminal"] .modal-card { background: var(--panel); border: 1px solid var(--line); box-shadow: 0 40px 90px rgba(0, 0, 0, .6); scrollbar-color: var(--line) transparent; }

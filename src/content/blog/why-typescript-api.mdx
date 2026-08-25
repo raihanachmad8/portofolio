@@ -1,0 +1,194 @@
+---
+title: "Why I Keep Returning to TypeScript for API Work"
+category: Opinion
+excerpt: "Type safety is not the only reason. The bigger advantage is how it helps keep backend code more readable as projects grow."
+published_date: 2024-12-10
+read_time: 15
+featured: true
+tags: ["typescript", "api", "backend"]
+order: 2
+---
+
+Type safety is not the only reason. The bigger advantage is how it helps keep backend code more readable as projects grow.
+
+## The three-month problem
+
+I have a recurring experience with JavaScript projects. I build an API, it works well, I move on to other things. Three months later, I return to add a feature, and I cannot remember what the data looks like at each layer. The controller receives something, transforms it, passes it to the service, which does something with it, and returns something else. Without type definitions, "something" could be anything.
+
+TypeScript solves this problem by making the data shape explicit at every layer. When I return to a project after a break, the types tell me exactly what data flows through the system. I do not need to read every function implementation to understand the data shape. The types are the documentation.
+
+This is the benefit I did not expect when I started using TypeScript. I thought the value was catching bugs at compile time. The real value is making the code readable months after it was written.
+
+## Types as living documentation
+
+In a JavaScript project, I relied on JSDoc comments to document function signatures. The comments were helpful when they were accurate, but they had two problems. First, they were not enforced — a function signature could change without the comment being updated. Second, they were verbose — writing detailed JSDoc comments took time and cluttered the code.
+
+TypeScript types solve both problems. They are enforced by the compiler, so they cannot become stale. They are concise, so they do not clutter the code. And they serve the same purpose as documentation: telling the reader what data the function expects and returns.
+
+Consider this function signature:
+
+```ts
+async function createInvoice(
+  orderId: string,
+  items: InvoiceItem[],
+  metadata?: InvoiceMetadata
+): Promise<Invoice>
+```
+
+Without reading the implementation, I know exactly what this function expects and returns. The optional `metadata` parameter tells me it is not required for the basic case. The `InvoiceItem[]` type tells me the function expects an array of specific items, not arbitrary objects. The `Promise<Invoice>` return type tells me the function returns an Invoice, not a result wrapper or a nullable value.
+
+This clarity is impossible with JavaScript alone. A JSDoc comment could describe the same information, but the comment might be outdated. The TypeScript type is always current because the compiler enforces it.
+
+Here is the same function in JavaScript with JSDoc:
+
+```js
+/**
+ * Creates an invoice for the given order.
+ * @param {string} orderId - The order ID
+ * @param {Array<{productId: string, quantity: number, unitPrice: number}>} items - Invoice items
+ * @param {Object} [metadata] - Optional metadata
+ * @returns {Promise<{id: string, total: number, status: string}>} The created invoice
+ */
+async function createInvoice(orderId, items, metadata) {
+  // implementation
+}
+```
+
+The JSDoc comment is verbose, and it might be outdated. The TypeScript type is concise, and it is always current. The TypeScript version is better documentation than the JSDoc version.
+
+## Error handling as a first-class concern
+
+In JavaScript, error handling is often an afterthought. Functions throw errors, and consumers catch them generically. The consumer does not know what errors are possible, so it catches everything and hopes for the best.
+
+TypeScript forces me to think about errors explicitly. When I define a function that returns `Promise<Invoice | InvoiceError>`, the consumer must handle both cases. This prevents the generic catch pattern and makes the error handling explicit.
+
+I use discriminated unions for error handling:
+
+```ts
+type InvoiceResult =
+  | { success: true; invoice: Invoice }
+  | { success: false; error: InvoiceError }
+```
+
+The consumer pattern-matches on the `success` field and handles each case appropriately. This is more explicit than checking `if (error)` because the types tell the compiler exactly what data is available in each branch.
+
+Here is how the consumer handles this in practice:
+
+```ts
+const result = await createInvoice(orderId, items);
+
+if (result.success) {
+  showInvoice(result.invoice);
+} else {
+  showError(result.error.message);
+}
+```
+
+The consumer knows exactly what data is available in each branch. If `success` is true, `result.invoice` exists. If `success` is false, `result.error` exists. There is no guessing, no type assertions, no `any` types.
+
+The practical effect is that error handling becomes visible in the codebase. I can see every place where errors are handled, and I can verify that each error case is addressed. In JavaScript, error handling is invisible — it happens in catch blocks that might not exist.
+
+## Refactoring becomes safe
+
+When I need to rename a property or change a function signature, TypeScript shows me every place that needs updating. In JavaScript, this requires searching for string occurrences, which is unreliable. TypeScript's type system gives me confidence that I have found every usage.
+
+This capability alone justifies the investment. Refactoring in a large JavaScript codebase is risky because you can never be certain you have found every reference. A property rename might miss a usage in a distant module, and the bug surfaces weeks later in production.
+
+TypeScript makes refactoring safe, which encourages me to improve the codebase continuously rather than avoiding changes out of fear. I can rename a property, change a function signature, or restructure a type, and the compiler tells me exactly what needs to change.
+
+Here is a concrete example. I had an `Order` type with a `customer` property that contained the full customer object. I wanted to change it to `customerId` and have the frontend fetch the customer separately. In JavaScript, I would have to search for every usage of `order.customer` across the entire codebase. In TypeScript, I change the type and the compiler shows me every place that needs updating:
+
+```ts
+// Before
+type Order = {
+  id: string;
+  customer: Customer;
+  items: OrderItem[];
+};
+
+// After
+type Order = {
+  id: string;
+  customerId: string;
+  items: OrderItem[];
+};
+```
+
+The compiler immediately shows me every place that references `order.customer`. I update each one to use `order.customerId`. The refactoring takes minutes instead of hours, and I am confident that I have found every usage.
+
+## The migration path
+
+I have migrated several JavaScript projects to TypeScript. The migration is not instant, but the benefits compound quickly. The initial investment pays for itself within weeks as the type system catches bugs that would have been runtime errors.
+
+The migration process I follow:
+
+1. Add `tsconfig.json` with `allowJs: true`
+2. Rename files one at a time from `.js` to `.ts`
+3. Fix type errors incrementally
+4. Add strict mode once all files are typed
+
+This gradual approach means the project stays functional throughout the migration. There is no big-bang rewrite that breaks everything. Each file is migrated independently, and the project remains runnable at every step.
+
+The migration reveals existing bugs. TypeScript catches type mismatches, undefined references, and incorrect function signatures that JavaScript allowed silently. Fixing these bugs during migration improves the codebase even before the migration is complete.
+
+Here is a typical migration timeline for a medium-sized project:
+
+- **Week 1**: Add `tsconfig.json`, rename the entry point, fix critical type errors
+- **Week 2**: Rename utility files, fix type errors in shared code
+- **Week 3**: Rename service files, add types to business logic
+- **Week 4**: Rename controller files, add types to HTTP handlers
+- **Week 5**: Enable strict mode, fix remaining type errors
+- **Week 6**: Review and clean up, add types to external dependencies
+
+Each week builds on the previous one. The project stays functional at every step. By the end of the migration, the entire codebase is typed, and the benefits are immediate.
+
+## Types as a collaboration tool
+
+My public repositories are increasingly centered on backend systems and API implementation. TypeScript gives me a consistent language across projects while keeping the codebase honest about what each function actually does.
+
+When I contribute to open source projects or collaborate with others, TypeScript types serve as a contract. Other developers can see exactly what my code expects without reading the implementation. This reduces the friction of onboarding and makes code review more productive.
+
+The types also make the codebase more approachable. A new contributor can look at a function signature and understand its purpose without tracing through the implementation. This lowers the barrier to contribution and makes the project more welcoming to newcomers.
+
+Here is an example of how types serve as a contract:
+
+```ts
+// The type tells the contributor exactly what this function expects
+async function createOrder(input: CreateOrderInput): Promise<Order> {
+  // The contributor knows:
+  // - input has a customer_id (string)
+  // - input has an items array (OrderItem[])
+  // - input may have notes (optional string)
+  // - the function returns an Order
+  // - the function can throw (it returns a Promise)
+}
+```
+
+Without reading the implementation, the contributor knows everything they need to call this function correctly. The type is the documentation, and it is always current.
+
+## The performance consideration
+
+Some developers avoid TypeScript because they believe it adds runtime overhead. In practice, TypeScript compiles to JavaScript, so there is no runtime cost. The types exist only at compile time and are stripped from the output.
+
+The compile step adds development time, but this is offset by the time saved in debugging and refactoring. I have never measured a noticeable performance difference between TypeScript and JavaScript in a backend application. The bottleneck is usually the database or network, not the language.
+
+For projects where compile time is a concern, I use incremental compilation and project references. These features reduce compile time by only recompiling the files that changed. The developer experience stays fast even in large projects.
+
+## The compound benefit
+
+TypeScript is not just about catching bugs. It is about making the codebase readable, refactorable, and collaborative. These benefits compound over time, making the project easier to maintain and extend.
+
+I do not claim TypeScript is perfect. The type system has quirks, the compiler can be slow on large projects, and the syntax is more verbose than JavaScript. But the benefits outweigh the costs, especially for backend projects that need to be maintained over time.
+
+The biggest benefit is the confidence it gives me. When I change a function signature, I know the compiler will catch every usage that needs updating. When I return to a project after a break, the types remind me of the data shape. When I collaborate with others, the types serve as a contract.
+
+That confidence is worth the investment.
+
+## Resources
+
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/) — Official TypeScript documentation
+- [TypeScript Deep Dive (Basarat)](https://basarat.gitbook.io/typescript/) — Comprehensive TypeScript guide
+- [Total TypeScript (Matt Pocock)](https://www.totaltypescript.com/) — Advanced TypeScript courses
+- [Type Challenges](https://github.com/type-challenges/type-challenges) — Practice TypeScript type manipulation
+- [Zod Documentation](https://zod.dev/) — TypeScript-first schema validation
+- [tRPC](https://trpc.io/) — End-to-end typesafe APIs

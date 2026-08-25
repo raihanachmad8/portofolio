@@ -35,7 +35,7 @@ const { title } = Astro.props;
     fetch('/config.json')
       .then(r => r.json())
       .then(config => {
-        const theme = urlTheme || savedTheme || config.theme || 'terminal';
+        const theme = urlTheme || savedTheme || config.theme || 'gallery';
         applyTheme(theme);
         
         if (config.sections) {
@@ -46,7 +46,7 @@ const { title } = Astro.props;
         }
       })
       .catch(() => {
-        applyTheme(urlTheme || savedTheme || 'terminal');
+        applyTheme(urlTheme || savedTheme || 'gallery');
       });
 
     function applyTheme(theme) {

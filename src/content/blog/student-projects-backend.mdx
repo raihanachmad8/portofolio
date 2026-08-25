@@ -1,0 +1,225 @@
+---
+title: "What Student Projects Taught Me About Building Better Backends"
+category: Article
+excerpt: "A few practical lessons from moving beyond coursework and building systems that needed cleaner structure and more reliable data flow."
+published_date: 2025-01-15
+read_time: 14
+featured: true
+tags: ["backend", "engineering", "systems"]
+order: 1
+---
+
+A few practical lessons from moving beyond coursework and building systems that needed cleaner structure and more reliable data flow.
+
+## The coursework gap
+
+University courses teach you how to build features. They do not teach you how to build systems. A coursework project is a self-contained assignment: implement a specific functionality, demonstrate that it works, submit it. The code does not need to be maintainable because nobody will maintain it. The schema does not need to be flexible because the requirements will not change.
+
+Real projects are different. The requirements change weekly. The codebase grows beyond what a single developer can hold in their head. The schema must accommodate features that were not imagined during the initial design. The transition from coursework to real systems is where most backend developers struggle, and I was no exception.
+
+The first real project I built was an inventory management system for a campus organization. The requirements seemed simple: track products, record transactions, generate reports. I designed the schema in an afternoon, built the API in a weekend, and deployed it on Monday. By Friday, the system was already struggling with edge cases I had not considered.
+
+The experience taught me that building a system is not the same as building a feature. A system requires thinking about data flow, structure, validation, and error handling in ways that coursework does not demand.
+
+## Starting with the data flow
+
+When I work on backend features now, I try to understand the data flow before writing endpoints. That habit became more important after building inventory and management systems, where small schema decisions affect many screens and features.
+
+If the relationships are unclear, the API usually becomes harder to maintain later. In my inventory management project, for example, I initially designed the product table with a simple `name` field. Later, when I needed to support product variants and categories, the schema had to be restructured significantly. The migration was painful because the original design did not account for how the data would be queried.
+
+Now I draw the data model on paper before writing any code. I sketch the entities, their relationships, and the typical queries that each feature requires. This exercise takes thirty minutes but saves hours of refactoring later.
+
+The data flow exercise helps me identify three things: what data exists, how it relates to other data, and how it moves through the system. When I understand these three things, the endpoints write themselves. The schema dictates the API shape, not the other way around.
+
+I start with the core entities: what are the main things the system manages? For an inventory system, those are products, categories, suppliers, and orders. Each entity has properties that describe it and relationships that connect it to other entities.
+
+Then I trace the data flow for each feature. When a user creates an order, what data moves? The order references products, which reference categories and suppliers. The order has items, which have quantities and prices. The order has a status that changes over time. Each of these pieces of data has a source and a destination.
+
+Finally, I identify the constraints. What rules must be true for the data to be valid? A product must have a name and a price. An order must have at least one item. A quantity cannot be negative. These constraints live in the schema, not in the application code, because the schema is the last line of defense.
+
+## Choosing a boring structure
+
+Student projects often become messy because every new feature introduces a new pattern. I learned that a boring structure is usually better. When I started building backend systems, I experimented with different architectural patterns: repository pattern, service layer, hexagonal architecture. Each had merit, but the real problem was inconsistency within the same project.
+
+Now I follow a simple rule: every feature follows the same folder structure.
+
+```
+src/
+  controllers/    # Handle HTTP request/response
+  services/       # Business logic
+  models/         # Database schema and queries
+  middleware/     # Auth, validation, error handling
+  routes/         # Route definitions
+```
+
+This structure is not revolutionary, but it is predictable. When I need to find where a feature is implemented, I know exactly where to look. When a new developer joins the project, they can navigate the codebase within minutes.
+
+The boring structure also makes code review easier. When every controller follows the same pattern, reviewers can focus on the logic rather than deciphering the structure. When every service function has the same shape, reviewers can quickly identify what is business logic and what is infrastructure.
+
+I apply the same principle to file naming. Every controller is named after its resource: `productController.ts`, `orderController.ts`, `userController.ts`. Every service follows the same pattern: `productService.ts`, `orderService.ts`, `userService.ts`. The naming convention makes navigation predictable.
+
+## Separating validation from logic
+
+One mistake I made repeatedly was putting validation logic inside service functions. The service would check input types, validate relationships, and then execute the business rule. This made services hard to test and harder to read.
+
+Now I validate at the entry point. If the request reaches a service function, the input is already validated. This separation makes services pure business logic, which is easier to test and reason about.
+
+```ts
+// Before: validation mixed with logic
+async function createOrder(data: any) {
+  if (!data.items || data.items.length === 0) {
+    throw new Error("Items required");
+  }
+  if (data.total < 0) {
+    throw new Error("Invalid total");
+  }
+  // business logic here...
+}
+
+// After: validation at entry, logic in service
+async function createOrder(data: CreateOrderInput) {
+  // validation done by middleware or schema
+  return orderService.create(data);
+}
+```
+
+The `CreateOrderInput` type is guaranteed to be valid by the time it reaches the service. This makes the service function focused on what it should do: implement the business rule.
+
+I use Zod schemas for validation because they provide both runtime validation and TypeScript type inference. The schema defines the shape, and Zod generates the TypeScript type from it. This ensures the validation logic and the type definition are always in sync.
+
+```ts
+const createOrderSchema = z.object({
+  items: z.array(z.object({
+    productId: z.string().uuid(),
+    quantity: z.number().int().positive(),
+    price: z.number().positive()
+  })).min(1),
+  customerId: z.string().uuid(),
+  notes: z.string().optional()
+});
+
+type CreateOrderInput = z.infer<typeof createOrderSchema>;
+```
+
+The schema validates the input at the controller level. The service receives a guaranteed-valid `CreateOrderInput`. This separation makes both layers easier to test and maintain.
+
+## Writing for the next developer
+
+Even when a project starts as coursework, it feels more professional when another developer can understand it quickly. Clear names, predictable folders, and smaller files improve handoff more than clever abstractions do.
+
+I keep this in mind when naming functions and variables. A function called `processData` tells me nothing about what it does. A function called `calculateMonthlyRevenue` tells me everything. The extra characters cost nothing but save significant time during debugging.
+
+I also keep functions short. Not because there is a magic line count, but because short functions tend to do one thing well. When a function grows beyond thirty lines, I ask whether it can be split into smaller, focused functions. This makes the codebase more readable and makes individual functions easier to test.
+
+The principle extends to comments. I do not comment on what the code does; the code should be self-explanatory. I comment on why the code does it. A comment explaining the reasoning is valuable; a comment explaining the implementation is noise.
+
+```ts
+// Bad comment: describes what the code does
+// Loop through items and calculate total
+for (const item of items) {
+  total += item.price * item.quantity;
+}
+
+// Good comment: explains why the code does it
+// Using manual loop instead of reduce because
+// we need to skip discounted items
+for (const item of items) {
+  if (!item.discounted) {
+    total += item.price * item.quantity;
+  }
+}
+```
+
+## Logging with purpose
+
+Early in my projects, I either logged everything or logged nothing. Both approaches are problematic. Logging everything creates noise that buries important information. Logging nothing makes debugging nearly impossible.
+
+Now I log at specific boundaries: incoming requests, database queries that take more than a second, external API calls, and errors. This gives me enough information to trace a request through the system without overwhelming the logs with noise.
+
+```ts
+logger.info({
+  event: "order_created",
+  orderId: order.id,
+  userId: user.id,
+  items: order.items.length,
+  total: order.total
+});
+```
+
+This structured logging approach makes it easy to search logs by event type, user, or order ID. It also integrates well with monitoring tools that aggregate logs into dashboards.
+
+I use different log levels for different purposes. `info` for normal operations, `warn` for expected errors like validation failures, `error` for unexpected errors that need attention. This separation makes it easy to filter logs by severity.
+
+The logging format matters too. I log structured data, not free-form text. Structured logs are machine-readable, which means I can query them with tools like Elasticsearch or CloudWatch Insights. Free-form text is human-readable but nearly impossible to search effectively.
+
+## Making migrations reversible
+
+Every database migration should have a corresponding rollback. I learned this the hard way when a migration in my inventory system dropped a column that was still referenced by a report query. The rollback was not defined, so I had to manually restore the column while the system was down.
+
+Now I treat every migration as a two-part operation: the forward path and the rollback path. If I cannot write a clean rollback, I reconsider the migration design.
+
+I use a three-step migration pattern for schema changes:
+
+1. Add new columns (nullable)
+2. Backfill data from existing columns
+3. Remove old columns after deployment
+
+This pattern ensures zero downtime during deployment. The old code reads from old columns; the new code reads from new columns. After deployment, a cleanup migration removes the old columns.
+
+```sql
+-- Step 1: Add new column
+ALTER TABLE products ADD COLUMN sku VARCHAR(50);
+
+-- Step 2: Backfill
+UPDATE products SET sku = CONCAT('PRD-', id) WHERE sku IS NULL;
+
+-- Step 3: Make NOT NULL after backfill
+ALTER TABLE products ALTER COLUMN sku SET NOT NULL;
+```
+
+The rollback for this migration would be:
+
+```sql
+ALTER TABLE products DROP COLUMN sku;
+```
+
+But I only run the rollback if the forward migration fails. The key is to have the rollback defined before running the migration, not after.
+
+## Documentation as implementation
+
+I used to think documentation was a separate phase that happened after the code was written. Now I treat documentation as part of the implementation. When I write an endpoint, I write the API documentation in the same commit. This ensures the documentation is always accurate and up to date.
+
+The documentation does not need to be extensive. A brief description of what the endpoint does, the expected input, and the response shape is usually enough. What matters is that it exists and is accurate.
+
+I use OpenAPI specifications for API documentation. The specification format enforces a consistent structure across all endpoints. It also generates interactive documentation that developers can use to test endpoints directly.
+
+The OpenAPI spec is also machine-readable, which means I can generate client libraries, validate requests against the spec, and detect breaking changes automatically. This tooling investment pays for itself quickly.
+
+## Testing at the boundaries
+
+I write tests at the boundaries of the system: API endpoints and database queries. Unit tests for individual functions are valuable, but the most critical tests verify that the system works end-to-end.
+
+When I test an API endpoint, I send a realistic request and verify the response. I check that the status code is correct, the response shape matches the documentation, and the data is persisted correctly in the database.
+
+When I test a database query, I use realistic data volumes. A query that works fine with 100 rows may become unusable with 100,000 rows. I generate test data that approximates production volumes and verify that the query performs acceptably.
+
+I also test error cases. What happens when the input is invalid? What happens when the database is unavailable? What happens when the external API returns an error? These edge cases are where most bugs hide, so they deserve the most attention.
+
+## Learning from every project
+
+Every project teaches me something new about building better backends. The inventory system taught me about schema design and migration safety. The blog platform taught me about caching and performance. The API gateway taught me about rate limiting and security.
+
+The key is to reflect on each project after it is complete. What went well? What could be improved? What would I do differently? This reflection turns experience into knowledge, which I can apply to future projects.
+
+I keep a personal knowledge base where I record these lessons. When I start a new project, I review the relevant lessons before making design decisions. This practice prevents me from repeating mistakes and helps me apply proven patterns consistently.
+
+Building better backends is not about learning the latest framework or mastering the newest tool. It is about understanding the fundamentals: data flow, structure, validation, testing, and monitoring. These fundamentals apply regardless of the technology stack, and they improve with practice.
+
+## Resources
+
+- [Designing Data-Intensive Applications (Martin Kleppmann)](https://dataintensive.net/) — The definitive guide to data systems
+- [Clean Architecture (Robert C. Martin)](https://www.oreilly.com/library/view/clean-architecture/9780134494166/) — Software architecture principles
+- [Building Microservices (Sam Newman)](https://www.oreilly.com/library/view/building-microservices-2nd/9781492034018/) — Microservice design patterns
+- [Node.js Best Practices](https://github.com/goldbergyoni/nodebestpractices) — Node.js development guidelines
+- [Express.js Guide](https://expressjs.com/en/guide/routing.html) — Express.js routing documentation
+- [Hono Documentation](https://hono.dev/) — Modern web framework

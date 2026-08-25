@@ -1,1 +1,26 @@
-export default new Map();
+
+export default new Map([
+["src/content/projects/campus-project.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fprojects%2Fcampus-project.mdx&astroContentModuleFlag=true")],
+["src/content/projects/frozeria-next.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fprojects%2Ffrozeria-next.mdx&astroContentModuleFlag=true")],
+["src/content/projects/cat-stories.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fprojects%2Fcat-stories.mdx&astroContentModuleFlag=true")],
+["src/content/projects/innovatech.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fprojects%2Finnovatech.mdx&astroContentModuleFlag=true")],
+["src/content/projects/inventory-jti.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fprojects%2Finventory-jti.mdx&astroContentModuleFlag=true")],
+["src/content/projects/sast-integration.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fprojects%2Fsast-integration.mdx&astroContentModuleFlag=true")],
+["src/content/projects/fest-ticketing-app.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fprojects%2Ffest-ticketing-app.mdx&astroContentModuleFlag=true")],
+["src/content/blog/api-documentation-value.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fblog%2Fapi-documentation-value.mdx&astroContentModuleFlag=true")],
+["src/content/blog/api-response-structure-enterprise.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fblog%2Fapi-response-structure-enterprise.mdx&astroContentModuleFlag=true")],
+["src/content/blog/backend-refactors-safely.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fblog%2Fbackend-refactors-safely.mdx&astroContentModuleFlag=true")],
+["src/content/blog/deployment-without-burning-out.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fblog%2Fdeployment-without-burning-out.mdx&astroContentModuleFlag=true")],
+["src/content/projects/cinema-microservice.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fprojects%2Fcinema-microservice.mdx&astroContentModuleFlag=true")],
+["src/content/blog/devops-small-teams.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fblog%2Fdevops-small-teams.mdx&astroContentModuleFlag=true")],
+["src/content/projects/ngejoblist.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fprojects%2Fngejoblist.mdx&astroContentModuleFlag=true")],
+["src/content/blog/student-projects-backend.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fblog%2Fstudent-projects-backend.mdx&astroContentModuleFlag=true")],
+["src/content/projects/ngefastapi.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fprojects%2Fngefastapi.mdx&astroContentModuleFlag=true")],
+["src/content/blog/frontend-backend-integration.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fblog%2Ffrontend-backend-integration.mdx&astroContentModuleFlag=true")],
+["src/content/blog/designing-api-responses.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fblog%2Fdesigning-api-responses.mdx&astroContentModuleFlag=true")],
+["src/content/blog/database-changes-before-endpoints.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fblog%2Fdatabase-changes-before-endpoints.mdx&astroContentModuleFlag=true")],
+["src/content/blog/small-habits-easier-projects.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fblog%2Fsmall-habits-easier-projects.mdx&astroContentModuleFlag=true")],
+["src/content/projects/vacation-rest-api.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fprojects%2Fvacation-rest-api.mdx&astroContentModuleFlag=true")],
+["src/content/blog/why-typescript-api.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fblog%2Fwhy-typescript-api.mdx&astroContentModuleFlag=true")],
+["src/content/projects/saturt.mdx", () => import("astro:content-layer-deferred-module?astro%3Acontent-layer-deferred-module=&fileName=src%2Fcontent%2Fprojects%2Fsaturt.mdx&astroContentModuleFlag=true")]]);
+		

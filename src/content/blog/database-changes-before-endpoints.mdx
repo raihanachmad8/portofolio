@@ -1,0 +1,263 @@
+---
+title: "How I Think About Database Changes Before Writing Endpoints"
+category: Article
+excerpt: "A practical sequence for checking schema impact, relationships, and operational risk before I start adding API routes."
+published_date: 2025-02-18
+read_time: 15
+featured: true
+tags: ["database", "backend", "systems"]
+order: 3
+---
+
+A practical sequence for checking schema impact, relationships, and operational risk before I start adding API routes.
+
+## The schema-first habit
+
+I used to start building features by writing the endpoint. The controller, the validation, the service layer — I would build the entire API surface first and then figure out how to persist the data. This approach worked until the schema did not support the feature naturally, and I ended up fighting the database the entire time.
+
+Now I start with the data model. Before writing any code, I ask whether the current schema supports the workflow clearly enough. If it does, I write the endpoint. If it does not, I design the schema first and then build the endpoint to match.
+
+This habit came from a painful experience with my inventory management project. I initially designed the `products` table with a simple structure: `id`, `name`, `quantity`, `price`, `category_id`. When I needed to support product variants — different sizes, colors, stock levels — the schema had to evolve significantly. The migration required splitting the single product into a product-variant relationship, which affected every endpoint that queried product data.
+
+The migration took a week. It should have taken a day if I had thought about the schema from the beginning. The lesson was clear: schema design is not a separate concern from API design. They are the same concern, and the schema should come first.
+
+## Tracing the write path
+
+When I design a new feature, I start by tracing the write path. What data needs to be written? What constraints must be satisfied? What side effects occur?
+
+For a simple inventory adjustment, the write path looks like:
+
+```sql
+BEGIN;
+  UPDATE products SET quantity = quantity - 1 WHERE id = ? AND quantity > 0;
+  INSERT INTO inventory_logs (product_id, adjustment, reason, created_at)
+    VALUES (?, -1, 'sale', NOW());
+COMMIT;
+```
+
+The transaction ensures that the quantity update and the log entry happen atomically. If either fails, neither persists. This prevents the common bug where the quantity changes but the log is missing, or vice versa.
+
+The constraint `quantity > 0` prevents negative inventory at the database level. I could enforce this in the application code, but the database constraint is the final safeguard. Application code can have bugs; database constraints are absolute.
+
+The write path also reveals side effects. When an order is placed, the inventory decreases. When a product is deleted, the order items that reference it become orphaned. These side effects must be handled explicitly, and the write path makes them visible.
+
+I sketch the write path on paper before writing any code. The sketch includes the tables involved, the operations performed, the constraints checked, and the side effects triggered. This exercise takes fifteen minutes but saves hours of debugging later.
+
+Here is a more complex example. When a customer places an order, the write path involves multiple tables and side effects:
+
+```sql
+BEGIN;
+  -- 1. Validate inventory availability
+  SELECT quantity FROM products WHERE id = ? FOR UPDATE;
+
+  -- 2. Create order
+  INSERT INTO orders (customer_id, status, total, created_at)
+    VALUES (?, 'pending', ?, NOW());
+
+  -- 3. Create order items
+  INSERT INTO order_items (order_id, product_id, quantity, unit_price)
+    VALUES (?, ?, ?, ?);
+
+  -- 4. Adjust inventory
+  UPDATE products SET quantity = quantity - ? WHERE id = ?;
+
+  -- 5. Log inventory change
+  INSERT INTO inventory_logs (product_id, adjustment, reason, created_at)
+    VALUES (?, ?, 'order_placed', NOW());
+COMMIT;
+```
+
+Each step in this write path has a specific purpose. The `SELECT ... FOR UPDATE` locks the product row to prevent concurrent inventory adjustments. The order creation sets the initial status. The order items link the order to the products. The inventory adjustment reduces stock. The log entry records the change for audit purposes.
+
+Writing this out before implementation reveals potential issues. What happens if the product does not exist? What happens if the inventory is insufficient? What happens if the database is unavailable? Each question leads to a design decision that affects the implementation.
+
+## Understanding the read patterns
+
+After understanding the write path, I think about how the data will be queried. The schema design should support the most common queries without requiring complex joins or subqueries.
+
+For the inventory system, the most common queries are:
+
+- List products with current stock levels
+- Show inventory history for a specific product
+- Calculate total inventory value across all products
+- Find products that are low on stock
+- Show orders for a specific customer
+
+Each of these queries informs the schema design. The `inventory_logs` table needs an index on `product_id` for the history query. The `products` table needs an index on `category_id` for filtered listings. The `quantity` and `price` columns should be numeric types that support aggregation.
+
+I write these queries out before designing the schema. They serve as a specification that guides the table structure, the indexes, and the relationships. If a query requires a complex join, I ask whether the schema can be simplified to make the query straightforward.
+
+Here is how I translate a query requirement into schema design:
+
+**Requirement**: "List products with current stock levels, filtered by category, sorted by name."
+
+**Query**:
+```sql
+SELECT p.id, p.name, p.quantity, p.price, c.name as category
+FROM products p
+JOIN categories c ON p.category_id = c.id
+WHERE p.category_id = ?
+ORDER BY p.name;
+```
+
+**Schema implications**:
+- `products.category_id` needs an index for the WHERE clause
+- The JOIN is straightforward because `category_id` is a foreign key
+- The ORDER BY on `name` might need an index if the products table is large
+
+**Index**:
+```sql
+CREATE INDEX idx_products_category_name ON products(category_id, name);
+```
+
+This index supports both the WHERE clause and the ORDER BY, making the query efficient even with millions of rows.
+
+## Planning the migration
+
+When changing an existing schema, I plan the data migration before writing the application code. The migration must be backward-compatible, meaning the old code can still work with the new schema during deployment.
+
+I follow a three-step migration pattern:
+
+1. Add new columns (nullable)
+2. Backfill data from existing columns
+3. Remove old columns after deployment
+
+This pattern ensures zero downtime during deployment. The old code reads from old columns; the new code reads from new columns. After deployment, a cleanup migration removes the old columns.
+
+```sql
+-- Step 1: Add new column
+ALTER TABLE products ADD COLUMN sku VARCHAR(50);
+
+-- Step 2: Backfill
+UPDATE products SET sku = CONCAT('PRD-', id) WHERE sku IS NULL;
+
+-- Step 3: Make NOT NULL after backfill
+ALTER TABLE products ALTER COLUMN sku SET NOT NULL;
+```
+
+The rollback for this migration would be:
+
+```sql
+ALTER TABLE products DROP COLUMN sku;
+```
+
+But I only run the rollback if the forward migration fails. The key is to have the rollback defined before running the migration, not after.
+
+I also plan for data volume. A migration that runs in seconds on a development database might take hours on a production database with millions of rows. I test migrations with realistic data volumes and plan for downtime if the migration is long-running.
+
+For large backfills, I batch the update into smaller chunks:
+
+```sql
+-- Backfill in batches of 1000
+UPDATE products SET sku = CONCAT('PRD-', id)
+WHERE sku IS NULL
+LIMIT 1000;
+```
+
+I run this statement repeatedly until no rows are affected. This approach prevents long-running transactions that lock the table and block other operations.
+
+## Testing with realistic data
+
+I never trust a schema change until I test it with realistic data volumes. A query that works fine with 100 rows may become unusable with 100,000 rows. I generate test data that approximates production volumes and run the critical queries through `EXPLAIN ANALYZE`.
+
+The query plan reveals whether the indexes are being used effectively. A sequential scan on a large table is a red flag that needs addressing before deployment. I add indexes, rewrite queries, or restructure the schema based on the query plan.
+
+Here is an example of reading a query plan:
+
+```sql
+EXPLAIN ANALYZE
+SELECT p.id, p.name, p.quantity
+FROM products p
+WHERE p.category_id = 123
+ORDER BY p.name;
+```
+
+```
+Sort  (cost=1234.56..1235.12 rows=189 width=48) (actual time=12.345..12.567 rows=189 loops=1)
+  Sort Key: p.name
+  Sort Method: quicksort  Memory: 32kB
+  ->  Index Scan using idx_products_category_name on products p  (cost=0.29..1220.00 rows=189 width=48) (actual time=0.023..12.123 rows=189 loops=1)
+        Index Cond: (category_id = 123)
+Planning Time: 0.123 ms
+Execution Time: 12.678 ms
+```
+
+The key indicator is "Index Scan" — the query is using the index I created. If I saw "Seq Scan" instead, I would know the index is not being used and the query would be slow on large tables.
+
+I also test write performance. A migration that adds a column is fast, but a migration that backfills millions of rows is slow. I batch the backfill into manageable chunks and run it during low-traffic periods.
+
+## Migrations as product decisions
+
+Database changes affect future features too. A migration that looks simple today can create friction six months later when the next feature needs a slightly different data shape. Taking an extra ten minutes to think about the schema from a product perspective usually saves cleanup time later.
+
+When I design a schema, I ask: what features will this schema need to support in the next six months? If I can predict upcoming requirements, I can design a schema that accommodates them without major restructuring. This does not mean over-engineering the schema; it means making informed decisions about what to include now and what to defer.
+
+For example, when I designed the inventory schema, I added a `notes` column to the products table even though no feature required it at the time. I knew that product management features would eventually need a place to store arbitrary metadata, and the `notes` column was a simple way to provide that flexibility without a schema change later.
+
+I also added a `status` column with a default value of `'active'`. This column was not used initially, but when the product archiving feature was requested three months later, the schema was already prepared. The migration was a single line: `UPDATE products SET status = 'archived' WHERE id = ?`.
+
+## The constraint mindset
+
+The most valuable habit in schema design is thinking about constraints. What rules must be true for the data to be valid? These rules belong in the database, not in the application code, because the database is the last line of defense.
+
+I define constraints at the database level:
+
+- Primary keys for unique identification
+- Foreign keys for relationships
+- Check constraints for data validation
+- Not null constraints for required fields
+- Unique constraints for business rules
+
+These constraints prevent invalid data from entering the system. Application code can have bugs, but database constraints are absolute. When a constraint prevents invalid data, the application receives an error instead of silently persisting corrupted data.
+
+Here is an example of a well-constrained schema:
+
+```sql
+CREATE TABLE orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  customer_id UUID NOT NULL REFERENCES customers(id),
+  status VARCHAR(20) NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending', 'confirmed', 'shipped', 'delivered', 'cancelled')),
+  total NUMERIC(10, 2) NOT NULL CHECK (total >= 0),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE order_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  product_id UUID NOT NULL REFERENCES products(id),
+  quantity INTEGER NOT NULL CHECK (quantity > 0),
+  unit_price NUMERIC(10, 2) NOT NULL CHECK (unit_price >= 0),
+  UNIQUE(order_id, product_id)
+);
+```
+
+Every constraint serves a purpose. The `CHECK` constraints prevent negative quantities and prices. The `FOREIGN KEY` constraints ensure orders reference valid customers and products. The `UNIQUE` constraint prevents duplicate items in the same order. The `DEFAULT` values ensure required fields are always populated.
+
+The constraint mindset also influences the schema design. When I think about what data must be valid, I naturally design schemas that make validation straightforward. The schema guides the application code, not the other way around.
+
+## Documenting schema decisions
+
+I document the reasoning behind schema decisions. Not every column needs an explanation, but the non-obvious ones do. Why is `status` a string instead of an integer? Why is `total` stored instead of calculated from items? Why is `customer_id` nullable?
+
+These decisions have consequences that are not obvious from the schema alone. Documenting them helps future developers understand the design intent and avoid making changes that violate the original assumptions.
+
+I keep schema documentation in a `docs/schema.md` file that sits alongside the migration files. The documentation includes:
+
+- Table descriptions and purposes
+- Column explanations for non-obvious fields
+- Index justifications
+- Constraint reasons
+- Relationship descriptions
+
+This documentation is especially valuable when onboarding new developers. They can read the schema documentation and understand not just what the data looks like, but why it looks that way.
+
+## Resources
+
+- [Designing Data-Intensive Applications (Martin Kleppmann)](https://dataintensive.net/) — The definitive guide to data systems
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/current/) — PostgreSQL official documentation
+- [Drizzle ORM Migrations](https://orm.drizzle.team/docs/migrations) — TypeScript database migrations
+- [Flyway](https://flywaydb.org/) — Database migration tool
+- [Liquibase](https://www.liquibase.org/) — Database schema change management
+- [SQLAlchemy Alembic](https://alembic.sqlalchemy.org/) — Python database migrations

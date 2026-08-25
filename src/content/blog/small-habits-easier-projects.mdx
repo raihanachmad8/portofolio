@@ -1,0 +1,205 @@
+---
+title: "Small Habits That Make My Projects Easier to Continue"
+category: Career
+excerpt: "A few routines that improve readability, reduce rework, and make personal or team projects easier to extend later."
+published_date: 2024-11-05
+read_time: 15
+featured: true
+tags: ["habits", "engineering", "career"]
+order: 4
+---
+
+A few routines that improve readability, reduce rework, and make personal or team projects easier to extend later.
+
+## The maintenance problem nobody talks about
+
+Most advice about software engineering focuses on architecture, design patterns, and technology choices. Very little of it addresses the daily habits that determine whether a project remains manageable over time. I have watched projects with excellent architecture become tangled messes because the developers did not establish consistent habits early. I have also seen projects with mediocre architecture stay maintainable because the team followed simple, disciplined routines.
+
+The difference is not talent or knowledge. It is practice. The habits that keep projects manageable are not exciting. They do not make for compelling conference talks. But they save hours of frustration across the lifetime of a project.
+
+I noticed this pattern early in my career. The projects that felt easy to work on had something in common: the developers followed consistent practices that kept the codebase healthy. The projects that felt like wading through mud had a different commonality: the developers wrote code however they felt like in the moment, without thinking about the long-term consequences.
+
+## The five-minute cleanup
+
+I have a habit that some developers consider wasteful: before I commit any change, I spend five minutes cleaning up. Not rewriting, not redesigning — just renaming variables, removing dead code, and making sure the change is self-contained. This cleanup is separate from the implementation. I do it after the feature works, before I commit.
+
+The cleanup catches things I missed during implementation. A variable named `temp` that should have been named `pendingOrders`. A function that is no longer called after the change. A comment that is now inaccurate. These small issues are easy to overlook during the rush of implementation, but they accumulate quickly if left unchecked.
+
+The five-minute cleanup also forces me to review my own change before committing. I see the diff fresh, without the context of the implementation. This often reveals mistakes or improvements that I missed earlier. The commit becomes cleaner, the code review becomes easier, and the codebase stays healthier.
+
+Here is what my five-minute cleanup looks like in practice:
+
+1. Open the diff and read every changed line
+2. Rename any temporary variable names to descriptive ones
+3. Remove any dead code or unused imports
+4. Check that the change is self-contained (no unrelated modifications)
+5. Verify that the commit message accurately describes the change
+
+This checklist takes five minutes. It catches the small issues that code review would otherwise miss. It makes every commit cleaner and every code review faster.
+
+## The manual smoke test
+
+After every meaningful change, I run a manual smoke test. Not the full test suite — I trust the automated tests for that. The smoke test is about verifying that the core user flow still works. If I changed the order creation logic, I create a test order. If I modified the authentication flow, I log in and out. If I updated the product listing, I browse the catalog.
+
+This habit catches integration issues that automated tests sometimes miss. A unit test might verify that a function works correctly in isolation, but it cannot verify that the function works correctly when integrated with the rest of the system. The manual test catches these integration issues before they reach production.
+
+The smoke test takes five minutes. It prevents the scenario where a change breaks something unrelated, and the bug is discovered days later when it is harder to trace. The time investment is modest, but the risk reduction is significant.
+
+My smoke test checklist for a typical change:
+
+1. Start the application
+2. Navigate to the feature I changed
+3. Perform the primary action
+4. Verify the response is correct
+5. Check that related features still work
+6. Review the logs for unexpected errors
+
+This checklist is not comprehensive. It does not replace automated testing. But it catches the integration issues that automated tests miss, and it gives me confidence that the change did not break anything.
+
+## The naming discipline
+
+I have a rule about naming: if I cannot describe what a function does in one sentence, the function does too much or the name is wrong. This discipline forces me to think about purpose before implementation.
+
+A function called `processData` tells me nothing. A function called `calculateMonthlyRevenue` tells me everything. The extra characters cost nothing but provide substantial clarity. When I search for a function later, the descriptive name narrows the results to exactly what I need.
+
+The same principle applies to variables. `items` is vague. `pendingOrders` is specific. `temp` is meaningless. `unprocessedWebhookEvents` is precise. Descriptive names make the code self-documenting, which reduces the need for comments.
+
+I apply this discipline to file names too. A file called `utils.ts` tells me nothing. A file called `inventoryCalculations.ts` tells me everything. The naming convention makes navigation predictable across projects.
+
+Here are some naming patterns I follow:
+
+- Functions: verb + noun (`calculateTotal`, `validateInput`, `sendNotification`)
+- Variables: adjective + noun (`pendingOrders`, `activeUsers`, `failedPayments`)
+- Files: noun + purpose (`orderController.ts`, `userService.ts`, `database.ts`)
+
+These patterns are not rules. They are conventions that make the codebase more readable. When every function follows the same pattern, the reader can focus on the logic instead of deciphering the names.
+
+## The why-not-what comment
+
+I leave comments sparingly, but when I do, they explain why, not what. A comment that says "loop through items and calculate total" is noise — the code already says that. A comment that says "using manual loop instead of reduce because we need to skip discounted items" is valuable — it explains a decision that is not obvious from the code.
+
+The distinction matters because comments that explain what the code does are redundant, while comments that explain why the code does it are essential. The why comments prevent future developers from "improving" the code by removing what looks like unnecessary complexity.
+
+```ts
+// Bad comment: describes what the code does
+// Loop through items and calculate total
+for (const item of items) {
+  total += item.price * item.quantity;
+}
+
+// Good comment: explains why the code does it
+// Using manual loop instead of reduce because
+// we need to skip discounted items
+for (const item of items) {
+  if (!item.discounted) {
+    total += item.price * item.quantity;
+  }
+}
+```
+
+The good comment explains the reasoning. A future developer who sees the manual loop might be tempted to refactor it to a reduce. The comment explains why that refactoring would be incorrect.
+
+I also leave comments for non-obvious business rules:
+
+```ts
+// Orders under $50 do not qualify for free shipping
+// even if the customer has a premium membership
+const shippingCost = order.total < 50 ? calculateShipping(order) : 0;
+```
+
+This comment explains a business rule that is not obvious from the code. Without the comment, a future developer might "fix" the logic by removing the `$50` check, thinking it is a bug.
+
+## The consistent structure
+
+Every project I build follows the same folder structure. Controllers, services, models, middleware, routes, utils. The structure is not revolutionary, but it is predictable. When I need to find where a feature is implemented, I know exactly where to look. When I need to add a new feature, I know exactly where each piece belongs.
+
+This consistency means I can navigate any of my projects without learning a new layout. The cognitive load of understanding the project structure drops to zero. I can focus on the business logic instead of figuring out where things are.
+
+The consistent structure also makes code review easier. When every controller follows the same pattern, reviewers can focus on the logic rather than deciphering the structure. When every service function has the same shape, reviewers can quickly identify what is business logic and what is infrastructure.
+
+Here is the structure I use for every backend project:
+
+```
+src/
+  controllers/    # Handle HTTP request/response
+  services/       # Business logic
+  models/         # Database schema and queries
+  middleware/     # Auth, validation, error handling
+  routes/         # Route definitions
+  utils/          # Shared utilities
+  types/          # TypeScript type definitions
+```
+
+This structure is not the only correct answer. It is the answer that works for me. The point is not the specific folders — the point is consistency. When every project follows the same structure, navigation becomes automatic.
+
+## The knowledge transfer habit
+
+Whether the project is personal, academic, or collaborative, I write code as if someone else will need to understand it. That someone is often me, three months from now, when the details have faded.
+
+I apply this principle to documentation, commit messages, and code structure. A good commit message explains what changed and why. Good documentation explains how to use the system and how to extend it. Good code structure makes the system easy to navigate and modify.
+
+This habit is not about altruism. It is about self-preservation. When I return to a project after a break, the code I wrote for the next developer is the same code that helps me. The clear names, the predictable structure, the explanatory comments — they all help me reconstruct the context I lost.
+
+Here is an example of a good commit message:
+
+```
+[OrderService] Add inventory validation before order placement
+
+Orders were being placed without checking inventory availability,
+causing negative stock levels. This adds a validation step that
+checks inventory before confirming the order.
+
+The validation uses a SELECT ... FOR UPDATE to lock the product
+row and prevent concurrent inventory adjustments.
+```
+
+This commit message explains what changed, why it changed, and how it works. A future developer reading the git log can understand the evolution of the codebase without reading the code.
+
+## The logging discipline
+
+I log at specific boundaries: incoming requests, database queries that take more than a second, external API calls, and errors. This gives me enough information to trace a request through the system without overwhelming the logs with noise.
+
+I use structured logging because it is machine-readable:
+
+```ts
+logger.info({
+  event: "order_created",
+  orderId: order.id,
+  userId: user.id,
+  items: order.items.length,
+  total: order.total
+});
+```
+
+Structured logs are easier to search and aggregate. I can query logs by event type, user ID, or order ID without parsing free-form text. This makes debugging faster and monitoring more effective.
+
+I use different log levels for different purposes. `info` for normal operations, `warn` for expected errors like validation failures, `error` for unexpected errors that need attention. This separation makes it easy to filter logs by severity.
+
+## The testing habit
+
+I write tests at the boundaries of the system: API endpoints and database queries. Unit tests for individual functions are valuable, but the most critical tests verify that the system works end-to-end.
+
+When I test an API endpoint, I send a realistic request and verify the response. I check that the status code is correct, the response shape matches the documentation, and the data is persisted correctly in the database.
+
+When I test a database query, I use realistic data volumes. A query that works fine with 100 rows may become unusable with 100,000 rows. I generate test data that approximates production volumes and verify that the query performs acceptably.
+
+I also test error cases. What happens when the input is invalid? What happens when the database is unavailable? What happens when the external API returns an error? These edge cases are where most bugs hide, so they deserve the most attention.
+
+## The compound effect
+
+These habits are individually small. A five-minute cleanup, a manual smoke test, a descriptive name, a consistent structure. Each one saves a few minutes here and there. But across a project, across months of development, they save hours. More importantly, they make the project enjoyable to work on rather than a source of frustration.
+
+The compound effect is real. A project with consistent habits stays manageable as it grows. A project without them becomes tangled and difficult. The difference is not architecture or technology — it is the daily practices that keep the codebase healthy.
+
+I do not always succeed. Sometimes I skip the cleanup. Sometimes I use a vague name. Sometimes I commit without the smoke test. But the habit is there, and it catches most of the issues before they accumulate. The goal is not perfection — it is consistency.
+
+The habits that keep projects manageable are not exciting. They do not make for compelling conference talks. But they save hours of frustration across the lifetime of a project. That is a trade I am willing to make.
+
+## Resources
+
+- [Clean Code (Robert C. Martin)](https://www.oreilly.com/library/view/clean-code/9780136083238/) — Principles of writing maintainable code
+- [The Pragmatic Programmer (David Thomas, Andrew Hunt)](https://pragprog.com/titles/tpp20/) — Practical software development advice
+- [A Philosophy of Software Design (John Ousterhout)](https://www.amazon.com/Philosophy-Software-Design-John-Ousterhout/dp/1732102201) — Managing complexity in software
+- [Conventional Commits](https://www.conventionalcommits.org/) — Commit message specification
+- [Keep a Changelog](https://keepachangelog.com/) — Changelog format standard
+- [Semantic Versioning](https://semver.org/) — Version numbering standard

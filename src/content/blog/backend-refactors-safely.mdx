@@ -1,0 +1,234 @@
+---
+title: "A Simple Way to Keep Backend Refactors From Breaking Everything"
+category: Article
+excerpt: "Backend cleanup gets safer when you treat interfaces, data flow, and behavior checks as separate concerns."
+published_date: 2025-03-20
+read_time: 15
+featured: false
+tags: ["backend", "engineering", "typescript"]
+order: 7
+---
+
+Backend cleanup gets safer when you treat interfaces, data flow, and behavior checks as separate concerns.
+
+## The temptation to do everything at once
+
+Every backend developer has felt the urge to refactor everything at once. You open the codebase, see the accumulated mess, and think: I will just rewrite this whole module while I am at it. The module needs cleaning up, and it needs new features, and it needs better error handling. Why not do all three at once?
+
+I have given in to this urge more times than I care to admit. The result is always the same: a large, incomprehensible commit that introduces subtle bugs. The bugs are hard to trace because the commit changed everything — structure, behavior, and error handling — and I cannot tell which change introduced the problem.
+
+The discipline I have learned is to separate the refactor from the redesign. A refactoring commit changes structure without changing behavior. A redesign commit changes behavior without changing structure. Mixing the two makes debugging nearly impossible.
+
+This discipline is harder than it sounds. The urge to improve things while cleaning them up is strong. I see a function that could be more efficient, and I want to optimize it while moving it. I see an error that could be handled better, and I want to fix it while restructuring the code. But these improvements change behavior, and behavior changes mixed with structural changes create untraceable bugs.
+
+The key insight is that refactoring is about structure, not behavior. If you are changing what the code does, you are redesigning. If you are changing how the code is organized, you are refactoring. Keeping these two activities separate makes both safer.
+
+## Moving one piece at a time
+
+When I refactor, I move one function at a time. Not one module, not one file — one function. This granularity feels slow, but it is dramatically safer. Each move is a small, isolated change that I can verify independently.
+
+The process is mechanical:
+
+1. Identify a function that belongs in a different module
+2. Move the function without changing its implementation
+3. Update imports in all consumers
+4. Verify the behavior is unchanged
+5. Commit the move
+6. Repeat for the next function
+
+The key is step 4: verify the behavior is unchanged. I run the tests, I check the smoke test, I confirm that the function works exactly as it did before the move. If anything changes, I revert and investigate.
+
+This approach has three advantages. First, each commit is small and easy to review. If a commit introduces a bug, I know exactly what changed. Second, each commit is easy to revert. If something breaks, I revert one commit, not a large rewrite. Third, each move forces me to understand the function before moving it. Large rewrites often skip this understanding, which leads to subtle bugs.
+
+Here is a concrete example. I had a function `calculateOrderTotal` in the order service that was also needed by the invoice service. Instead of copying the function, I moved it to a shared `pricing` module. The move took five minutes: cut the function from one file, paste it into another, update the imports in three consumers, run the tests. The entire refactor was three commits: one to create the pricing module, one to move the function, one to remove the dead code from the order service.
+
+## The duplicate query problem
+
+One pattern I watch for is duplicate database queries. When the same query appears in multiple places, it creates a maintenance problem. If the query needs to change, I have to find and update every occurrence. If I miss one, the behavior becomes inconsistent.
+
+The fix is straightforward: extract the query into a shared function. Every consumer calls the shared function instead of writing the query directly. When the query needs to change, I change it in one place.
+
+```ts
+// Before: query duplicated in two services
+async function getProduct(id: string) {
+  return db.query('SELECT * FROM products WHERE id = ?', [id]);
+}
+
+// After: shared data access
+async function getProductById(id: string): Promise<Product | null> {
+  return db.query('SELECT * FROM products WHERE id = ?', [id]);
+}
+```
+
+The extracted function has a clear name, a defined return type, and a single responsibility. This makes the codebase more maintainable and easier to understand. The naming also reveals intent — `getProductById` is more meaningful than `getProduct`.
+
+I apply the same principle to write operations. When the same INSERT or UPDATE logic appears in multiple places, I extract it into a shared function. This eliminates duplication and creates a single point of maintenance. If the write logic needs to change — adding a new column, updating a constraint, changing the timestamp format — I change it in one place.
+
+## Extracting validation logic
+
+Another common refactoring target is validation logic. When validation is scattered across controllers and services, it becomes inconsistent. One endpoint validates email format with a regex, another uses a library, a third does not validate at all.
+
+I extract validation into shared schemas. Every endpoint uses the same validation logic for the same fields. This eliminates inconsistency and makes the validation rules visible in one place.
+
+```ts
+// Before: validation scattered across controllers
+// controller A
+if (!email.includes('@')) throw new Error('Invalid email');
+
+// controller B
+if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Bad email');
+
+// After: shared validation schema
+const emailSchema = z.string().email('Invalid email format');
+
+// Both controllers use the same schema
+const result = emailSchema.safeParse(input.email);
+if (!result.success) {
+  return ResponseFormatter.error('VALIDATION_ERROR', 'Invalid email', [
+    { code: 'INVALID_FORMAT', message: 'Email must be valid', field: 'email' }
+  ]);
+}
+```
+
+The schema approach has two benefits. First, the validation logic is consistent across all endpoints. Second, the schema generates TypeScript types, so the validation and the type definition are always in sync.
+
+## The smoke test habit
+
+After every refactor commit, I run a manual smoke test. Not the full test suite — I trust the automated tests for that. The smoke test is about verifying that the core user flow still works. If I moved the order creation logic, I create a test order. If I restructured the authentication flow, I log in and out.
+
+This habit catches integration issues that automated tests sometimes miss. A unit test might verify that a function works correctly in isolation, but it cannot verify that the function works correctly when integrated with the rest of the system. The manual test catches these integration issues before they reach production.
+
+The smoke test takes five minutes. It prevents the scenario where a refactor breaks something unrelated, and the bug is discovered days later when it is harder to trace. The time investment is modest, but the risk reduction is significant.
+
+My smoke test checklist for a typical refactoring session:
+
+1. Start the application
+2. Log in with a test account
+3. Navigate to the main feature I refactored
+4. Perform the primary action (create, update, delete)
+5. Verify the response is correct
+6. Check that related features still work
+7. Review the logs for unexpected errors
+
+This checklist takes five minutes. It catches the integration issues that automated tests miss. It gives me confidence that the refactor did not break anything.
+
+## Making behavior explicit with types
+
+When I refactor, I use TypeScript types to make operational behavior explicit. A function that can fail returns a type that includes the error case. A function that handles multiple scenarios uses a discriminated union to make the scenarios visible.
+
+```ts
+type OrderResult =
+  | { success: true; order: Order }
+  | { success: false; error: OrderError }
+```
+
+The consumer must handle both cases. This makes the code explicit about failure modes, which is critical in backend systems where errors are expected, not exceptional.
+
+This type-driven approach also makes refactoring safer. When I change a function signature, TypeScript shows me every consumer that needs updating. I do not need to search for string occurrences or guess at usages. The type system gives me confidence that I have found every reference.
+
+Here is a more complex example. I had a function that could return three different outcomes: success, validation error, or not-found error. Without TypeScript, the consumer would have to guess what errors are possible. With TypeScript, the type makes every outcome visible:
+
+```ts
+type UpdateOrderResult =
+  | { status: 'success'; order: Order }
+  | { status: 'validation_error'; errors: FieldError[] }
+  | { status: 'not_found'; message: string };
+```
+
+The consumer can pattern-match on the `status` field and handle each case. This is more explicit than checking `if (error)` because the types tell the compiler exactly what data is available in each branch.
+
+## Extracting side effects
+
+When I see side effects mixed with core logic, I extract them into separate functions. Side effects include database writes, external API calls, email sending, and logging. These operations should be visible in the code, not hidden inside business logic.
+
+```ts
+// Before: side effects mixed with logic
+async function placeOrder(data: OrderInput): Promise<Order> {
+  const order = createOrder(data);
+  await db.insert('orders', order);
+  await inventoryService.adjustStock(order.items);
+  await notificationService.sendOrderConfirmation(order);
+  await analyticsService.trackOrderPlaced(order);
+  return order;
+}
+
+// After: side effects extracted
+async function placeOrder(data: OrderInput): Promise<Order> {
+  const order = createOrder(data);
+  await persistOrder(order);
+  await notifyOrderPlaced(order);
+  return order;
+}
+
+async function persistOrder(order: Order): Promise<void> {
+  await db.insert('orders', order);
+  await inventoryService.adjustStock(order.items);
+}
+
+async function notifyOrderPlaced(order: Order): Promise<void> {
+  await notificationService.sendOrderConfirmation(order);
+  await analyticsService.trackOrderPlaced(order);
+}
+```
+
+The extracted functions make the side effects visible. When I read `placeOrder`, I can see exactly what happens: the order is created, persisted, and notified. The details are hidden in the helper functions, but the overall flow is clear.
+
+## Commit messages that explain why
+
+When I refactor, I write commit messages that explain why the change was made. Not just what changed, but why it needed to change. This context is valuable for future developers who need to understand the system's evolution.
+
+A bad commit message says: "refactor order validation." This tells me what changed but not why. A good commit message says: "Move order validation from service to controller. The validation logic was mixed with business logic, making the service hard to test. Moving it to the controller layer separates concerns and makes both layers easier to understand."
+
+The good message explains the motivation. It tells a future developer that the validation was intentionally moved, not randomly relocated. It explains the benefit, which helps the developer understand the design intent.
+
+I follow a simple format for refactoring commits:
+
+```
+[Component] Brief description of what changed
+
+Explanation of why the change was needed.
+Description of the problem this solves.
+```
+
+For example:
+
+```
+[OrderService] Extract validation into shared schema
+
+Validation logic was duplicated across three controllers with
+inconsistent rules. Extracting into a shared Zod schema ensures
+consistent validation and generates TypeScript types automatically.
+```
+
+This format tells a future developer what changed, why it changed, and what the expected benefit is. It is more valuable than a message that simply says "refactor order validation."
+
+## Knowing when to stop
+
+Refactoring has a natural stopping point: when the code is easier to work with than before. If a refactoring session makes the code harder to understand, I have gone too far. If a refactoring session introduces more complexity than it removes, I have gone too far.
+
+I stop refactoring when:
+
+- The tests still pass
+- The smoke test works
+- The code is easier to read than before
+- The structure makes the business logic more visible
+- I can explain the change in one sentence
+
+If I cannot explain the change in one sentence, the refactor is too complex. I revert and try a smaller, more focused approach.
+
+## Refactoring is not free
+
+Every refactor commit is an investment. The immediate cost is time spent restructuring code. The return is a codebase that is easier to understand, modify, and extend. The key is to invest incrementally, verify at each step, and document the reasoning.
+
+I do not refactor for the sake of refactoring. I refactor when the code is becoming difficult to work with, when new features are harder to add than they should be, or when the structure is obscuring the business logic. The refactor solves a specific problem, not a general one.
+
+The goal is not a perfect codebase. The goal is a codebase that stays manageable as it grows. Refactoring is one tool for achieving that goal, but it is a tool that requires discipline. Incremental changes, verified behavior, documented reasoning — these practices keep refactoring safe and productive.
+
+## Resources
+
+- [Refactoring (Martin Fowler)](https://martinfowler.com/books/refactoring.html) — The definitive guide to refactoring techniques
+- [Working Effectively with Legacy Code (Michael Feathers)](https://www.oreilly.com/library/view/working-effectively-with/0131177052/) — Strategies for dealing with existing codebases
+- [Refactoring Guru: Refactoring](https://refactoring.guru/refactoring) — Practical refactoring patterns and techniques
+- [TypeScript Handbook: Everyday Types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html) — TypeScript type system basics
+- [Zod Documentation](https://zod.dev/) — TypeScript-first schema validation
+- [Drizzle ORM](https://orm.drizzle.team/) — TypeScript ORM for database operations

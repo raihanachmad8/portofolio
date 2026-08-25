@@ -19,7 +19,7 @@ const skills = await getSkillsByCategory();
         ))}
         <div class="tools">{skills.tools?.backend?.map((t: string) => <i>{t}</i>)}</div>
       </div>
-      <div class="skill-col" data-reveal style="--d:.1s">
+      <div class="skill-col d-2" data-reveal>
         <h3>&gt; Frontend</h3>
         {skills.frontend?.map((sk: any) => (
           <div class="sk">
@@ -29,7 +29,7 @@ const skills = await getSkillsByCategory();
         ))}
         <div class="tools">{skills.tools?.frontend?.map((t: string) => <i>{t}</i>)}</div>
       </div>
-      <div class="skill-col" data-reveal style="--d:.2s">
+      <div class="skill-col d-4" data-reveal>
         <h3>&gt; DevOps &amp; Database</h3>
         {skills.devops?.map((sk: any) => (
           <div class="sk">

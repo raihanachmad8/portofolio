@@ -1,0 +1,321 @@
+---
+title: "Designing API Responses So Frontend Work Stays Predictable"
+category: Article
+excerpt: "A stable response shape reduces frontend conditionals, makes integration faster, and keeps future API cleanup smaller."
+published_date: 2025-03-25
+read_time: 15
+featured: true
+tags: ["api", "backend", "frontend"]
+order: 5
+---
+
+A stable response shape reduces frontend conditionals, makes integration faster, and keeps future API cleanup smaller.
+
+## The inconsistency problem
+
+I made the mistake of designing each endpoint independently. The `/users` endpoint returned `{ user: {...} }`, the `/projects` endpoint returned `{ projects: [...] }`, and the `/orders` endpoint returned `{ order: {...}, items: [...] }`. Each response looked different because each resource had different properties.
+
+This inconsistency forced the frontend to write custom handlers for every endpoint. The fetch function for `/users` unwrapped `response.user`. The fetch function for `/projects` unwrapped `response.projects`. The fetch function for `/orders` unwrapped `response.order` and `response.items`. Three endpoints, three different unwrapping strategies.
+
+The frontend developer — who was me, at the time — spent more time writing fetch handlers than implementing actual features. Each new endpoint required a new handler, and each handler had slightly different logic for extracting the data.
+
+The fix was straightforward: extract a shared response builder that wraps every response in a consistent structure. The frontend now uses one fetch handler that unwraps `response.data` and checks `response.success`. Every endpoint follows the same pattern, so the frontend code stays predictable.
+
+## The response builder
+
+A response builder usually starts with three parts:
+
+```ts
+type ApiResponse<T> = {
+  success: boolean;
+  data: T;
+  error?: string;
+  meta?: { page: number; total: number; perPage: number };
+};
+```
+
+The `success` field tells the frontend whether the request succeeded. The `data` field contains the response payload. The `error` field contains failure information when `success` is false. The `meta` field contains pagination information when applicable.
+
+This structure is not revolutionary, but it is predictable. The frontend can write one fetch handler that checks `success`, extracts `data`, and handles errors. Every endpoint follows the same pattern, so the handler works everywhere.
+
+The generic type `T` makes the structure flexible. The `/users` endpoint returns `ApiResponse<User[]>`. The `/projects` endpoint returns `ApiResponse<Project[]>`. The `/orders` endpoint returns `ApiResponse<Order>`. Each endpoint has its own data type, but the wrapper structure is consistent.
+
+Here is the shared fetch handler that the frontend uses for every request:
+
+```ts
+async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(url, options);
+  const body = await response.json();
+
+  if (!body.success) {
+    throw new ApiError(body.error.code, body.error.message, body.error.fields);
+  }
+
+  return body.data;
+}
+```
+
+Every component in the frontend uses this same handler. They do not need to know whether the endpoint returns a user, a project, or an order. The handler unwraps the response and returns the data. If the request fails, the handler throws an error with the code and message from the response.
+
+This pattern eliminates the per-endpoint fetch handlers that used to clutter the codebase. One handler, one pattern, every endpoint.
+
+## Making errors readable
+
+I have worked on projects where error responses returned completely different shapes depending on which middleware caught the error. One endpoint would return `{ message: "..." }`, another would return `{ error: { code: 400, details: [...] } }`, and a third would return a plain string. The frontend had to write three different handlers for what was essentially the same concept: something went wrong.
+
+Now I enforce one rule: every error response has the same structure.
+
+```ts
+{
+  success: false,
+  error: {
+    code: "VALIDATION_ERROR",
+    message: "Title is required",
+    field?: "title",
+    details?: { min: 3, max: 200 }
+  }
+}
+```
+
+The `code` field identifies the error type. The `message` field provides a human-readable description. The `field` field identifies the specific field that caused the error. The `details` field provides additional context for debugging.
+
+This structure gives the frontend enough information to show a user-friendly message while still exposing enough context for debugging during development. I keep internal stack traces and database errors out of the response, but I include enough context that the frontend does not need to guess what happened.
+
+Validation errors deserve special attention because they are the most common type of error in form-heavy applications. I return field-level validation errors whenever possible, structured like this:
+
+```ts
+{
+  success: false,
+  error: {
+    code: "VALIDATION_ERROR",
+    message: "Invalid input",
+    fields: [
+      { path: "title", message: "Required" },
+      { path: "price", message: "Must be positive" }
+    ]
+  }
+}
+```
+
+This structure lets the frontend map errors directly to form fields without any additional processing. The frontend can iterate over `error.fields`, match each field by `path`, and display the corresponding `message` next to the input.
+
+Here is how the frontend handles this in practice:
+
+```ts
+try {
+  const order = await apiFetch<Order>('/api/v1/orders', {
+    method: 'POST',
+    body: JSON.stringify(orderData)
+  });
+  showSuccess('Order created');
+} catch (error) {
+  if (error instanceof ApiError && error.fields) {
+    error.fields.forEach(field => {
+      showFieldError(field.path, field.message);
+    });
+  } else {
+    showError(error.message);
+  }
+}
+```
+
+The frontend code is clean because the error structure is predictable. It knows that validation errors include a `fields` array, and it knows that each field has a `path` and a `message`. No guessing, no special cases.
+
+## Shallow nesting
+
+One pattern I avoid is deep nesting of related data. Instead of embedding related entities inside the response, I return flat structures with explicit IDs. The frontend can then use those IDs to fetch additional data if needed.
+
+```ts
+// Avoid this
+{
+  project: {
+    title: "Inventory System",
+    assignee: { name: "Raihan", email: "..." }
+  }
+}
+
+// Prefer this
+{
+  project: {
+    title: "Inventory System",
+    assigneeId: 42
+  }
+}
+```
+
+This approach has two benefits. First, the response stays small and predictable. Second, the frontend can decide whether to fetch the full user data or just display the name from a local cache. Deep nesting forces the backend to make assumptions about what the frontend needs, which often leads to over-fetching.
+
+The exception to this rule is when the related data is always needed together. For example, an order response might embed `items` because the frontend always displays them together. But even then, I keep the nesting shallow and prefer explicit IDs over embedded objects for most relationships.
+
+I follow a simple rule: if the frontend always needs the related data, embed it. If the frontend sometimes needs it, use an ID. This rule is easy to apply and covers most cases.
+
+## Standardizing pagination
+
+Pagination is another area where consistency matters. I use the same shape for every paginated endpoint:
+
+```ts
+{
+  success: true,
+  data: [...],
+  meta: {
+    page: 1,
+    perPage: 20,
+    total: 156,
+    totalPages: 8
+  }
+}
+```
+
+The `meta` object includes `totalPages` as a convenience. I have seen frontend developers compute this themselves from `total / perPage`, but including it eliminates a common source of off-by-one errors. The `page` and `perPage` values are echoed back so the frontend can display them without storing separate state.
+
+I also include `total` because the frontend often needs to display "Showing 1-20 of 156 results" or similar pagination indicators. Without `total`, the frontend would need to make a separate request to get the count, which is wasteful.
+
+For cursor-based pagination, I use a different shape:
+
+```ts
+{
+  success: true,
+  data: [...],
+  meta: {
+    nextCursor: "abc123",
+    hasMore: true,
+    limit: 20
+  }
+}
+```
+
+The `hasMore` boolean tells the frontend whether there are more pages. The `nextCursor` is the opaque token to pass as the `cursor` query parameter in the next request. This shape works well for infinite scroll and real-time feeds where page numbers are not meaningful.
+
+Here is how the frontend uses cursor-based pagination for an infinite scroll feed:
+
+```ts
+let cursor: string | null = null;
+let hasMore = true;
+
+async function loadMore() {
+  if (!hasMore) return;
+
+  const url = cursor
+    ? `/api/v1/feed?cursor=${cursor}&limit=20`
+    : '/api/v1/feed?limit=20';
+
+  const response = await apiFetch<{ data: Post[]; meta: CursorMeta }>(url);
+
+  appendPosts(response.data);
+  cursor = response.meta.nextCursor;
+  hasMore = response.meta.hasMore;
+}
+```
+
+The frontend code is clean because the pagination shape is predictable. It knows that cursor-based responses include `nextCursor` and `hasMore`, and it knows how to use them.
+
+## Handling empty responses
+
+Empty responses are another area where consistency matters. When a resource is not found, I return a consistent shape:
+
+```ts
+{
+  success: false,
+  error: {
+    code: "NOT_FOUND",
+    message: "Project not found"
+  }
+}
+```
+
+When a list is empty, I return:
+
+```ts
+{
+  success: true,
+  data: [],
+  meta: {
+    page: 1,
+    perPage: 20,
+    total: 0,
+    totalPages: 0
+  }
+}
+```
+
+The empty array in `data` tells the frontend that the request succeeded but there are no results. The `total: 0` confirms this. The frontend can display "No results found" without guessing whether the empty array means "no results" or "error."
+
+I avoid returning `null` or `undefined` for empty lists. An empty array is unambiguous: it is a valid response with zero items. This distinction matters because the frontend needs to differentiate between "no results" and "request failed."
+
+The frontend handles empty lists with a simple check:
+
+```ts
+const projects = await apiFetch<Project[]>('/api/v1/projects');
+
+if (projects.length === 0) {
+  showEmptyState('No projects found');
+} else {
+  renderProjects(projects);
+}
+```
+
+This code is clean because the response shape is predictable. An empty array means no results. A failed request throws an error. The frontend does not need to guess.
+
+## Versioning responses
+
+When the response shape needs to change, I do not modify the existing shape. Instead, I version the response. This can be as simple as adding a `v2` prefix to the route or using an `Accept-Version` header.
+
+The key insight is that response shapes are part of the public API contract. Once frontend developers start consuming a particular shape, changing it without versioning creates silent breakage. Versioning the response buys time to migrate consumers gradually rather than forcing a synchronized update.
+
+I use URL versioning for simplicity: `/api/v1/projects` and `/api/v2/projects`. The v1 endpoint continues to work exactly as before. The v2 endpoint returns the new shape. I deprecate v1 with a `Sunset` header and a documentation notice, giving consumers time to migrate.
+
+```ts
+// v1 response
+{ projects: [...], total: 100 }
+
+// v2 response
+{ success: true, data: [...], meta: { total: 100 } }
+```
+
+The frontend can migrate at its own pace. The v1 endpoint continues to work until the frontend team has updated all consumers.
+
+The migration process is gradual:
+
+1. Deploy v2 endpoint alongside v1
+2. Update frontend code to use v2
+3. Monitor for errors
+4. Add deprecation notice to v1
+5. Remove v1 after migration period
+
+This approach respects the frontend team's timeline and prevents breaking changes from disrupting the user experience.
+
+## Response shape documentation
+
+I maintain a response shape document that lists every endpoint and its response structure. This document is part of the API documentation and is updated whenever a response shape changes.
+
+The document includes:
+
+- Endpoint URL and method
+- Request parameters and body
+- Success response shape with example
+- Error response shapes with examples
+- Pagination shape if applicable
+- Rate limits and authentication requirements
+
+This documentation serves as a contract between the backend and frontend teams. When the frontend developer needs to integrate a new endpoint, they read the documentation, understand the shape, and start implementing. No guessing, no trial and error.
+
+The documentation also serves as a reference during code review. When a backend developer proposes a change to a response shape, the reviewer can check the documentation to see how the change affects existing consumers. This prevents breaking changes from reaching production.
+
+## Predictability is part of delivery
+
+A response does not need to be large or complicated to be useful. What matters is that the frontend can trust the shape and handle it without writing special cases for every endpoint. The goal is to make the API feel like a library: predictable, documented, and boring in the best possible way.
+
+When I look at a well-designed API response, I see the same quality I aim for in backend code: clarity, consistency, and a structure that reduces the cognitive load on whoever reads it next. That applies whether the next reader is a frontend developer, a mobile developer, or a future version of myself.
+
+The investment in consistent response shapes pays for itself quickly. Integration becomes faster because the frontend developer knows what to expect. Maintenance becomes easier because changes follow established patterns. The API feels professional because every endpoint follows the same conventions.
+
+In the end, designing API responses is not about technical elegance. It is about communication. The response is the primary communication channel between the backend and frontend. When that communication is clear, predictable, and consistent, the entire development process becomes smoother.
+
+## Resources
+
+- [JSON:API Specification](https://jsonapi.org/) — A specification for building APIs
+- [REST API Design Best Practices](https://restfulapi.net/) — REST API design guide
+- [Microsoft REST API Guidelines](https://github.com/microsoft/api-guidelines/blob/vNext/azure/Guidelines.md) — Enterprise API standards
+- [Google API Design Guide](https://cloud.google.com/apis/design) — Google's API design principles
+- [Stripe API Reference](https://stripe.com/docs/api) — Example of well-designed API responses
+- [GitHub REST API Docs](https://docs.github.com/en/rest) — Another example of consistent API design

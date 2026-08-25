@@ -1,0 +1,276 @@
+---
+title: "Why API Documentation Becomes More Valuable After the First Version"
+category: Article
+excerpt: "Documentation matters most once the project stops being fresh in your head."
+published_date: 2025-03-12
+read_time: 15
+featured: false
+tags: ["api", "backend", "engineering"]
+order: 6
+---
+
+Documentation matters most once the project stops being fresh in your head.
+
+## The memory problem
+
+There is a specific moment every backend developer recognizes. You open your own project after three weeks of working on something else, and you stare at an endpoint you wrote, and you cannot remember why it works the way it does. You remember building it. You remember it was supposed to do something. But the exact shape of the request, the validation rules, the edge cases you handled — those details have evaporated.
+
+I hit this moment repeatedly before I started taking documentation seriously. The first version of every API I built felt obvious while I was writing it. The request body made sense because I had just designed it. The error responses were clear because I had just decided what errors to return. The validation rules were fresh in my mind because I had just implemented them.
+
+But two weeks later, when I needed to add a feature that interacted with that endpoint, I had to read through the controller, the validation middleware, the service layer, and the database query to reconstruct what the endpoint actually did. That reconstruction took twenty minutes for something that would have taken thirty seconds if I had documented it.
+
+The irony is that the first version does not need much documentation. It is the second version — the one where you return to the project after a break — where documentation pays for itself.
+
+## What I actually write
+
+I do not write long-form documentation for every endpoint. That would be unrealistic and the docs would become outdated the moment I changed the implementation. Instead, I write three things for every endpoint.
+
+### The one-sentence description
+
+A one-sentence description of what the endpoint does. Not how it works, not what database tables it touches, just what it accomplishes from the consumer's perspective. "Creates a new order with the specified items and customer." That sentence tells a frontend developer everything they need to know about the endpoint's purpose.
+
+I write this sentence in the consumer's language, not the implementation's language. "Creates an order" is better than "Inserts a row into the orders table and triggers the inventory adjustment workflow." The consumer does not care about the implementation. They care about what the endpoint does for them.
+
+### The request shape
+
+The request shape with example values. I include the expected headers, the URL parameters, and the request body. The example values are realistic — not placeholder text, but the kind of data you would actually send in production.
+
+This matters because the example teaches more than the type definition. A frontend developer can copy the example, modify it slightly, and start integrating immediately. They do not need to read the documentation to understand what `email` means or what format `date` should be in. The example shows them.
+
+Here is what a good request example looks like:
+
+```bash
+POST /api/v1/orders
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "customer_id": "cust_12345",
+  "items": [
+    {
+      "product_id": "prod_67890",
+      "quantity": 2,
+      "unit_price": 29.99
+    }
+  ],
+  "shipping_address": {
+    "street": "123 Main St",
+    "city": "Jakarta",
+    "postal_code": "12345"
+  },
+  "notes": "Please leave at the front door"
+}
+```
+
+Every field has a realistic value. The `customer_id` looks like a real ID, not `"string"`. The `quantity` is a number, not `0`. The `notes` field has actual text, not `"string"`. These details teach the consumer what the API expects without requiring them to read the type definitions.
+
+### The response shape
+
+The response shape for both success and error cases. I show the complete response structure, not just the happy path. If the endpoint can return a validation error, a not-found error, and a server error, I document all three.
+
+The frontend developer needs to know what errors are possible so they can handle each one appropriately. A validation error needs field-level details so the frontend can highlight the invalid input. A not-found error needs the resource ID so the frontend can display a meaningful message. A server error needs a reference ID so the support team can investigate.
+
+Here is what a complete response documentation looks like:
+
+**Success (200):**
+```json
+{
+  "status": { "code": 200, "message": "Order created" },
+  "data": {
+    "id": "ord_12345",
+    "customer_id": "cust_12345",
+    "total": 59.98,
+    "status": "pending",
+    "created_at": "2026-08-25T10:30:00Z"
+  }
+}
+```
+
+**Validation Error (400):**
+```json
+{
+  "status": { "code": 400, "message": "Validation failed" },
+  "data": null,
+  "errors": [
+    {
+      "code": "REQUIRED_FIELD",
+      "message": "Items array cannot be empty",
+      "field": "items"
+    }
+  ]
+}
+```
+
+**Not Found (404):**
+```json
+{
+  "status": { "code": 404, "message": "Customer not found" },
+  "data": null,
+  "errors": [
+    {
+      "code": "RESOURCE_NOT_FOUND",
+      "message": "Customer with ID 'cust_99999' does not exist"
+    }
+  ]
+}
+```
+
+This three-part structure takes five minutes to write per endpoint. The time investment is modest, but it compounds across the project.
+
+## Documentation as a contract
+
+I started treating API documentation as a contract between the backend and frontend teams. The documentation defines what the endpoint accepts and what it returns. If the implementation changes but the documentation does not, the contract is broken.
+
+This mindset changed how I approach changes. Before modifying an endpoint, I check the documentation. If the change would alter the documented behavior, I update the documentation in the same commit. This ensures the contract stays current.
+
+The practical effect is that frontend developers can trust the documentation. When they need to integrate a new endpoint, they read the docs, understand the contract, and start implementing. They do not need to ask the backend team what the endpoint does. They do not need to read the source code to understand the response shape. The documentation tells them everything.
+
+This trust is valuable because it reduces communication overhead. Every question that the documentation answers is a Slack message that does not need to be sent, a meeting that does not need to be scheduled, a misunderstanding that does not need to be resolved.
+
+I have measured this effect on a recent project. Before we had documentation, the frontend team asked an average of three questions per endpoint during integration. After we added documentation, the average dropped to zero. The documentation answered every question before it was asked.
+
+## Keeping docs in sync with code
+
+The biggest challenge with documentation is keeping it current. If the docs become outdated, they are worse than useless — they actively mislead developers. I have been burned by outdated documentation enough times to develop a strict rule: documentation updates happen in the same commit as code changes.
+
+This rule is easier to follow than it sounds. When I modify an endpoint, the documentation change is part of the same task. I do not treat it as a separate chore that happens later. The commit includes both the code change and the documentation update.
+
+I use OpenAPI specifications for this because they are structured and machine-readable. When I update the spec, I can validate it against the actual implementation. If the spec says the endpoint returns a `name` field but the implementation returns a `title` field, the validation catches the mismatch.
+
+```yaml
+# openapi.yaml
+paths:
+  /api/v1/orders:
+    post:
+      summary: Create a new order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+            example:
+              customer_id: "cust_12345"
+              items:
+                - product_id: "prod_67890"
+                  quantity: 2
+                  unit_price: 29.99
+      responses:
+        '200':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+```
+
+The spec also generates interactive documentation that developers can use to test endpoints directly. This eliminates the gap between documentation and reality — the documentation is the API, not a description of it.
+
+## Breaking changes are a documentation problem
+
+When I need to change an API response shape, the first thing I do is document the breaking change. I explain what changed, why it changed, and how to migrate from the old shape to the new one. This documentation is more valuable than the code change itself because it helps integrators adapt.
+
+Breaking changes are inevitable in evolving systems. The goal is not to prevent them but to manage them transparently. When integrators know exactly what changed and why, they can update their code without guessing.
+
+I use versioning to manage breaking changes. The old endpoint continues to work under the old version. The new endpoint returns the new shape under a new version. I deprecate the old version with a `Sunset` header and a documentation notice, giving integrators time to migrate.
+
+```
+Sunset: Sat, 01 Mar 2026 00:00:00 GMT
+Deprecation: true
+Link: <https://api.example.com/docs/v2/migration>; rel="successor-version"
+```
+
+This approach works because it respects the integrator's timeline. They can migrate when it is convenient for them, not when the backend team decides to make a breaking change.
+
+I also write a migration guide for every breaking change. The guide explains what changed, why it changed, and how to update the integration code. I include before-and-after examples so integrators can see exactly what needs to change.
+
+## Documentation as a design tool
+
+I discovered that writing documentation before implementation helps clarify the design. When I write the documentation first, I am forced to think about the API surface from the consumer's perspective. This often reveals design issues that are not apparent when thinking from the implementation side.
+
+For example, when I documented a recent endpoint, I realized the response shape was inconsistent with other endpoints in the same API. Some endpoints returned `data` as an object, others returned it as an array. Catching this during documentation was much cheaper than catching it after implementation.
+
+Writing documentation first also forces me to think about edge cases. What happens when the input is invalid? What happens when the resource does not exist? What happens when the database is unavailable? These questions are easier to answer in documentation than in code because documentation does not require implementation details.
+
+The result is a more thoughtful API design. The documentation serves as a specification that guides the implementation, not a description that follows it.
+
+I now write documentation for every new endpoint before I write the implementation. The documentation becomes the specification. The implementation follows the spec, not the other way around. This approach has two benefits: the documentation is always accurate because it was written first, and the implementation is more consistent because it follows a predefined contract.
+
+## The documentation structure I use
+
+I organize API documentation around three sections: request, response, and constraints.
+
+### Request section
+
+The request section documents what the endpoint expects. I include:
+
+- HTTP method and URL path
+- Required headers (Authorization, Content-Type)
+- URL parameters with types and descriptions
+- Query parameters with types, defaults, and constraints
+- Request body with schema and example values
+
+I document every parameter, even the obvious ones. "The `id` parameter is a string that identifies the user" seems redundant, but it eliminates ambiguity. Is `id` a number or a string? Does it include a prefix? What happens if it is empty? Documentation answers these questions before they become bugs.
+
+### Response section
+
+The response section documents what the endpoint returns. I include:
+
+- Success response with status code and body schema
+- Error responses with status codes and body schemas
+- Example responses for every status code
+- Pagination structure for list endpoints
+
+I document every possible error response, not just the common ones. A 500 error is rare, but when it happens, the frontend needs to know what the response looks like so it can display an appropriate message.
+
+### Constraints section
+
+The constraints section documents what the endpoint does not do. I include:
+
+- Rate limits (requests per minute, per hour)
+- Authentication requirements (token type, scopes)
+- Input constraints (max length, allowed values, patterns)
+- Pagination limits (max page size, default page size)
+
+These constraints prevent common integration mistakes. "The `name` field has a maximum length of 200 characters" prevents the frontend from sending a 500-character name and getting a cryptic error back.
+
+## The compounding return
+
+Every hour spent on documentation saves multiple hours of support, debugging, and onboarding. The investment is modest, but the returns compound over time. As the project grows, the documentation becomes increasingly valuable because it scales better than verbal communication.
+
+I have worked on projects where the documentation was thorough and projects where it was nonexistent. The difference is striking. In well-documented projects, new developers can start contributing within days. In undocumented projects, they spend weeks reconstructing knowledge that should have been written down.
+
+The documentation also helps me. When I return to a project after a break, the documentation reminds me of decisions I made and constraints I respected. It is like leaving notes for your future self — a small investment now that pays dividends later.
+
+I have quantified this effect on my own productivity. When I return to a documented project, I can resume work in fifteen minutes. When I return to an undocumented project, it takes me an hour to reconstruct the context. Across a year of context switches, that difference adds up to days of saved time.
+
+## Measuring documentation quality
+
+I measure documentation quality by asking one question: can a new developer integrate an endpoint without asking a single question? If the answer is yes, the documentation is good. If the answer is no, the documentation is missing something.
+
+I test this by watching new developers integrate our API. I do not help them. I do not answer questions. I watch where they get stuck, what confuses them, and what they need to look up in the source code. Every place where they get stuck is a documentation gap.
+
+This testing method is more valuable than any quality metric because it measures what matters: whether the documentation answers the questions that integrators actually have.
+
+In the end, API documentation is not about completeness or elegance. It is about clarity. The documentation should answer the questions that integrators actually have, not the questions that the backend team thinks they should have. When the documentation achieves that clarity, it becomes the most valuable part of the API.
+
+## Resources
+
+- [OpenAPI 3.0 Specification](https://spec.openapis.org/oas/v3.0.3) — The standard for describing REST APIs
+- [Swagger UI](https://swagger.io/tools/swagger-ui/) — Interactive API documentation
+- [Stoplight Studio](https://stoplight.io/studio) — Visual OpenAPI editor
+- [ReadMe](https://readme.com/) — API documentation platform
+- [GitBook](https://www.gitbook.com/) — Technical documentation tool
+- [API Documentation Best Practices (Stripe)](https://stripe.com/blog/api-documentation-best-practices) — Stripe's approach to API docs

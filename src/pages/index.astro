@@ -1,56 +1,29 @@
 ---
 import PageHead from '../layouts/PageHead.astro';
+import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
 import Works from '../components/Works.astro';
 import About from '../components/About.astro';
 import Skills from '../components/Skills.astro';
 import Experience from '../components/Experience.astro';
-import Contact from '../components/Contact.astro';
+import Blog from '../components/Blog.astro';
+import ContactFooter from '../components/ContactFooter.astro';
+import NewsTicker from '../components/NewsTicker.astro';
+import { getProfile } from '../lib/content';
 
-const themeDefault = 'terminal';
+const profile = await getProfile();
 ---
 
-<PageHead lang="id" title="Raihan Achmad — Full Stack Developer" description="Portfolio Raihan Achmad — Full Stack Developer with Backend Focus" themeDefault={themeDefault}>
-  <header id="hdr">
-    <div class="header-inner">
-      <a href="#top" class="brand">raihan<i>@backend</i>:~$</a>
-      <nav class="nav" aria-label="Navigation">
-        <a href="#work"><b>01</b>Works</a>
-        <a href="#about"><b>02</b>About</a>
-        <a href="#skills"><b>03</b>Skills</a>
-        <a href="#journey"><b>04</b>Experience</a>
-        <a href="#contact"><b>05</b>Contact</a>
-      </nav>
-      <div class="theme-switcher" role="radiogroup" aria-label="Theme selection">
-        <button class="theme-btn" data-theme="terminal" role="radio" aria-checked="true" aria-label="Terminal theme">T</button>
-        <button class="theme-btn" data-theme="editorial" role="radio" aria-checked="false" aria-label="Editorial theme">E</button>
-        <button class="theme-btn" data-theme="gallery" role="radio" aria-checked="false" aria-label="Gallery theme">G</button>
-        <button class="theme-btn" data-theme="swiss" role="radio" aria-checked="false" aria-label="Swiss theme">S</button>
-      </div>
-      <div class="status mono"><span class="dot"></span>Available · <span class="time">--:--</span></div>
-      <button class="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span></button>
-    </div>
-  </header>
-
-  <div class="mobile-menu" id="mmenu">
-    <a class="big" href="#work" style="transition-delay:.08s">Works <i>01</i></a>
-    <a class="big" href="#about" style="transition-delay:.14s">About <i>02</i></a>
-    <a class="big" href="#skills" style="transition-delay:.20s">Skills <i>03</i></a>
-    <a class="big" href="#journey" style="transition-delay:.26s">Experience <i>04</i></a>
-    <a class="big" href="#contact" style="transition-delay:.32s">Contact <i>05</i></a>
-    <div class="mobile-footer"><span>Portfolio 2026</span><span class="time">--:--</span></div>
-  </div>
-
+<PageHead lang="en" title={`${profile.name} — ${profile.roleTitle}`} description={profile.heroSub} themeDefault="gallery">
+  <NewsTicker />
+  <Header />
   <main id="top">
-    <Hero name="Raihan Achmad" tagline="Full Stack Developer" subtitle="Building scalable systems and beautiful experiences" />
+    <Hero name={profile.name} tagline={profile.roleTitle} subtitle={profile.heroSub} location={profile.location} marquee={profile.marquee} />
     <Works />
     <About />
     <Skills />
     <Experience />
-    <Contact />
+    <Blog />
   </main>
-
-  <script is:inline>
-    window.__THEME_DEFAULT__ = 'terminal';
-  </script>
+  <ContactFooter />
 </PageHead>

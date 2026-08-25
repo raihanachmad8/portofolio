@@ -1,0 +1,123 @@
+---
+import PageHead from '../../layouts/PageHead.astro';
+import Header from '../../components/Header.astro';
+import ContactFooter from '../../components/ContactFooter.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog');
+const posts = allPosts.sort((a, b) => new Date(b.data.published_date).getTime() - new Date(a.data.published_date).getTime());
+
+// Extract unique categories and tags
+const categories = [...new Set(posts.map(p => p.data.category))];
+const allTags = [...new Set(posts.flatMap(p => p.data.tags || []))];
+
+function fmtDate(d: string) {
+  const dt = new Date(d);
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+---
+
+<PageHead lang="en" title="Blog — Raihan Achmad" description="Articles about fullstack engineering, backend systems, frontend, DevOps, and career." themeDefault="gallery">
+  <Header />
+  <main id="top">
+    <section id="blog-list">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 class="section-title">Blog</h2>
+          <span class="rule"></span>
+          <span class="mono code">//writing</span>
+        </div>
+
+        <div class="blog-filters" data-reveal>
+          <div class="blog-filter-group">
+            <span class="blog-filter-label mono">Category</span>
+            <div class="blog-filter-chips">
+              <button class="blog-chip active" data-filter="category" data-value="all">All</button>
+              {categories.map(cat => (
+                <button class="blog-chip" data-filter="category" data-value={cat}>{cat}</button>
+              ))}
+            </div>
+          </div>
+          <div class="blog-filter-group">
+            <span class="blog-filter-label mono">Tags</span>
+            <div class="blog-filter-chips">
+              <button class="blog-chip active" data-filter="tag" data-value="all">All</button>
+              {allTags.map(tag => (
+                <button class="blog-chip" data-filter="tag" data-value={tag}>{tag}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div class="blog-grid-full">
+          {posts.map((post) => (
+            <a
+              href={`/blog/${post.id}`}
+              class="blog-card"
+              data-reveal
+              data-category={post.data.category}
+              data-tags={post.data.tags?.join(',')}
+            >
+              <div class="blog-card-top mono">
+                <span class="blog-card-category">{post.data.category}</span>
+                <span>{fmtDate(post.data.published_date)}</span>
+              </div>
+              <h3>{post.title}</h3>
+              <p>{post.data.excerpt}</p>
+              <div class="blog-card-tags">
+                {post.data.tags?.map(tag => (
+                  <span class="blog-card-tag mono">{tag}</span>
+                ))}
+              </div>
+              <div class="blog-card-meta mono">
+                <span>{post.data.read_time} min read</span>
+                <span class="arrow-link">Read →</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+  <ContactFooter />
+</PageHead>
+
+<script>
+  const chips = document.querySelectorAll('.blog-chip');
+  const cards = document.querySelectorAll('.blog-card');
+  let activeCategory = 'all';
+  let activeTag = 'all';
+
+  function filterCards() {
+    cards.forEach(card => {
+      const cat = card.getAttribute('data-category');
+      const tags = card.getAttribute('data-tags')?.split(',') || [];
+
+      const matchCategory = activeCategory === 'all' || cat === activeCategory;
+      const matchTag = activeTag === 'all' || tags.includes(activeTag);
+
+      if (matchCategory && matchTag) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      const filter = chip.getAttribute('data-filter');
+      const value = chip.getAttribute('data-value');
+
+      // Update active state within same filter group
+      const group = chip.closest('.blog-filter-chips');
+      group?.querySelectorAll('.blog-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+
+      if (filter === 'category') activeCategory = value || 'all';
+      if (filter === 'tag') activeTag = value || 'all';
+
+      filterCards();
+    });
+  });
+</script>

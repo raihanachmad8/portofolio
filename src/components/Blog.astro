@@ -1,46 +1,40 @@
 ---
-import { getRecentPosts } from '../lib/content';
+import SectionHead from './SectionHead.astro';
+import { getCollection } from 'astro:content';
 
-const posts = await getRecentPosts(3);
+const allPosts = await getCollection('blog');
+const posts = allPosts
+  .sort((a, b) => new Date(b.data.published_date).getTime() - new Date(a.data.published_date).getTime())
+  .filter(p => p.data.featured)
+  .slice(0, 4);
+
+function fmtDate(d: string) {
+  const dt = new Date(d);
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
 ---
 
-<section id="blog" class="py-20">
-  <div class="container mx-auto px-4">
-    <h2 class="text-3xl font-bold mb-8" style="color: var(--fg);">
-      Latest Articles
-    </h2>
-
-    {posts.length === 0 ? (
-      <div class="text-center py-12" style="color: var(--fg); opacity: 0.5;">
-        <p>No articles yet.</p>
-      </div>
-    ) : (
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {posts.map(post => (
-          <a
-            href={`/blog/${post.slug}`}
-            class="blog-card p-6 rounded-lg block transition-transform hover:-translate-y-1"
-            style={`background: var(--card-bg); border: 1px solid var(--card-border);`}
-          >
-            <div class="text-sm mb-2" style="color: var(--acc);">
-              {post.category}
-            </div>
-
-            <h3 class="text-lg font-bold mb-2" style="color: var(--fg);">
-              {post.title}
-            </h3>
-
-            <p class="text-sm mb-4 opacity-70" style="color: var(--fg);">
-              {post.excerpt}
-            </p>
-
-            <div class="flex justify-between text-xs opacity-50" style="color: var(--fg);">
-              <span>{post.published_date}</span>
-              <span>{post.read_time} min read</span>
-            </div>
-          </a>
-        ))}
-      </div>
-    )}
+<section id="blog">
+  <div class="wrap">
+    <SectionHead tag="05" title="Blog" code="//writing" />
+    <div class="blog-grid">
+      {posts.map((post) => (
+        <a href={`/blog/${post.id}`} class="blog-card" data-reveal>
+          <div class="blog-card-top mono">
+            <span>{post.data.category}</span>
+            <span>{fmtDate(post.data.published_date)}</span>
+          </div>
+          <h3>{post.title}</h3>
+          <p>{post.data.excerpt}</p>
+          <div class="blog-card-meta mono">
+            <span>{post.data.read_time} min read</span>
+            <span class="arrow-link">Read →</span>
+          </div>
+        </a>
+      ))}
+    </div>
+    <div class="section-more" data-reveal>
+      <a href="/blog" class="view-more-link mono">View All Posts <i>→</i></a>
+    </div>
   </div>
 </section>

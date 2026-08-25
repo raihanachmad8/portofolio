@@ -1,0 +1,268 @@
+---
+title: "How I Deploy Full-Stack Applications Without Burning Out"
+category: Article
+excerpt: "Deployment does not need to be complicated. Here is the simple approach that works for most projects."
+published_date: 2025-04-20
+read_time: 15
+featured: false
+tags: ["deployment", "infrastructure", "fullstack", "devops"]
+order: 0
+---
+
+Deployment does not need to be complicated. Here is the simple approach that works for most projects.
+
+## The deployment anxiety
+
+I used to dread deployments. Every deployment was a manual process that required careful attention. I would SSH into the server, pull the latest code, install dependencies, run migrations, and restart the application. Every step was an opportunity for a typo that could take down the application.
+
+The anxiety was not about the complexity — it was about the uncertainty. I never knew whether the deployment would succeed until I checked the application in production. Sometimes it worked. Sometimes it did not. The inconsistency made every deployment stressful.
+
+The fix was not better tools — it was better habits. When deployment becomes a routine, the anxiety disappears.
+
+## The deployment checklist
+
+I follow a simple checklist for every deployment. The checklist is written down, and I follow it exactly the same way every time. This eliminates the uncertainty that causes anxiety.
+
+My deployment checklist:
+
+1. Run the test suite locally
+2. Push to the main branch
+3. Verify the CI pipeline passes
+4. Check the application in staging (if applicable)
+5. Deploy to production
+6. Verify the application works in production
+7. Monitor for errors for thirty minutes
+
+This checklist takes fifteen minutes. It catches the most common deployment issues before they reach production. The key is consistency — I follow the same steps every time.
+
+## The deployment script
+
+I wrote a deployment script that handles the entire process. The script is idempotent — it can run multiple times without causing problems. If a step fails, the script stops and reports the error.
+
+Here is the deployment script I use for most projects:
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+APP_DIR="/var/www/app"
+LOG_FILE="/var/log/deploy.log"
+HEALTH_URL="http://localhost:3000/health"
+
+log() {
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
+}
+
+deploy() {
+  log "Starting deployment..."
+
+  cd "$APP_DIR"
+
+  # Stash any local changes
+  git stash
+
+  # Pull latest code
+  log "Pulling latest code..."
+  git pull origin main
+
+  # Install dependencies
+  log "Installing dependencies..."
+  npm ci --production
+
+  # Run migrations
+  log "Running migrations..."
+  npm run migrate
+
+  # Restart application
+  log "Restarting application..."
+  pm2 restart app
+
+  # Wait for application to start
+  log "Waiting for application to start..."
+  sleep 5
+
+  # Health check
+  log "Running health check..."
+  if curl -f "$HEALTH_URL" > /dev/null 2>&1; then
+    log "Deployment successful"
+  else
+    log "Health check failed, rolling back..."
+    git checkout HEAD~1
+    npm ci --production
+    pm2 restart app
+    log "Rollback complete"
+    exit 1
+  fi
+}
+
+deploy
+```
+
+This script runs the entire deployment process. If any step fails, the script stops and rolls back. The deployment is atomic — either it succeeds completely or it rolls back completely.
+
+## The rollback strategy
+
+Every deployment has a rollback strategy. If the new version breaks something, I need to get back to the previous version quickly. The rollback should be as simple as the deployment.
+
+I use git tags for versioning. Every deployment creates a tag. If I need to rollback, I check out the previous tag and redeploy.
+
+```bash
+# Create a tag for this deployment
+git tag deploy-$(date +%Y%m%d-%H%M%S)
+
+# Rollback to the previous deployment
+git checkout deploy-20250420-143000
+npm ci --production
+pm2 restart app
+```
+
+The rollback takes thirty seconds. I do not need to debug the issue immediately — I can get the application back to a working state first, then investigate what went wrong.
+
+## The health check
+
+Every deployment ends with a health check. The health check verifies that the application started correctly and can serve requests. If the health check fails, the deployment rolls back automatically.
+
+Here is the health check endpoint I use:
+
+```ts
+// health.ts
+app.get('/health', async (req, res) => {
+  try {
+    // Check database connection
+    await db.query('SELECT 1');
+
+    // Check Redis connection
+    await redis.ping();
+
+    // Check application status
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'unhealthy',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+```
+
+The health check verifies that the database and Redis connections are working. If either connection fails, the health check returns a 503 status, which triggers the rollback.
+
+## The staging environment
+
+For projects that need it, I use a staging environment that mirrors production. The staging environment runs the same code, the same configuration, and the same dependencies. The only difference is the data — staging uses test data, production uses real data.
+
+The staging environment is useful for catching issues that only appear in a production-like environment. Database migrations, external API integrations, and performance characteristics are easier to test in staging than in production.
+
+However, staging is not always necessary. For small projects, deploying directly to production with a health check is usually sufficient. Staging adds complexity and cost, so I only use it when the project needs it.
+
+## The database migration strategy
+
+Database migrations are the riskiest part of any deployment. A bad migration can corrupt data or take down the application. I follow a specific strategy to minimize this risk.
+
+My migration strategy:
+
+1. **Write backward-compatible migrations** — The old code must work with the new schema
+2. **Test migrations with realistic data** — Never trust a migration until you test it with production-like data
+3. **Run migrations before deployment** — Migrations should run before the new code is deployed
+4. **Have a rollback plan** — Every migration should have a corresponding rollback
+
+Here is an example of a backward-compatible migration:
+
+```sql
+-- Step 1: Add new column (nullable)
+ALTER TABLE users ADD COLUMN display_name VARCHAR(100);
+
+-- Step 2: Backfill existing data
+UPDATE users SET display_name = name WHERE display_name IS NULL;
+
+-- Step 3: Make NOT NULL after backfill
+ALTER TABLE users ALTER COLUMN display_name SET NOT NULL;
+```
+
+This migration adds a new column, backfills existing data, and makes the column required. The old code ignores the new column, so it continues to work during the migration.
+
+## The monitoring after deployment
+
+After every deployment, I monitor the application for thirty minutes. I watch the logs for errors, the health check for failures, and the metrics for anomalies.
+
+I use a simple monitoring script that runs every minute:
+
+```bash
+#!/bin/bash
+# post-deploy-monitor.sh — run for 30 minutes after deployment
+
+DURATION=1800  # 30 minutes in seconds
+INTERVAL=60    # Check every minute
+
+elapsed=0
+while [ $elapsed -lt $DURATION ]; do
+  # Check health
+  if ! curl -f http://localhost:3000/health > /dev/null 2>&1; then
+    echo "$(date): Health check failed" >> /var/log/post-deploy.log
+  fi
+
+  # Check error rate
+  errors=$(grep -c "ERROR" /var/log/app.log 2>/dev/null || echo 0)
+  if [ "$errors" -gt 10 ]; then
+    echo "$(date): High error rate: $errors errors" >> /var/log/post-deploy.log
+  fi
+
+  sleep $INTERVAL
+  elapsed=$((elapsed + INTERVAL))
+done
+
+echo "$(date): Post-deploy monitoring complete" >> /var/log/post-deploy.log
+```
+
+This script checks health and error rate every minute for thirty minutes. If anything looks wrong, it logs a warning. This gives me confidence that the deployment succeeded.
+
+## The deployment log
+
+I keep a deployment log that records every deployment. The log includes the date, the commit hash, the deployment status, and any issues that occurred. This log is useful for debugging and for understanding the deployment history.
+
+Here is the deployment log format:
+
+```
+[2025-04-20 14:30:00] Deploy successful
+  Commit: abc1234
+  Branch: main
+  Duration: 45 seconds
+  Health check: passed
+
+[2025-04-19 10:15:00] Deploy successful
+  Commit: def5678
+  Branch: main
+  Duration: 42 seconds
+  Health check: passed
+
+[2025-04-18 16:45:00] Deploy failed, rollback
+  Commit: ghi9012
+  Branch: main
+  Duration: 38 seconds
+  Health check: failed
+  Rollback: successful
+  Issue: Database migration failed
+```
+
+This log shows the deployment history at a glance. I can see which deployments succeeded, which failed, and what issues occurred. This information is valuable for debugging and for understanding the deployment patterns.
+
+## What I learned
+
+Deployment anxiety comes from uncertainty. When you do not know whether a deployment will succeed, every deployment feels risky. The fix is to make deployment predictable and routine.
+
+The key practices are: a deployment checklist, an automated deployment script, a rollback strategy, and post-deployment monitoring. These practices take time to establish, but they save far more time in reduced stress and fewer production incidents.
+
+The goal is not to make deployment exciting. The goal is to make it boring. When deployment is boring, it means everything is working as expected.
+
+## Resources
+
+- [PM2 Documentation](https://pm2.keymetrics.io/) — Node.js process manager
+- [Docker Documentation](https://docs.docker.com/) — Container platform
+- [GitHub Actions Documentation](https://docs.github.com/en/actions) — CI/CD automation
+- [Nginx Documentation](https://nginx.org/en/docs/) — Web server and reverse proxy
+- [PostgreSQL Migration Best Practices](https://www.postgresql.org/docs/current/ddl.html) — Database migrations

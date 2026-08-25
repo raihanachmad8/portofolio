@@ -12,21 +12,21 @@ const profile = await getProfile();
       <div class="about-txt">
         <p class="lead" data-reveal>{profile.aboutLead}</p>
         {profile.aboutParas?.map((par: string, i: number) => (
-          <p data-reveal style={`--d:${0.08 + i * 0.06}s`}>{par}</p>
+          <p data-reveal class={`d-${i + 2}`}>{par}</p>
         ))}
-        <div class="facts" data-reveal style="--d:.2s">
+        <div class="facts d-4" data-reveal>
           {profile.facts?.map((f: any) => (
-            <div><span class="n">{f.value}{f.suffix}</span><span class="l">{f.label}</span></div>
+            <div><span class="n">{f.value}</span><span class="l">{f.label}</span></div>
           ))}
         </div>
-        <ul class="principles" data-reveal style="--d:.26s">
+        <ul class="principles d-5" data-reveal>
           {profile.principles?.map((pr: any) => (
             <li><i>// {pr.no}</i><b>{pr.title}</b><span>{pr.description}</span></li>
           ))}
         </ul>
       </div>
-      <div data-reveal style="--d:.15s">
-        <div class="about-ph"><img src="/images/profile.jpg" alt="Profile" loading="lazy" /></div>
+      <div class="d-3" data-reveal>
+        <div class="about-ph"><img src="/images/profile-formal.jpg" alt="Achmad Raihan Fahrezi Effendy" loading="lazy" /></div>
         <p class="about-photo-cap"><span>Fig. 01</span><span>{profile.location}</span></p>
       </div>
     </div>
