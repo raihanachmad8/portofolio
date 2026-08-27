@@ -1,25 +1,23 @@
 ---
-import PageHead from '../../layouts/PageHead.astro';
-import Header from '../../components/Header.astro';
-import ContactFooter from '../../components/ContactFooter.astro';
-import { getCollection, render } from 'astro:content';
+import Base from '@layouts/Base.astro';
+import Header from '@components/Header.astro';
+import ContactFooter from '@components/ContactFooter.astro';
+import { getPostBySlug, getProjectContent } from '@lib/content';
+import { fmtDate, getRuntimeEnv } from '@lib/utils';
+import { marked } from 'marked';
 
-export async function getStaticPaths() {
-  const posts = await getCollection('blog');
-  return posts.map(entry => ({
-    params: { slug: entry.id },
-    props: { entry },
-  }));
+const { slug } = Astro.params;
+const env = getRuntimeEnv(Astro);
+const post = await getPostBySlug(slug as string, env);
+
+if (!post) {
+  return Astro.redirect('/blog');
 }
 
-const { entry } = Astro.props;
-const { data } = entry;
-const { Content } = await render(entry);
-
-const fmtDate = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const contentHtml = marked(post.content || '');
 ---
 
-<PageHead lang="en" title={`${data.title} — Blog`} description={data.excerpt} themeDefault="gallery">
+<Base lang="en" title={`${post.title} — Blog`} description={post.excerpt} themeDefault="gallery">
   <Header />
   <main id="top">
     <section id="blog-post">
@@ -29,25 +27,23 @@ const fmtDate = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 
           <span class="rule"></span>
           <a href="/blog" class="section-link">Blog</a>
           <span class="rule"></span>
-          <span class="mono code">{data.title}</span>
+          <span class="mono code">{post.title}</span>
         </nav>
 
         <article>
           <div class="blog-post-meta mono">
-            <span class="blog-post-category">{data.category}</span>
-            <span>{fmtDate(data.published_date)}</span>
-            <span>{data.read_time} min read</span>
+            <span class="blog-post-category">{post.category}</span>
+            <span>{fmtDate(post.published_date)}</span>
+            <span>{post.read_time} min read</span>
           </div>
-          <h1 class="blog-post-title">{data.title}</h1>
+          <h1 class="blog-post-title">{post.title}</h1>
           <div class="blog-post-tags mono">
-            {data.tags.map((tag: string) => (
+            {post.tags?.map((tag: string) => (
               <span>{tag}</span>
             ))}
           </div>
 
-          <div class="proj-content prose">
-            <Content />
-          </div>
+          <div class="proj-content prose" set:html={contentHtml} />
 
           <div class="proj-back">
             <a href="/blog" class="arrow-link"><i>→</i><b>All Posts</b></a>
@@ -57,4 +53,4 @@ const fmtDate = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 
     </section>
   </main>
   <ContactFooter />
-</PageHead>
+</Base>
