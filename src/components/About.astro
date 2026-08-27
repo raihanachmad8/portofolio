@@ -1,13 +1,18 @@
 ---
 import SectionHead from './SectionHead.astro';
-import { getProfile } from '../lib/content';
+import type { Profile } from '../lib/schemas';
 
-const profile = await getProfile();
+interface Props {
+  profile?: Profile;
+}
+
+const { profile } = Astro.props;
+if (!profile) return null;
 ---
 
 <section id="about">
   <div class="wrap">
-    <SectionHead tag="04" title="About" code="//me" />
+    <SectionHead tag="02" title="About" code="//me" />
     <div class="about-grid">
       <div class="about-txt">
         <p class="lead" data-reveal>{profile.aboutLead}</p>
@@ -26,7 +31,7 @@ const profile = await getProfile();
         </ul>
       </div>
       <div class="d-3" data-reveal>
-        <div class="about-ph"><img src="/images/profile-formal.jpg" alt="Achmad Raihan Fahrezi Effendy" loading="lazy" /></div>
+        <div class="about-ph"><img src="/images/profile-formal.jpg" alt={profile.name} loading="lazy" /></div>
         <p class="about-photo-cap"><span>Fig. 01</span><span>{profile.location}</span></p>
       </div>
     </div>

@@ -1,13 +1,15 @@
 ---
 import SectionHead from './SectionHead.astro';
 import { getExperience } from '../lib/content';
+import { getRuntimeEnv } from '../lib/utils';
 
-const experience = await getExperience();
+const env = getRuntimeEnv(Astro);
+const experience = await getExperience(env);
 ---
 
 <section id="journey">
   <div class="wrap">
-    <SectionHead tag="03" title="Experience" code="//career" />
+    <SectionHead tag="04" title="Experience" code="//career" />
     <div data-reveal>
       {experience.map((xp) => (
         <div class={`xp-row${xp.now ? ' now' : ''}`}>

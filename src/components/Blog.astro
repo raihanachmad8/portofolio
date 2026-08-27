@@ -1,17 +1,13 @@
 ---
 import SectionHead from './SectionHead.astro';
-import { getCollection } from 'astro:content';
+import { getAllPosts } from '../lib/content';
+import { fmtDate, getRuntimeEnv } from '../lib/utils';
 
-const allPosts = await getCollection('blog');
+const env = getRuntimeEnv(Astro);
+const allPosts = await getAllPosts(env);
 const posts = allPosts
-  .sort((a, b) => new Date(b.data.published_date).getTime() - new Date(a.data.published_date).getTime())
-  .filter(p => p.data.featured)
+  .filter(p => p.featured)
   .slice(0, 4);
-
-function fmtDate(d: string) {
-  const dt = new Date(d);
-  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
 ---
 
 <section id="blog">
@@ -19,15 +15,15 @@ function fmtDate(d: string) {
     <SectionHead tag="05" title="Blog" code="//writing" />
     <div class="blog-grid">
       {posts.map((post) => (
-        <a href={`/blog/${post.id}`} class="blog-card" data-reveal>
+        <a href={`/blog/${post.slug}`} class="blog-card" data-reveal>
           <div class="blog-card-top mono">
-            <span>{post.data.category}</span>
-            <span>{fmtDate(post.data.published_date)}</span>
+            <span>{post.category}</span>
+            <span>{fmtDate(post.published_date)}</span>
           </div>
           <h3>{post.title}</h3>
-          <p>{post.data.excerpt}</p>
+          <p>{post.excerpt}</p>
           <div class="blog-card-meta mono">
-            <span>{post.data.read_time} min read</span>
+            <span>{post.read_time} min read</span>
             <span class="arrow-link">Read →</span>
           </div>
         </a>

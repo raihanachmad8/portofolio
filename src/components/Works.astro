@@ -1,11 +1,13 @@
 ---
 import SectionHead from './SectionHead.astro';
-import { getCollection } from 'astro:content';
+import { getAllProjects } from '../lib/content';
+import { resolveImageUrl } from '../lib/config';
+import { getRuntimeEnv } from '../lib/utils';
 
-const allProjects = await getCollection('projects');
-const projects = allProjects
-  .sort((a, b) => a.data.order - b.data.order)
-  .filter(p => p.data.featured);
+const env = getRuntimeEnv(Astro);
+const siteUrl = env?.PUBLIC_SITE_URL;
+const allProjects = await getAllProjects(env);
+const projects = allProjects.filter(p => p.featured);
 ---
 
 <section id="work">
@@ -16,24 +18,24 @@ const projects = allProjects
         <p>A selection of projects I've built across backend, frontend, and full-stack applications.</p>
         <nav class="works-index" aria-label="Project navigation">
           {projects.map((pr) => (
-            <a href={`#project-${pr.data.order}`}><i>/{String(pr.data.order).padStart(2, '0')}</i><b>{pr.data.title}</b></a>
+            <a href={`#project-${pr.order}`}><i>/{String(pr.order).padStart(2, '0')}</i><b>{pr.title}</b></a>
           ))}
         </nav>
         <a href="/projects" class="view-more-link mono">View All Projects <i>→</i></a>
       </aside>
       <div>
         {projects.map((pr) => (
-          <article class="proj" id={`project-${pr.data.order}`} data-reveal>
-            <div class="proj-top mono"><span class="no">/{String(pr.data.order).padStart(2, '0')}</span><span>{pr.data.year} · {pr.data.category}</span></div>
-            <figure data-case={pr.data.order}>
-              <img src={pr.data.image_url || '/images/placeholder.svg'} alt={pr.data.title} loading="lazy" />
+          <article class="proj" id={`project-${pr.order}`} data-reveal>
+            <div class="proj-top mono"><span class="no">/{String(pr.order).padStart(2, '0')}</span><span>{pr.year} · {pr.category}</span></div>
+            <figure data-case={pr.order}>
+              <img src={resolveImageUrl(pr.image_url, siteUrl)} alt={pr.title} loading="lazy" />
             </figure>
-            <h3>{pr.data.title}</h3>
-            <p class="desc">{pr.data.description}</p>
+            <h3>{pr.title}</h3>
+            <p class="desc">{pr.description}</p>
             <div class="tags">
-              {pr.data.stack.split(',').map((t: string) => <span>{t.trim()}</span>)}
+              {pr.stack.split(',').map((t: string) => <span>{t.trim()}</span>)}
             </div>
-            <a href={`/projects/${pr.id}`} class="arrow-link">View Case Study<i>→</i></a>
+            <a href={`/projects/${pr.slug}`} class="arrow-link">View Case Study<i>→</i></a>
           </article>
         ))}
       </div>

@@ -1,13 +1,15 @@
 ---
 import SectionHead from './SectionHead.astro';
 import { getSkillsByCategory } from '../lib/content';
+import { getRuntimeEnv } from '../lib/utils';
 
-const skills = await getSkillsByCategory();
+const env = getRuntimeEnv(Astro);
+const skills = await getSkillsByCategory(env);
 ---
 
 <section id="skills">
   <div class="wrap">
-    <SectionHead tag="02" title="Skills" code="//tech" />
+    <SectionHead tag="03" title="Skills" code="//tech" />
     <div class="skills-grid">
       <div class="skill-col" data-reveal>
         <h3>&gt; Backend (Core)</h3>
@@ -40,6 +42,5 @@ const skills = await getSkillsByCategory();
         <div class="tools">{skills.tools?.devops?.map((t: string) => <i>{t}</i>)}</div>
       </div>
     </div>
-    <p class="sk-note" data-reveal><b>Database</b> — PostgreSQL · MongoDB · Redis · Prisma · Drizzle &nbsp;✳&nbsp; <b>Soft Skills</b> — Communication · Teamwork · Problem Solving</p>
   </div>
 </section>

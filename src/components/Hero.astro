@@ -5,9 +5,10 @@ interface Props {
   subtitle?: string;
   location?: string;
   marquee?: string[];
+  cvUrl?: string;
 }
 
-const { name, tagline, subtitle, location = 'Malang, Indonesia', marquee = [] } = Astro.props;
+const { name, tagline, subtitle, location = '', marquee = [], cvUrl = '#' } = Astro.props;
 const [name1, name2] = name.split(' ');
 ---
 
@@ -23,7 +24,7 @@ const [name1, name2] = name.split(' ');
       <p class="hero-sub d-8" data-reveal>{subtitle}</p>
       <div class="hero-cta d-10" data-reveal>
         <a href="#work" class="btn solid">View Work</a>
-        <a href="/cv/cv-achmad-raihan-fahrezi-effendy-aug-26.pdf" target="_blank" class="btn ghost">Download CV</a>
+        <a href={cvUrl} target="_blank" class="btn ghost">Download CV</a>
         <a href="#contact" class="btn line">Contact</a>
       </div>
     </div>
