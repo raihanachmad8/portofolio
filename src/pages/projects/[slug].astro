@@ -1,27 +1,29 @@
 ---
-import PageHead from '../../layouts/PageHead.astro';
-import Header from '../../components/Header.astro';
-import ContactFooter from '../../components/ContactFooter.astro';
-import { getCollection, render } from 'astro:content';
+import Base from '@layouts/Base.astro';
+import Header from '@components/Header.astro';
+import ContactFooter from '@components/ContactFooter.astro';
+import { getProjectBySlug, getProjectContent } from '@lib/content';
+import { getRuntimeEnv } from '@lib/utils';
+import { marked } from 'marked';
 
-export async function getStaticPaths() {
-  const projects = await getCollection('projects');
-  return projects.map(entry => ({
-    params: { slug: entry.id },
-    props: { entry },
-  }));
+const { slug } = Astro.params;
+const env = getRuntimeEnv(Astro);
+const project = await getProjectBySlug(slug as string, env);
+
+if (!project) {
+  return Astro.redirect('/projects');
 }
 
-const { entry } = Astro.props;
-const { data } = entry;
-const { Content } = await render(entry);
+const contentMd = await getProjectContent(project.id, project.content || '', env);
+const contentHtml = marked(contentMd);
 
-const hasUi = data.has_ui !== false;
-const imgSrc = data.image_url || '/images/placeholder.svg';
-const stackItems = data.stack.split(',').map((t: string) => t.trim());
+const hasUi = project.has_ui !== false;
+import { resolveImageUrl } from '@lib/config';
+const imgSrc = resolveImageUrl(project.image_url, env?.PUBLIC_SITE_URL);
+const stackItems = project.stack.split(',').map((t: string) => t.trim());
 ---
 
-<PageHead lang="en" title={`${data.title} — Case Study`} description={data.description} themeDefault="gallery">
+<Base lang="en" title={`${project.title} — Case Study`} description={project.description} themeDefault="gallery">
   <Header />
   <main id="top">
     <section id="project-detail">
@@ -32,12 +34,12 @@ const stackItems = data.stack.split(',').map((t: string) => t.trim());
           <span class="rule"></span>
           <a href="/projects" class="section-link">Projects</a>
           <span class="rule"></span>
-          <span class="mono code">{data.title}</span>
+          <span class="mono code">{project.title}</span>
         </nav>
 
         {hasUi ? (
           <div class="proj-hero" data-reveal>
-            <img src={imgSrc} alt={data.title} loading="lazy" />
+            <img src={imgSrc} alt={project.title} loading="lazy" />
           </div>
         ) : (
           <div class="proj-terminal" data-reveal>
@@ -45,12 +47,12 @@ const stackItems = data.stack.split(',').map((t: string) => t.trim());
               <span class="terminal-dot red"></span>
               <span class="terminal-dot yellow"></span>
               <span class="terminal-dot green"></span>
-              <span class="terminal-title mono">{data.slug}</span>
+              <span class="terminal-title mono">{project.slug}</span>
             </div>
             <div class="terminal-body">
               <div class="terminal-line"><span class="t-prompt">$</span> <span class="t-cmd">cat</span> README.md</div>
-              <div class="terminal-line t-comment"># {data.title}</div>
-              <div class="terminal-line t-dim">{data.description}</div>
+              <div class="terminal-line t-comment"># {project.title}</div>
+              <div class="terminal-line t-dim">{project.description}</div>
               <div class="terminal-line"></div>
               <div class="terminal-line"><span class="t-prompt">$</span> <span class="t-cmd">tree</span> --dirsfirst -L 2</div>
               <div class="terminal-line t-dim">.</div>
@@ -74,11 +76,11 @@ const stackItems = data.stack.split(',').map((t: string) => t.trim());
         <div class="proj-meta" data-reveal>
           <div class="proj-meta-cell">
             <div class="label">Category</div>
-            <div class="value">{data.category}</div>
+            <div class="value">{project.category}</div>
           </div>
           <div class="proj-meta-cell">
             <div class="label">Year</div>
-            <div class="value">{data.year}</div>
+            <div class="value">{project.year}</div>
           </div>
           <div class="proj-meta-cell">
             <div class="label">Stack</div>
@@ -86,7 +88,7 @@ const stackItems = data.stack.split(',').map((t: string) => t.trim());
           </div>
         </div>
 
-        <h1 class="proj-title" data-reveal>{data.title}</h1>
+        <h1 class="proj-title" data-reveal>{project.title}</h1>
 
         <div class="proj-tags" data-reveal>
           {stackItems.map((t: string) => (
@@ -95,30 +97,15 @@ const stackItems = data.stack.split(',').map((t: string) => t.trim());
         </div>
 
         <div class="proj-cta" data-reveal>
-          {data.github_url && (
-            <a href={data.github_url} target="_blank" rel="noopener" class="btn ghost">GitHub ↗</a>
+          {project.github_url && (
+            <a href={project.github_url} target="_blank" rel="noopener" class="btn ghost">GitHub ↗</a>
           )}
-          {data.live_url && (
-            <a href={data.live_url} target="_blank" rel="noopener" class="btn solid">Live Demo ↗</a>
+          {project.live_url && (
+            <a href={project.live_url} target="_blank" rel="noopener" class="btn solid">Live Demo ↗</a>
           )}
         </div>
 
-        <div class="proj-content prose" data-reveal>
-          <Content />
-        </div>
-
-        {hasUi && data.images && data.images.length > 1 && (
-          <div class="proj-gallery" data-reveal>
-            <h2 class="proj-section-title">Screenshots</h2>
-            <div class="proj-gallery-grid">
-              {data.images.map((img: string, i: number) => (
-                <figure class="proj-gallery-item">
-                  <img src={img} alt={`${data.title} screenshot ${i + 1}`} loading="lazy" />
-                </figure>
-              ))}
-            </div>
-          </div>
-        )}
+        <div class="proj-content prose" data-reveal set:html={contentHtml} />
 
         <div class="proj-back" data-reveal>
           <a href="/projects" class="arrow-link"><i>→</i><b>View All Projects</b></a>
@@ -127,4 +114,4 @@ const stackItems = data.stack.split(',').map((t: string) => t.trim());
     </section>
   </main>
   <ContactFooter />
-</PageHead>
+</Base>

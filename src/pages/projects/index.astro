@@ -1,14 +1,17 @@
 ---
-import PageHead from '../../layouts/PageHead.astro';
-import Header from '../../components/Header.astro';
-import ContactFooter from '../../components/ContactFooter.astro';
-import { getCollection } from 'astro:content';
+import Base from '@layouts/Base.astro';
+import Header from '@components/Header.astro';
+import ContactFooter from '@components/ContactFooter.astro';
+import { getAllProjects } from '@lib/content';
+import { resolveImageUrl } from '@lib/config';
+import { getRuntimeEnv } from '@lib/utils';
 
-const allProjects = await getCollection('projects');
-const projects = allProjects.sort((a, b) => a.data.order - b.data.order);
+const env = getRuntimeEnv(Astro);
+const projects = await getAllProjects(env);
+const siteUrl = env?.PUBLIC_SITE_URL;
 ---
 
-<PageHead lang="en" title="Projects — Raihan Achmad" description="All projects by Raihan Achmad" themeDefault="gallery">
+<Base lang="en" title="Projects — Raihan Achmad" description="All projects by Raihan Achmad" themeDefault="gallery">
   <Header />
   <main id="top">
     <section id="projects">
@@ -22,23 +25,23 @@ const projects = allProjects.sort((a, b) => a.data.order - b.data.order);
             <p>A collection of projects I've built across different technologies.</p>
             <nav class="works-index" aria-label="Project navigation">
               {projects.map((pr) => (
-                <a href={`/projects/${pr.id}`}><i>/{String(pr.data.order).padStart(2, '0')}</i><b>{pr.data.title}</b></a>
+                <a href={`/projects/${pr.slug}`}><i>/{String(pr.order).padStart(2, '0')}</i><b>{pr.title}</b></a>
               ))}
             </nav>
           </aside>
           <div>
             {projects.map((pr) => (
               <article class="proj" data-reveal>
-                <div class="proj-top mono"><span class="no">/{String(pr.data.order).padStart(2, '0')}</span><span>{pr.data.year} · {pr.data.category}</span></div>
+                <div class="proj-top mono"><span class="no">/{String(pr.order).padStart(2, '0')}</span><span>{pr.year} · {pr.category}</span></div>
                 <figure>
-                  <img src={pr.data.image_url || '/images/placeholder.svg'} alt={pr.data.title} loading="lazy" />
+                  <img src={resolveImageUrl(pr.image_url, siteUrl)} alt={pr.title} loading="lazy" />
                 </figure>
-                <h3>{pr.data.title}</h3>
-                <p class="desc">{pr.data.description}</p>
+                <h3>{pr.title}</h3>
+                <p class="desc">{pr.description}</p>
                 <div class="tags">
-                  {pr.data.stack.split(',').map((t: string) => <span>{t.trim()}</span>)}
+                  {pr.stack.split(',').map((t: string) => <span>{t.trim()}</span>)}
                 </div>
-                <a href={`/projects/${pr.id}`} class="arrow-link">View Details<i>→</i></a>
+                <a href={`/projects/${pr.slug}`} class="arrow-link">View Details<i>→</i></a>
               </article>
             ))}
           </div>
@@ -47,4 +50,4 @@ const projects = allProjects.sort((a, b) => a.data.order - b.data.order);
     </section>
   </main>
   <ContactFooter />
-</PageHead>
+</Base>
