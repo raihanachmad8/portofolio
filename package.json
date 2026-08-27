@@ -7,11 +7,15 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "notion:bootstrap": "node scripts/notion-bootstrap.mjs",
-    "notion:seed": "node scripts/notion-seed.mjs",
-    "notion:sync": "node scripts/notion-sync.mjs"
+    "notion": "node scripts/notion.mjs",
+    "notion:bootstrap": "node scripts/notion.mjs bootstrap",
+    "notion:migrate": "node scripts/notion.mjs migrate --all",
+    "notion:sync": "node scripts/notion.mjs sync",
+    "notion:verify": "node scripts/notion.mjs verify",
+    "notion:clean": "node scripts/notion.mjs clean --all"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^12.6.13",
     "@astrojs/mdx": "^4.3.14",
     "@notionhq/client": "^5.26.0",
     "astro": "^5.0.0",
