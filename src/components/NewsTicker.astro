@@ -1,18 +1,28 @@
 ---
-const { items = [] } = Astro.props;
-const defaultItems = [
-  "🔧 Under maintenance — updating project images and content",
-  "🎓 GPA 3.90 — Politeknik Negeri Malang",
-  "💼 Open to fullstack engineering opportunities",
-  "🛠️ Portfolio v2.0 — built with Astro, multi-theme, AI assistant",
-];
-const tickerItems = items.length > 0 ? items : defaultItems;
+import { getTicker } from '../lib/content';
+import { getProfile } from '../lib/content';
+import { getRuntimeEnv } from '../lib/utils';
+
+interface Props {
+  items?: { icon?: string; text: string }[];
+}
+
+const { items } = Astro.props;
+const env = getRuntimeEnv(Astro);
+
+const profile = await getProfile(env);
+if (!profile.available) return null;
+
+const tickerItems = items || await getTicker(env);
 ---
 
 <div class="news-ticker" aria-label="Latest updates">
   <div class="ticker-track">
     {[...tickerItems, ...tickerItems].map((item) => (
-      <span class="ticker-item">{item}</span>
+      <span class="ticker-item">
+        {item.icon && <span class="ticker-icon">{item.icon}</span>}
+        {item.text}
+      </span>
     ))}
   </div>
 </div>
@@ -41,6 +51,9 @@ const tickerItems = items.length > 0 ? items : defaultItems;
     display: flex;
     align-items: center;
     gap: .5rem;
+  }
+  .ticker-icon {
+    font-size: .7rem;
   }
   .ticker-item::after {
     content: '•';
