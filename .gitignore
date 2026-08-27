@@ -1,6 +1,10 @@
 # build output
 dist/
 
+# cache
+.astro/
+.wrangler/
+
 # environment variables
 .env
 .env.production
