@@ -2,14 +2,17 @@
 import SectionHead from './SectionHead.astro';
 import { getSkillsByCategory } from '../lib/content';
 import { getRuntimeEnv } from '../lib/utils';
+import { createTranslator, detectLocale } from '@i18n';
 
 const env = getRuntimeEnv(Astro);
 const skills = await getSkillsByCategory(env);
+const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
+const t = createTranslator(locale);
 ---
 
 <section id="skills">
   <div class="wrap">
-    <SectionHead tag="03" title="Skills" code="//tech" />
+    <SectionHead tag="03" title={t('sections.skills.title')} code={t('sections.skills.code')} />
     <div class="skills-grid">
       <div class="skill-col" data-reveal>
         <h3>&gt; Backend (Core)</h3>

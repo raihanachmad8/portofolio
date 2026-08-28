@@ -1,0 +1,84 @@
+{
+  "common": {
+    "home": "Beranda",
+    "all": "Semua",
+    "github": "GitHub",
+    "linkedin": "LinkedIn",
+    "cv": "CV"
+  },
+  "nav": {
+    "works": "Karya",
+    "about": "Tentang",
+    "skills": "Keahlian",
+    "experience": "Pengalaman",
+    "blog": "Blog",
+    "contact": "Kontak"
+  },
+  "hero": {
+    "available": "Tersedia",
+    "contact": "Kontak",
+    "downloadCV": "Unduh CV",
+    "fullstack": "Fullstack Engineering",
+    "location": "LOKASI",
+    "mode": "MODE",
+    "scroll": "Gulir",
+    "status": "STATUS",
+    "time": "WAKTU",
+    "unavailable": "Tidak Tersedia",
+    "viewWork": "Lihat Karya"
+  },
+  "sections": {
+    "works": {
+      "code": "//proyek",
+      "description": "Kumpulan proyek yang telah saya bangun di backend, frontend, dan full-stack.",
+      "title": "Karya Pilihan",
+      "viewAll": "Lihat Semua Proyek",
+      "viewCase": "Lihat Studi Kasus"
+    },
+    "about": {
+      "code": "//saya",
+      "title": "Tentang"
+    },
+    "skills": {
+      "code": "//teknologi",
+      "title": "Keahlian"
+    },
+    "experience": {
+      "code": "//karir",
+      "title": "Pengalaman"
+    }
+  },
+  "blog": {
+    "allPosts": "Semua Artikel",
+    "category": "Kategori",
+    "code": "//tulisan",
+    "minRead": "menit baca",
+    "readMore": "Baca",
+    "tags": "Tag",
+    "title": "Blog",
+    "viewAll": "Lihat Semua Artikel"
+  },
+  "projects": {
+    "category": "Kategori",
+    "description": "Kumpulan proyek yang telah saya bangun dengan berbagai teknologi.",
+    "github": "GitHub",
+    "liveDemo": "Demo Langsung",
+    "stack": "Stack",
+    "technologies": "teknologi",
+    "title": "Semua Proyek",
+    "viewAll": "Lihat Semua Proyek",
+    "viewDetails": "Lihat Detail",
+    "year": "Tahun"
+  },
+  "contact": {
+    "title": "Hubungi Saya"
+  },
+  "footer": {
+    "portfolio": "Portofolio"
+  },
+  "seo": {
+    "defaultDescription": "Portofolio pribadi Achmad Raihan Fahrezi Effendy, fullstack software engineer yang mengkhususkan diri dalam sistem backend, antarmuka frontend, dan pengembangan produk menyeluruh.",
+    "defaultTitle": "Raihan Achmad — Fullstack Software Engineer",
+    "siteName": "Portofolio Raihan Achmad"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "common": {
+    "home": "Home",
+    "all": "All",
+    "github": "GitHub",
+    "linkedin": "LinkedIn",
+    "cv": "CV"
+  },
+  "nav": {
+    "works": "Works",
+    "about": "About",
+    "skills": "Skills",
+    "experience": "Experience",
+    "blog": "Blog",
+    "contact": "Contact"
+  },
+  "hero": {
+    "available": "Available",
+    "contact": "Contact",
+    "downloadCV": "Download CV",
+    "fullstack": "Fullstack Engineering",
+    "location": "LOCATION",
+    "mode": "MODE",
+    "scroll": "Scroll",
+    "status": "STATUS",
+    "time": "TIME",
+    "unavailable": "Unavailable",
+    "viewWork": "View Work"
+  },
+  "sections": {
+    "works": {
+      "code": "//projects",
+      "description": "A selection of projects I've built across backend, frontend, and full-stack applications.",
+      "title": "Featured Work",
+      "viewAll": "View All Projects",
+      "viewCase": "View Case Study"
+    },
+    "about": {
+      "code": "//me",
+      "title": "About"
+    },
+    "skills": {
+      "code": "//tech",
+      "title": "Skills"
+    },
+    "experience": {
+      "code": "//career",
+      "title": "Experience"
+    }
+  },
+  "blog": {
+    "allPosts": "All Posts",
+    "category": "Category",
+    "code": "//writing",
+    "minRead": "min read",
+    "readMore": "Read",
+    "tags": "Tags",
+    "title": "Blog",
+    "viewAll": "View All Posts"
+  },
+  "projects": {
+    "category": "Category",
+    "description": "A collection of projects I've built across different technologies.",
+    "github": "GitHub",
+    "liveDemo": "Live Demo",
+    "stack": "Stack",
+    "technologies": "technologies",
+    "title": "All Projects",
+    "viewAll": "View All Projects",
+    "viewDetails": "View Details",
+    "year": "Year"
+  },
+  "contact": {
+    "title": "Get In Touch"
+  },
+  "footer": {
+    "portfolio": "Portfolio"
+  },
+  "seo": {
+    "defaultDescription": "Personal portfolio of Achmad Raihan Fahrezi Effendy, fullstack software engineer specializing in backend systems, frontend interfaces, and end-to-end product delivery.",
+    "defaultTitle": "Raihan Achmad — Fullstack Software Engineer",
+    "siteName": "Raihan Achmad Portfolio"
+  }
+}

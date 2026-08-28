@@ -1,6 +1,7 @@
 ---
 import SectionHead from './SectionHead.astro';
 import type { Profile } from '../lib/schemas';
+import { createTranslator, detectLocale } from '@i18n';
 
 interface Props {
   profile?: Profile;
@@ -8,11 +9,14 @@ interface Props {
 
 const { profile } = Astro.props;
 if (!profile) return null;
+
+const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
+const t = createTranslator(locale);
 ---
 
 <section id="about">
   <div class="wrap">
-    <SectionHead tag="02" title="About" code="//me" />
+    <SectionHead tag="02" title={t('sections.about.title')} code={t('sections.about.code')} />
     <div class="about-grid">
       <div class="about-txt">
         <p class="lead" data-reveal>{profile.aboutLead}</p>

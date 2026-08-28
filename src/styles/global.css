@@ -74,6 +74,10 @@ section { scroll-margin-top: 92px; padding-block: clamp(6rem, 12vw, 10rem); }
 .ai-btn { padding: .55rem 1.05rem; border-radius: 6px; font-family: var(--f-mono); font-size: .58rem; letter-spacing: .14em; font-weight: 700; transition: .25s var(--ease); }
 .ai-btn:hover { transform: translateY(-2px); }
 .theme-switcher { display: flex; gap: .3rem; align-items: center; }
+.header-actions { display: flex; gap: .8rem; align-items: center; }
+.lang-switcher { display: flex; align-items: center; }
+.lang-btn { width: 28px; height: 28px; border-radius: 50%; font-family: var(--f-mono); font-size: .6rem; font-weight: 700; display: grid; place-items: center; transition: .25s var(--ease); border: 1.5px solid var(--dim); background: transparent; color: var(--dim); cursor: pointer; }
+.lang-btn:hover { border-color: var(--acc); color: var(--acc); }
 .theme-btn { width: 28px; height: 28px; border-radius: 50%; font-family: var(--f-mono); font-size: .6rem; font-weight: 700; display: grid; place-items: center; transition: .25s var(--ease); border: 1.5px solid var(--dim); background: transparent; color: var(--dim); }
 .theme-btn:hover { border-color: var(--acc); color: var(--acc); }
 .theme-btn[aria-checked="true"] { border-color: var(--acc); background: var(--acc); color: var(--ink); }

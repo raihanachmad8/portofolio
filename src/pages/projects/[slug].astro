@@ -2,13 +2,18 @@
 import Base from '@layouts/Base.astro';
 import Header from '@components/Header.astro';
 import ContactFooter from '@components/ContactFooter.astro';
-import { getProjectBySlug, getProjectContent } from '@lib/content';
+import { getProjectBySlug, getProjectContent, getProfile } from '@lib/content';
 import { getRuntimeEnv } from '@lib/utils';
 import { marked } from 'marked';
+import { detectLocale, createTranslator } from '@i18n';
+import SEO from '@components/SEO.astro';
 
 const { slug } = Astro.params;
 const env = getRuntimeEnv(Astro);
 const project = await getProjectBySlug(slug as string, env);
+const profile = await getProfile(env);
+const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
+const t = createTranslator(locale);
 
 if (!project) {
   return Astro.redirect('/projects');
@@ -20,19 +25,74 @@ const contentHtml = marked(contentMd);
 const hasUi = project.has_ui !== false;
 import { resolveImageUrl } from '@lib/config';
 const imgSrc = resolveImageUrl(project.image_url, env?.PUBLIC_SITE_URL);
-const stackItems = project.stack.split(',').map((t: string) => t.trim());
+const stackItems = project.stack.split(',').map((tech: string) => tech.trim());
+
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://raihanachmad.web.id';
+const projectUrl = `${siteUrl}/projects/${project.slug}`;
+
+const softwareSourceCodeSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareSourceCode',
+  name: project.title,
+  description: project.description,
+  url: project.url || project.github_url || projectUrl,
+  codeRepository: project.github_url || '',
+  programmingLanguage: stackItems,
+  runtimePlatform: project.category,
+  dateCreated: `${project.year}-01-01`,
+  author: {
+    '@type': 'Person',
+    name: t('seo.siteName'),
+    url: siteUrl,
+  },
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: t('common.home'),
+      item: siteUrl,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: t('projects.title'),
+      item: `${siteUrl}/projects`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: project.title,
+      item: projectUrl,
+    },
+  ],
+};
 ---
 
-<Base lang="en" title={`${project.title} — Case Study`} description={project.description} themeDefault="gallery">
+<Base lang={locale} title={`${project.title} — ${t('projects.title')}`} description={project.description} themeDefault="gallery">
+  <SEO
+    title={`${project.title} — ${t('projects.title')}`}
+    description={project.description}
+    image={imgSrc}
+    url={projectUrl}
+    type="website"
+    sameAs={[profile.github, profile.linkedin].filter(Boolean)}
+  />
+  <script type="application/ld+json" set:html={JSON.stringify(softwareSourceCodeSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
   <Header />
   <main id="top">
     <section id="project-detail">
       <div class="wrap">
 
         <nav class="section-head">
-          <a href="/" class="section-link">Home</a>
+          <a href="/" class="section-link">{t('common.home')}</a>
           <span class="rule"></span>
-          <a href="/projects" class="section-link">Projects</a>
+          <a href="/projects" class="section-link">{t('projects.title')}</a>
           <span class="rule"></span>
           <span class="mono code">{project.title}</span>
         </nav>
@@ -75,40 +135,40 @@ const stackItems = project.stack.split(',').map((t: string) => t.trim());
 
         <div class="proj-meta" data-reveal>
           <div class="proj-meta-cell">
-            <div class="label">Category</div>
+            <div class="label">{t('projects.category')}</div>
             <div class="value">{project.category}</div>
           </div>
           <div class="proj-meta-cell">
-            <div class="label">Year</div>
+            <div class="label">{t('projects.year')}</div>
             <div class="value">{project.year}</div>
           </div>
           <div class="proj-meta-cell">
-            <div class="label">Stack</div>
-            <div class="value">{stackItems.length} technologies</div>
+            <div class="label">{t('projects.stack')}</div>
+            <div class="value">{stackItems.length} {t('projects.technologies')}</div>
           </div>
         </div>
 
         <h1 class="proj-title" data-reveal>{project.title}</h1>
 
         <div class="proj-tags" data-reveal>
-          {stackItems.map((t: string) => (
-            <span>{t}</span>
+          {stackItems.map((tech: string) => (
+            <span>{tech}</span>
           ))}
         </div>
 
         <div class="proj-cta" data-reveal>
           {project.github_url && (
-            <a href={project.github_url} target="_blank" rel="noopener" class="btn ghost">GitHub ↗</a>
+            <a href={project.github_url} target="_blank" rel="noopener" class="btn ghost">{t('projects.github')} ↗</a>
           )}
           {project.live_url && (
-            <a href={project.live_url} target="_blank" rel="noopener" class="btn solid">Live Demo ↗</a>
+            <a href={project.live_url} target="_blank" rel="noopener" class="btn solid">{t('projects.liveDemo')} ↗</a>
           )}
         </div>
 
         <div class="proj-content prose" data-reveal set:html={contentHtml} />
 
         <div class="proj-back" data-reveal>
-          <a href="/projects" class="arrow-link"><i>→</i><b>View All Projects</b></a>
+          <a href="/projects" class="arrow-link"><i>→</i><b>{t('projects.viewAll')}</b></a>
         </div>
       </div>
     </section>

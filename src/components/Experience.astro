@@ -2,14 +2,17 @@
 import SectionHead from './SectionHead.astro';
 import { getExperience } from '../lib/content';
 import { getRuntimeEnv } from '../lib/utils';
+import { createTranslator, detectLocale } from '@i18n';
 
 const env = getRuntimeEnv(Astro);
 const experience = await getExperience(env);
+const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
+const t = createTranslator(locale);
 ---
 
 <section id="journey">
   <div class="wrap">
-    <SectionHead tag="04" title="Experience" code="//career" />
+    <SectionHead tag="04" title={t('sections.experience.title')} code={t('sections.experience.code')} />
     <div data-reveal>
       {experience.map((xp) => (
         <div class={`xp-row${xp.now ? ' now' : ''}`}>

@@ -9,14 +9,23 @@ import Experience from '@components/Experience.astro';
 import Blog from '@components/Blog.astro';
 import ContactFooter from '@components/ContactFooter.astro';
 import NewsTicker from '@components/NewsTicker.astro';
+import SEO from '@components/SEO.astro';
 import { getProfile } from '@lib/content';
 import { getRuntimeEnv } from '@lib/utils';
+import { detectLocale, createTranslator } from '@i18n';
 
 const env = getRuntimeEnv(Astro);
 const profile = await getProfile(env);
+const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
+const t = createTranslator(locale);
 ---
 
-<Base lang="en" title={`${profile.name} — ${profile.roleTitle}`} description={profile.heroSub} themeDefault="gallery">
+<Base lang={locale} title={`${profile.name} — ${profile.roleTitle}`} description={profile.heroSub} themeDefault="gallery">
+  <SEO
+    title={`${profile.name} — ${profile.roleTitle}`}
+    description={profile.heroSub}
+    sameAs={[profile.github, profile.linkedin].filter(Boolean)}
+  />
   <NewsTicker />
   <Header shortName={profile.shortName} available={profile.available} />
   <main id="top">

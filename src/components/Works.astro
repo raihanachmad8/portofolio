@@ -3,25 +3,29 @@ import SectionHead from './SectionHead.astro';
 import { getAllProjects } from '../lib/content';
 import { resolveImageUrl } from '../lib/config';
 import { getRuntimeEnv } from '../lib/utils';
+import { createTranslator, detectLocale } from '@i18n';
 
 const env = getRuntimeEnv(Astro);
 const siteUrl = env?.PUBLIC_SITE_URL;
 const allProjects = await getAllProjects(env);
 const projects = allProjects.filter(p => p.featured);
+
+const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
+const t = createTranslator(locale);
 ---
 
 <section id="work">
   <div class="wrap">
-    <SectionHead tag="01" title="Featured Work" code="//projects" />
+    <SectionHead tag="01" title={t('sections.works.title')} code={t('sections.works.code')} />
     <div class="works-grid">
       <aside class="works-side">
-        <p>A selection of projects I've built across backend, frontend, and full-stack applications.</p>
+        <p>{t('sections.works.description')}</p>
         <nav class="works-index" aria-label="Project navigation">
           {projects.map((pr) => (
             <a href={`#project-${pr.order}`}><i>/{String(pr.order).padStart(2, '0')}</i><b>{pr.title}</b></a>
           ))}
         </nav>
-        <a href="/projects" class="view-more-link mono">View All Projects <i>→</i></a>
+        <a href="/projects" class="view-more-link mono">{t('sections.works.viewAll')} <i>→</i></a>
       </aside>
       <div>
         {projects.map((pr) => (
@@ -33,9 +37,9 @@ const projects = allProjects.filter(p => p.featured);
             <h3>{pr.title}</h3>
             <p class="desc">{pr.description}</p>
             <div class="tags">
-              {pr.stack.split(',').map((t: string) => <span>{t.trim()}</span>)}
+              {pr.stack.split(',').map((tech: string) => <span>{tech.trim()}</span>)}
             </div>
-            <a href={`/projects/${pr.slug}`} class="arrow-link">View Case Study<i>→</i></a>
+            <a href={`/projects/${pr.slug}`} class="arrow-link">{t('sections.works.viewCase')}<i>→</i></a>
           </article>
         ))}
       </div>
