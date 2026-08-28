@@ -1,4 +1,6 @@
 ---
+import { createTranslator, detectLocale } from '@i18n';
+
 interface Props {
   name: string;
   tagline: string;
@@ -9,7 +11,11 @@ interface Props {
 }
 
 const { name, tagline, subtitle, location = '', marquee = [], cvUrl = '#' } = Astro.props;
-const [name1, name2] = name.split(' ');
+const nameParts = name.split(' ');
+const name1 = nameParts[0] || '';
+const name2 = nameParts.slice(1).join(' ') || '';
+const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
+const t = createTranslator(locale);
 ---
 
 <section class="hero" id="hero">
@@ -23,20 +29,20 @@ const [name1, name2] = name.split(' ');
       <p class="role-line scr" data-text={tagline}>{tagline}</p>
       <p class="hero-sub d-8" data-reveal>{subtitle}</p>
       <div class="hero-cta d-10" data-reveal>
-        <a href="#work" class="btn solid">View Work</a>
-        <a href={cvUrl} target="_blank" class="btn ghost">Download CV</a>
-        <a href="#contact" class="btn line">Contact</a>
+        <a href="#work" class="btn solid">{t('hero.viewWork')}</a>
+        <a href={cvUrl} target="_blank" class="btn ghost">{t('hero.downloadCV')}</a>
+        <a href="#contact" class="btn line">{t('hero.contact')}</a>
       </div>
     </div>
     <div class="hud d-6" data-reveal>
       <div class="hud-img"><img src="/images/profile.jpg" alt="Profile" /></div>
-      <div class="hud-row"><span class="k">LOCATION</span><span class="v">{location}</span></div>
-      <div class="hud-row"><span class="k">TIME</span><span class="v time">--:--:--</span></div>
-      <div class="hud-row"><span class="k">STATUS</span><span class="v acc"><span class="dot"></span>Available</span></div>
-      <div class="hud-row"><span class="k">MODE</span><span class="v">Fullstack Engineering</span></div>
+      <div class="hud-row"><span class="k">{t('hero.location')}</span><span class="v">{location}</span></div>
+      <div class="hud-row"><span class="k">{t('hero.time')}</span><span class="v time">--:--:--</span></div>
+      <div class="hud-row"><span class="k">{t('hero.status')}</span><span class="v acc"><span class="dot"></span>{t('hero.available')}</span></div>
+      <div class="hud-row"><span class="k">{t('hero.mode')}</span><span class="v">{t('hero.fullstack')}</span></div>
     </div>
   </div>
-  <div class="scroll-hint mono"><span class="line"></span>Scroll</div>
+  <div class="scroll-hint mono"><span class="line"></span>{t('hero.scroll')}</div>
 </section>
 
 <div class="marquee" aria-hidden="true">

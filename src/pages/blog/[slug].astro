@@ -2,30 +2,102 @@
 import Base from '@layouts/Base.astro';
 import Header from '@components/Header.astro';
 import ContactFooter from '@components/ContactFooter.astro';
-import { getPostBySlug, getProjectContent } from '@lib/content';
+import { getPostBySlug, getProjectContent, getProfile } from '@lib/content';
 import { fmtDate, getRuntimeEnv } from '@lib/utils';
 import { marked } from 'marked';
+import { detectLocale, createTranslator } from '@i18n';
+import SEO from '@components/SEO.astro';
 
 const { slug } = Astro.params;
 const env = getRuntimeEnv(Astro);
 const post = await getPostBySlug(slug as string, env);
+const profile = await getProfile(env);
+const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
+const t = createTranslator(locale);
 
 if (!post) {
   return Astro.redirect('/blog');
 }
 
 const contentHtml = marked(post.content || '');
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://raihanachmad.web.id';
+const postUrl = `${siteUrl}/blog/${post.slug}`;
+
+const blogPostingSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.title,
+  description: post.excerpt,
+  image: `${siteUrl}/images/og-default.jpg`,
+  url: postUrl,
+  datePublished: post.published_date,
+  dateModified: post.published_date,
+  author: {
+    '@type': 'Person',
+    name: t('seo.siteName'),
+    url: siteUrl,
+  },
+  publisher: {
+    '@type': 'Person',
+    name: t('seo.siteName'),
+  },
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': postUrl,
+  },
+  wordCount: post.content?.split(/\s+/).length || 0,
+  articleSection: post.category,
+  keywords: post.tags?.join(', '),
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: t('common.home'),
+      item: siteUrl,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: t('blog.title'),
+      item: `${siteUrl}/blog`,
+    },
+    {
+      '@type': 'ListItem',
+      position: 3,
+      name: post.title,
+      item: postUrl,
+    },
+  ],
+};
 ---
 
-<Base lang="en" title={`${post.title} — Blog`} description={post.excerpt} themeDefault="gallery">
+<Base lang={locale} title={`${post.title} — ${t('blog.title')}`} description={post.excerpt} themeDefault="gallery">
+  <SEO
+    title={`${post.title} — ${t('blog.title')}`}
+    description={post.excerpt}
+    image={post.cover_image || '/images/og-default.jpg'}
+    url={postUrl}
+    type="article"
+    author={t('seo.siteName')}
+    publishedTime={post.published_date}
+    modifiedTime={post.updated_date || post.published_date}
+    sameAs={[profile.github, profile.linkedin].filter(Boolean)}
+  />
+  <script type="application/ld+json" set:html={JSON.stringify(blogPostingSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
   <Header />
   <main id="top">
     <section id="blog-post">
       <div class="wrap">
         <nav class="section-head">
-          <a href="/" class="section-link">Home</a>
+          <a href="/" class="section-link">{t('common.home')}</a>
           <span class="rule"></span>
-          <a href="/blog" class="section-link">Blog</a>
+          <a href="/blog" class="section-link">{t('blog.title')}</a>
           <span class="rule"></span>
           <span class="mono code">{post.title}</span>
         </nav>
@@ -34,7 +106,7 @@ const contentHtml = marked(post.content || '');
           <div class="blog-post-meta mono">
             <span class="blog-post-category">{post.category}</span>
             <span>{fmtDate(post.published_date)}</span>
-            <span>{post.read_time} min read</span>
+            <span>{post.read_time} {t('blog.minRead')}</span>
           </div>
           <h1 class="blog-post-title">{post.title}</h1>
           <div class="blog-post-tags mono">
@@ -46,7 +118,7 @@ const contentHtml = marked(post.content || '');
           <div class="proj-content prose" set:html={contentHtml} />
 
           <div class="proj-back">
-            <a href="/blog" class="arrow-link"><i>→</i><b>All Posts</b></a>
+            <a href="/blog" class="arrow-link"><i>→</i><b>{t('blog.allPosts')}</b></a>
           </div>
         </article>
       </div>

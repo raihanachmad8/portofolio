@@ -4,39 +4,44 @@ import Header from '@components/Header.astro';
 import ContactFooter from '@components/ContactFooter.astro';
 import { getAllPosts } from '@lib/content';
 import { fmtDate, getRuntimeEnv } from '@lib/utils';
+import { detectLocale, createTranslator } from '@i18n';
+import SEO from '@components/SEO.astro';
 
 const env = getRuntimeEnv(Astro);
 const posts = await getAllPosts(env);
+const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
+const t = createTranslator(locale);
 
 const categories = [...new Set(posts.map(p => p.category))];
 const allTags = [...new Set(posts.flatMap(p => p.tags || []))];
 ---
 
-<Base lang="en" title="Blog — Raihan Achmad" description="Articles about fullstack engineering, backend systems, frontend, DevOps, and career." themeDefault="gallery">
+<Base lang={locale} title={`${t('blog.title')} — ${t('seo.siteName')}`} description={t('seo.defaultDescription')} themeDefault="gallery">
+  <SEO title={`${t('blog.title')} — ${t('seo.siteName')}`} description={t('seo.defaultDescription')} />
   <Header />
   <main id="top">
     <section id="blog-list">
       <div class="wrap">
         <div class="section-head">
-          <h2 class="section-title">Blog</h2>
+          <h2 class="section-title">{t('blog.title')}</h2>
           <span class="rule"></span>
-          <span class="mono code">//writing</span>
+          <span class="mono code">{t('blog.code')}</span>
         </div>
 
         <div class="blog-filters" data-reveal>
           <div class="blog-filter-group">
-            <span class="blog-filter-label mono">Category</span>
+            <span class="blog-filter-label mono">{t('blog.category')}</span>
             <div class="blog-filter-chips">
-              <button class="blog-chip active" data-filter="category" data-value="all">All</button>
+              <button class="blog-chip active" data-filter="category" data-value="all">{t('common.all')}</button>
               {categories.map(cat => (
                 <button class="blog-chip" data-filter="category" data-value={cat}>{cat}</button>
               ))}
             </div>
           </div>
           <div class="blog-filter-group">
-            <span class="blog-filter-label mono">Tags</span>
+            <span class="blog-filter-label mono">{t('blog.tags')}</span>
             <div class="blog-filter-chips">
-              <button class="blog-chip active" data-filter="tag" data-value="all">All</button>
+              <button class="blog-chip active" data-filter="tag" data-value="all">{t('common.all')}</button>
               {allTags.map(tag => (
                 <button class="blog-chip" data-filter="tag" data-value={tag}>{tag}</button>
               ))}
@@ -65,8 +70,8 @@ const allTags = [...new Set(posts.flatMap(p => p.tags || []))];
                 ))}
               </div>
               <div class="blog-card-meta mono">
-                <span>{post.read_time} min read</span>
-                <span class="arrow-link">Read →</span>
+                <span>{post.read_time} {t('blog.minRead')}</span>
+                <span class="arrow-link">{t('blog.readMore')} →</span>
               </div>
             </a>
           ))}

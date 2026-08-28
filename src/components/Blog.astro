@@ -2,17 +2,21 @@
 import SectionHead from './SectionHead.astro';
 import { getAllPosts } from '../lib/content';
 import { fmtDate, getRuntimeEnv } from '../lib/utils';
+import { createTranslator, detectLocale } from '@i18n';
 
 const env = getRuntimeEnv(Astro);
 const allPosts = await getAllPosts(env);
 const posts = allPosts
   .filter(p => p.featured)
   .slice(0, 4);
+
+const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
+const t = createTranslator(locale);
 ---
 
 <section id="blog">
   <div class="wrap">
-    <SectionHead tag="05" title="Blog" code="//writing" />
+    <SectionHead tag="05" title={t('blog.title')} code={t('blog.code')} />
     <div class="blog-grid">
       {posts.map((post) => (
         <a href={`/blog/${post.slug}`} class="blog-card" data-reveal>
@@ -23,14 +27,14 @@ const posts = allPosts
           <h3>{post.title}</h3>
           <p>{post.excerpt}</p>
           <div class="blog-card-meta mono">
-            <span>{post.read_time} min read</span>
-            <span class="arrow-link">Read →</span>
+            <span>{post.read_time} {t('blog.minRead')}</span>
+            <span class="arrow-link">{t('blog.readMore')} →</span>
           </div>
         </a>
       ))}
     </div>
     <div class="section-more" data-reveal>
-      <a href="/blog" class="view-more-link mono">View All Posts <i>→</i></a>
+      <a href="/blog" class="view-more-link mono">{t('blog.viewAll')} <i>→</i></a>
     </div>
   </div>
 </section>

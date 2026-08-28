@@ -2,6 +2,7 @@
 import { SECTIONS } from '../lib/utils';
 import { getProfile } from '../lib/content';
 import { getRuntimeEnv } from '../lib/utils';
+import { createTranslator, detectLocale } from '@i18n';
 
 interface Props {
   shortName?: string;
@@ -12,25 +13,33 @@ const env = getRuntimeEnv(Astro);
 const profile = await getProfile(env);
 const shortName = profile.shortName || 'dev';
 const available = profile.available;
+
+const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
+const t = createTranslator(locale);
 ---
 
 <header id="hdr">
   <div class="header-inner">
-    <a href="/" class="brand">{shortName}<i>@fullstack</i>:~$</a>
+    <a href="/" class="brand">{shortName}</a>
     <nav class="nav" aria-label="Navigation">
       {SECTIONS.map((s) => (
-        <a href={`/#${s.id}`}><b>{s.tag}</b>{s.label}</a>
+        <a href={`/#${s.id}`}><b>{s.tag}</b>{t(`nav.${s.id === 'journey' ? 'experience' : s.id}`)}</a>
       ))}
     </nav>
-    <div class="theme-switcher" role="radiogroup" aria-label="Theme selection">
-      <button class="theme-btn" data-theme="gallery" role="radio" aria-checked="false" aria-label="Gallery theme">G</button>
-      <button class="theme-btn" data-theme="terminal" role="radio" aria-checked="false" aria-label="Terminal theme">T</button>
-      <button class="theme-btn" data-theme="editorial" role="radio" aria-checked="false" aria-label="Editorial theme">E</button>
-      <button class="theme-btn" data-theme="swiss" role="radio" aria-checked="false" aria-label="Swiss theme">S</button>
+    <div class="header-actions">
+      <div class="lang-switcher">
+        <button class="lang-btn" data-lang={locale === 'en' ? 'id' : 'en'} onclick="switchLang(this.dataset.lang)" aria-label="Switch language">{locale === 'en' ? 'ID' : 'EN'}</button>
+      </div>
+      <div class="theme-switcher" role="radiogroup" aria-label="Theme selection">
+        <button class="theme-btn" data-theme="gallery" role="radio" aria-checked="false" aria-label="Gallery theme">G</button>
+        <button class="theme-btn" data-theme="terminal" role="radio" aria-checked="false" aria-label="Terminal theme">T</button>
+        <button class="theme-btn" data-theme="editorial" role="radio" aria-checked="false" aria-label="Editorial theme">E</button>
+        <button class="theme-btn" data-theme="swiss" role="radio" aria-checked="false" aria-label="Swiss theme">S</button>
+      </div>
     </div>
     <div class={`status mono${available ? '' : ' unavailable'}`}>
       <span class="dot"></span>
-      {available ? 'Available' : 'Unavailable'} · <span class="time">--:--</span>
+      {available ? t('hero.available') : t('hero.unavailable')} · <span class="time">--:--</span>
     </div>
     <button class="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span></button>
   </div>
@@ -38,7 +47,14 @@ const available = profile.available;
 
 <div class="mobile-menu" id="mmenu">
   {SECTIONS.map((s) => (
-    <a class="big" href={`/#${s.id}`}>{s.label} <i>{s.tag}</i></a>
+    <a class="big" href={`/#${s.id}`}>{t(`nav.${s.id === 'journey' ? 'experience' : s.id}`)} <i>{s.tag}</i></a>
   ))}
-  <div class="mobile-footer"><span>Portfolio {new Date().getFullYear()}</span><span class="time">--:--</span></div>
+  <div class="mobile-footer"><span>{t('footer.portfolio')} {new Date().getFullYear()}</span><span class="time">--:--</span></div>
 </div>
+
+<script is:inline>
+  function switchLang(lang) {
+    document.cookie = `locale=${lang};path=/;max-age=31536000;SameSite=Lax;Secure`;
+    window.location.reload();
+  }
+</script>

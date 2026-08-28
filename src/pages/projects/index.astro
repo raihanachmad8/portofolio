@@ -5,24 +5,29 @@ import ContactFooter from '@components/ContactFooter.astro';
 import { getAllProjects } from '@lib/content';
 import { resolveImageUrl } from '@lib/config';
 import { getRuntimeEnv } from '@lib/utils';
+import { detectLocale, createTranslator } from '@i18n';
+import SEO from '@components/SEO.astro';
 
 const env = getRuntimeEnv(Astro);
 const projects = await getAllProjects(env);
 const siteUrl = env?.PUBLIC_SITE_URL;
+const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
+const t = createTranslator(locale);
 ---
 
-<Base lang="en" title="Projects — Raihan Achmad" description="All projects by Raihan Achmad" themeDefault="gallery">
+<Base lang={locale} title={`${t('projects.title')} — ${t('seo.siteName')}`} description={t('projects.description')} themeDefault="gallery">
+  <SEO title={`${t('projects.title')} — ${t('seo.siteName')}`} description={t('projects.description')} />
   <Header />
   <main id="top">
     <section id="projects">
       <div class="wrap">
         <div class="section-head">
-          <h2 class="section-title">All Projects</h2>
+          <h2 class="section-title">{t('projects.title')}</h2>
         </div>
 
         <div class="works-grid">
           <aside class="works-side">
-            <p>A collection of projects I've built across different technologies.</p>
+            <p>{t('projects.description')}</p>
             <nav class="works-index" aria-label="Project navigation">
               {projects.map((pr) => (
                 <a href={`/projects/${pr.slug}`}><i>/{String(pr.order).padStart(2, '0')}</i><b>{pr.title}</b></a>
@@ -39,9 +44,9 @@ const siteUrl = env?.PUBLIC_SITE_URL;
                 <h3>{pr.title}</h3>
                 <p class="desc">{pr.description}</p>
                 <div class="tags">
-                  {pr.stack.split(',').map((t: string) => <span>{t.trim()}</span>)}
+                  {pr.stack.split(',').map((tech: string) => <span>{tech.trim()}</span>)}
                 </div>
-                <a href={`/projects/${pr.slug}`} class="arrow-link">View Details<i>→</i></a>
+                <a href={`/projects/${pr.slug}`} class="arrow-link">{t('projects.viewDetails')}<i>→</i></a>
               </article>
             ))}
           </div>

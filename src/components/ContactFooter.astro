@@ -1,5 +1,6 @@
 ---
 import type { Profile } from '../lib/schemas';
+import { createTranslator, detectLocale } from '@i18n';
 
 interface Props {
   profile?: Profile;
@@ -12,16 +13,19 @@ const github = profile?.github ?? '';
 const linkedin = profile?.linkedin ?? '';
 const cv_url = profile?.cv_url ?? '#';
 const location = profile?.location ?? '';
+
+const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
+const t = createTranslator(locale);
 ---
 
 <section class="contact" id="contact">
   <div class="wrap">
-    <h2 class="contact-title">LET'S CONNECT</h2>
+    <h2 class="contact-title">{t('contact.title')}</h2>
     <a href={`mailto:${email}`} class="email-link">{email} ↗</a>
     <div class="socials d-2" data-reveal>
-      <a href={github} target="_blank" rel="noopener">GitHub ↗</a>
-      <a href={linkedin} target="_blank" rel="noopener">LinkedIn ↗</a>
-      <a href={cv_url} target="_blank" rel="noopener">CV ↗</a>
+      <a href={github} target="_blank" rel="noopener">{t('common.github')} ↗</a>
+      <a href={linkedin} target="_blank" rel="noopener">{t('common.linkedin')} ↗</a>
+      <a href={cv_url} target="_blank" rel="noopener">{t('common.cv')} ↗</a>
     </div>
     <div class="c-foot">
       <span>© <span id="year">{new Date().getFullYear()}</span> {name}</span>
