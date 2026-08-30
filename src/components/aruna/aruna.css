@@ -75,7 +75,7 @@
   position: absolute;
   right: 0;
   bottom: 72px;
-  width: min(390px, calc(100vw - 32px));
+  width: min(440px, calc(100vw - 32px));
   max-height: min(620px, calc(100vh - 120px));
   border: 1px solid var(--line);
   border-radius: 16px;

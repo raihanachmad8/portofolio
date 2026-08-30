@@ -71,25 +71,30 @@
       }
     });
     if (projects.length) {
-      var projObserver = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-          if (entry.isIntersecting) {
-            workLinks.forEach(function(l) { l.classList.remove('act'); });
-            var match = projects.find(function(p) { return p.el === entry.target; });
-            if (match) {
-              match.link.classList.add('act');
-              if (worksIndex.scrollWidth > worksIndex.clientWidth) {
-                var linkRect = match.link.getBoundingClientRect();
-                var containerRect = worksIndex.getBoundingClientRect();
-                if (linkRect.left < containerRect.left || linkRect.right > containerRect.right) {
-                  match.link.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                }
+      var scrollTimeout;
+      window.addEventListener('scroll', function() {
+        if (scrollTimeout) return;
+        scrollTimeout = setTimeout(function() {
+          scrollTimeout = null;
+          var scrollY = window.scrollY + window.innerHeight * 0.4;
+          var current = projects[0];
+          for (var i = 0; i < projects.length; i++) {
+            if (projects[i].el.offsetTop <= scrollY) current = projects[i];
+          }
+          workLinks.forEach(function(l) { l.classList.remove('act'); });
+          if (current) {
+            current.link.classList.add('act');
+            if (worksIndex.scrollWidth > worksIndex.clientWidth) {
+              var linkRect = current.link.getBoundingClientRect();
+              var containerRect = worksIndex.getBoundingClientRect();
+              if (linkRect.left < containerRect.left || linkRect.right > containerRect.right) {
+                current.link.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
               }
             }
           }
-        });
-      }, { rootMargin: '-20% 0px -60% 0px' });
-      projects.forEach(function(p) { projObserver.observe(p.el); });
+        }, 10);
+      });
+      window.dispatchEvent(new Event('scroll'));
     }
   }
 
