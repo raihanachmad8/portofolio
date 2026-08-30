@@ -418,6 +418,7 @@ h1 { font-family: var(--f-display); font-weight: 800; text-transform: uppercase;
   h1 { font-size: clamp(2.2rem, 12vw, 3.5rem); }
   .hero { min-height: auto; padding-top: 100px; }
   .skills-grid { grid-template-columns: 1fr; }
+  .blog-grid, .blog-grid-full { grid-template-columns: 1fr; }
   .xp-row { grid-template-columns: 1fr; gap: .4rem; }
   .proj-meta { grid-template-columns: 1fr; }
   .facts { grid-template-columns: 1fr 1fr; }
