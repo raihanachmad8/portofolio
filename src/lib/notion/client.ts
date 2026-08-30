@@ -6,7 +6,7 @@
 
 import { Client } from '@notionhq/client';
 import type { NotionPage, DbType, DbSchema, NotionDataSource, PropertyValue } from './types';
-import { blocksToMarkdown } from '../../../scripts/lib/notion-to-md.mjs';
+import { blocksToMarkdown } from './markdown';
 
 /** Timeout for Notion API calls in milliseconds */
 const QUERY_TIMEOUT_MS = 10_000;

@@ -12,8 +12,65 @@ export function formatDate(dateStr: string): string {
   });
 }
 
-export function getRuntimeEnv(context: APIContext) {
-  return (context.locals as Record<string, unknown>)?.runtime?.env;
+/**
+ * Retrieves Cloudflare Workers runtime environment variables from Astro context.
+ * In Cloudflare Pages with SSR, environment variables are available at:
+ * context.locals.runtime.env
+ *
+ * @param context - Astro API context
+ * @returns Runtime environment object or undefined
+ * @throws Warning if runtime.env is not available (dev mode is OK, production is a problem)
+ */
+export function getRuntimeEnv(context: APIContext): Record<string, any> | undefined {
+  const runtime = (context.locals as any)?.runtime;
+  
+  if (!runtime) {
+    // In local dev, this is expected - env vars come from .env files
+    if (import.meta.env.DEV) {
+      return undefined;
+    }
+    console.warn('[SSR] Runtime not found in context.locals - this may cause issues in production');
+    return undefined;
+  }
+  
+  if (!runtime.env) {
+    console.error('[SSR] runtime.env not found - environment variables may not be bound correctly');
+    console.error('[SSR] Check Cloudflare Pages dashboard → Settings → Environment Variables');
+    return undefined;
+  }
+  
+  return runtime.env;
+}
+
+/**
+ * Validates required Notion environment variables are present.
+ * Useful for debugging SSR issues related to missing config.
+ *
+ * @param env - Environment object (from getRuntimeEnv or import.meta.env)
+ * @returns Object indicating which vars are missing
+ */
+export function validateNotionEnv(env: Record<string, any> = {}): {
+  valid: boolean;
+  missing: string[];
+} {
+  const required = [
+    'NOTION_TOKEN',
+    'NOTION_DB_PROFILE',
+    'NOTION_DB_PROJECTS',
+    'NOTION_DB_SKILLS',
+    'NOTION_DB_EXPERIENCE',
+  ];
+  
+  const missing = required.filter((key) => !env[key]);
+  
+  if (missing.length > 0) {
+    console.error('[Notion Config] Missing required environment variables:', missing);
+  }
+  
+  return {
+    valid: missing.length === 0,
+    missing,
+  };
 }
 
 // Re-export from constants for backward compatibility
