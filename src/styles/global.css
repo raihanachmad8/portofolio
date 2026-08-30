@@ -407,7 +407,13 @@ h1 { font-family: var(--f-display); font-weight: 800; text-transform: uppercase;
 @media (max-width: 1020px) {
   .hero-grid { grid-template-columns: 1fr; }
   .works-grid { grid-template-columns: 1fr; }
-  .works-side { position: static; }
+  .works-side { position: sticky; top: 56px; z-index: 10; background: var(--bg); padding-bottom: 0; }
+  .works-side p { display: none; }
+  .works-index { margin-top: 0; border-top: none; display: flex; overflow-x: auto; gap: 0; -webkit-overflow-scrolling: touch; scrollbar-width: none; border-bottom: 1px solid var(--line); position: sticky; top: 56px; background: var(--bg); z-index: 10; }
+  .works-index::-webkit-scrollbar { display: none; }
+  .works-index a { flex-shrink: 0; padding: .7rem 1rem; border-bottom: 2px solid transparent; white-space: nowrap; font-size: .65rem; gap: .5rem; }
+  .works-index a b { font-size: .8rem; }
+  .works-index a.act { padding-left: 1rem; border-bottom-color: var(--acc); }
   .about-grid { grid-template-columns: 1fr; }
   .about-ph { max-width: 440px; }
   .skills-grid { grid-template-columns: 1fr 1fr; }

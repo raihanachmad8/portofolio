@@ -58,6 +58,41 @@
     });
   });
 
+  // Works index scroll spy
+  var worksIndex = document.querySelector('.works-index');
+  if (worksIndex) {
+    var workLinks = worksIndex.querySelectorAll('a');
+    var projects = [];
+    workLinks.forEach(function(link) {
+      var id = link.getAttribute('href');
+      if (id && id.startsWith('#')) {
+        var el = document.getElementById(id.slice(1));
+        if (el) projects.push({ el: el, link: link });
+      }
+    });
+    if (projects.length) {
+      var projObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            workLinks.forEach(function(l) { l.classList.remove('act'); });
+            var match = projects.find(function(p) { return p.el === entry.target; });
+            if (match) {
+              match.link.classList.add('act');
+              if (worksIndex.scrollWidth > worksIndex.clientWidth) {
+                var linkRect = match.link.getBoundingClientRect();
+                var containerRect = worksIndex.getBoundingClientRect();
+                if (linkRect.left < containerRect.left || linkRect.right > containerRect.right) {
+                  match.link.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+              }
+            }
+          }
+        });
+      }, { rootMargin: '-20% 0px -60% 0px' });
+      projects.forEach(function(p) { projObserver.observe(p.el); });
+    }
+  }
+
   // Time display
   function updateTime() {
     var now = new Date();
