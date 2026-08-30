@@ -409,6 +409,7 @@ h1 { font-family: var(--f-display); font-weight: 800; text-transform: uppercase;
   .works-grid { grid-template-columns: 1fr; }
   .works-side { position: static; }
   .works-side p { display: none; }
+  .works-side .view-more-link { display: none; }
   .works-index { margin-top: 0; border-top: none; display: flex; overflow-x: auto; gap: 0; -webkit-overflow-scrolling: touch; scrollbar-width: none; border-bottom: 1px solid var(--line); position: sticky; top: 56px; background: var(--bg); z-index: 10; padding: 0 .5rem; }
   .works-index::-webkit-scrollbar { display: none; }
   .works-index a { flex-shrink: 0; padding: .7rem 1rem; border-bottom: 2px solid transparent; white-space: nowrap; font-size: .65rem; gap: .5rem; }
