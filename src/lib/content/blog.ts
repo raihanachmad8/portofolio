@@ -5,8 +5,9 @@ import { fromNotionOrLocal } from './helpers';
 
 const DEFAULT_RECENT_LIMIT = 3;
 
-function getLocalPosts(): Blog[] {
-  return getCollection('blog')
+async function getLocalPosts(): Promise<Blog[]> {
+  const entries = await getCollection('blog');
+  return entries
     .map((e) => ({ ...e.data, slug: e.id, content: e.body || '' }))
     .map((b) => BlogSchema.parse(b))
     .sort((a, b) => new Date(b.published_date).getTime() - new Date(a.published_date).getTime());
@@ -28,7 +29,8 @@ export async function getAllPosts(
             content = await fetchPageBlocks(config, b.id);
           } catch (e) {
             console.warn('[Content] Failed to fetch blog blocks:', (e as Error).message);
-            const mdx = getCollection('blog').find((e) => e.id === b.slug);
+            const posts = await getCollection('blog');
+            const mdx = posts.find((e) => e.id === b.slug);
             if (mdx) content = mdx.body || '';
           }
           return BlogSchema.parse({ ...b, content });

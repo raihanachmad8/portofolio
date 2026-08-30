@@ -3,8 +3,9 @@ import { ExperienceSchema, type Experience } from '../schemas';
 import { fetchExperience } from '../notion';
 import { fromNotionOrLocal } from './helpers';
 
-function getLocalExperience(): Experience[] {
-  return getCollection('experience')
+async function getLocalExperience(): Promise<Experience[]> {
+  const entries = await getCollection('experience');
+  return entries
     .map((e) => ({ ...e.data, id: e.id }))
     .map((e) => ExperienceSchema.parse(e))
     .sort((a, b) => a.order - b.order);

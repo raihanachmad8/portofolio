@@ -4,7 +4,7 @@ import Header from '@components/Header.astro';
 import ContactFooter from '@components/ContactFooter.astro';
 import { getProjectBySlug, getProjectContent, getProfile } from '@lib/content';
 import { resolveImageUrl, getRuntimeEnv, SITE_URL, OG_DEFAULT_IMAGE } from '@lib/utils';
-import { marked } from 'marked';
+import { renderMarkdown } from '@lib/content/toc';
 import { getLocale } from '@i18n';
 import SEO from '@components/SEO.astro';
 import { buildBreadcrumbSchema } from '@lib/seo-helpers';
@@ -21,7 +21,39 @@ if (!project) {
 }
 
 const contentMd = await getProjectContent(project.id, project.content || '', env);
-const contentHtml = marked(contentMd);
+const { html: contentHtml, toc } = renderMarkdown(contentMd);
+
+// Nested table of contents built from the rendered headings.
+interface TocNode {
+  id: string;
+  text: string;
+  children: TocNode[];
+}
+function toNested(items: typeof toc): TocNode[] {
+  const root: TocNode[] = [];
+  const stack: { depth: number; node: TocNode }[] = [];
+  for (const item of items) {
+    const node: TocNode = { id: item.id, text: item.text, children: [] };
+    while (stack.length && stack[stack.length - 1].depth >= item.depth) stack.pop();
+    if (stack.length) stack[stack.length - 1].node.children.push(node);
+    else root.push(node);
+    stack.push({ depth: item.depth, node });
+  }
+  return root;
+}
+function tocHtml(nodes: TocNode[]): string {
+  return (
+    '<ol>' +
+    nodes
+      .map(
+        (n) =>
+          `<li><a href="#${n.id}">${n.text}</a>${n.children.length ? tocHtml(n.children) : ''}</li>`,
+      )
+      .join('') +
+    '</ol>'
+  );
+}
+const tocMarkup = toc.length ? tocHtml(toNested(toc)) : '';
 
 const hasUi = project.has_ui !== false;
 const imgSrc = resolveImageUrl(project.image_url, env?.PUBLIC_SITE_URL);
@@ -80,7 +112,7 @@ const breadcrumbSchema = buildBreadcrumbSchema([
 
         {hasUi ? (
           <div class="proj-hero" data-reveal>
-            <img src={imgSrc} alt={project.title} loading="lazy" />
+            <img src={imgSrc} alt={project.title} loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.svg'; this.dataset.fallback=''" />
           </div>
         ) : (
           <div class="proj-terminal" data-reveal>
@@ -145,6 +177,13 @@ const breadcrumbSchema = buildBreadcrumbSchema([
             <a href={project.live_url} target="_blank" rel="noopener" class="btn solid">{t('projects.liveDemo')} ↗</a>
           )}
         </div>
+
+        {tocMarkup && (
+          <nav class="proj-toc" data-reveal aria-label={t('projects.tableOfContents')}>
+            <div class="proj-toc-title mono">{t('projects.tableOfContents')}</div>
+            <div class="proj-toc-list" set:html={tocMarkup} />
+          </nav>
+        )}
 
         <div class="proj-content prose" data-reveal set:html={contentHtml} />
 
