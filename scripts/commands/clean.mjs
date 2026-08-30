@@ -11,7 +11,7 @@ import {
   normalizeNotionId,
   queryAllPages,
   readEnvFile,
-} from '../notion-utils.mjs';
+} from '../lib/notion-client.mjs';
 
 const DATABASES = {
   projects: 'NOTION_DB_PROJECTS',

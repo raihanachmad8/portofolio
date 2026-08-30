@@ -1,0 +1,100 @@
+{
+  "summary": {
+    "en": "Fresh graduate in Informatics Engineering from Politeknik Negeri Malang (GPA 3.90/4.00) with a 10-month internship at an enterprise software house, spanning microservices backend development, fullstack system migration, and server infrastructure setup and hardening. Fast learner adapting to new stacks, diagnosing and fixing data-critical issues in production systems, and working across roles (backend, frontend, infrastructure) as the team needs. Career focus on Software Engineering with deep interest in System Architecture and DevOps.",
+    "id": "Fresh graduate Teknik Informatika Politeknik Negeri Malang (IPK 3.90/4.00) dengan pengalaman magang 10 bulan di software house enterprise, mencakup pengembangan microservices backend, migrasi sistem fullstack, hingga setup dan pengamanan infrastruktur server. Terbiasa beradaptasi cepat ke stack baru, mendiagnosis dan menyelesaikan masalah data-critical pada sistem production, serta bekerja lintas peran (backend, frontend, infrastruktur) sesuai kebutuhan tim. Fokus karir pada Software Engineering dengan minat mendalam di System Architecture dan DevOps."
+  },
+  "education": [
+    {
+      "id": "d4-informatics",
+      "degree": { "en": "D4 Informatics Engineering", "id": "D4 Teknik Informatika" },
+      "institution": "Politeknik Negeri Malang",
+      "gpa": "3.90/4.00",
+      "period": { "en": "Aug 2022 — Aug 2026", "id": "Agu 2022 — Agu 2026" },
+      "location": "Malang, East Java",
+      "highlights": {
+        "en": [
+          "GPA 3.90/4.00.",
+          "PKM-KC national student research grant — advanced to PKP2 stage and published an Intellectual Property (HKI) record."
+        ],
+        "id": [
+          "IPK 3.90/4.00.",
+          "Hibah riset mahasiswa nasional PKM-KC — lolos hingga tahap PKP2 dan menerbitkan Hak Kekayaan Intelektual (HKI)."
+        ]
+      }
+    }
+  ],
+  "certifications": [
+    {
+      "id": "bnsp-fullstack",
+      "title": { "en": "BNSP Professional Certification — Fullstack Developer", "id": "Sertifikasi Profesi BNSP — Fullstack Developer" },
+      "issuer": "BNSP",
+      "year": 2026,
+      "detail": {
+        "en": "Fullstack certification assessed via Frozeria Next, a frozen-food stock management app built with Next.js 16, Ant Design, Drizzle ORM, and Neon Postgres.",
+        "id": "Sertifikasi fullstack yang dinilai lewat Frozeria Next, aplikasi manajemen stok makanan beku berbasis Next.js 16, Ant Design, Drizzle ORM, dan Neon Postgres."
+      }
+    }
+  ],
+  "competitions": [
+    {
+      "id": "iconic-it-2024",
+      "title": { "en": "Iconic IT 2024 — National Web Development", "id": "Iconic IT 2024 — Pengembangan Web Nasional" },
+      "result": { "en": "Ranked 6th nationally", "id": "Peringkat 6 nasional" },
+      "year": 2024,
+      "detail": {
+        "en": "Built 'Vacation RestAPI', a hidden-gems finder platform with upload, sharing, and comments, using NestJS as a solo developer.",
+        "id": "Membangun 'Vacation RestAPI', platform pencari hidden gems dengan fitur upload, sharing, dan komentar, memakai NestJS sebagai developer tunggal."
+      }
+    },
+    {
+      "id": "innovatech-2024",
+      "title": { "en": "InnovaTech 2024 — Web Design", "id": "InnovaTech 2024 — Desain Web" },
+      "result": { "en": "Competition participant", "id": "Partisipasi kompetisi" },
+      "year": 2024,
+      "detail": {
+        "en": "Experimented with high-performance static frontend using Astro and Framer Motion.",
+        "id": "Eksperimen frontend statis berperforma tinggi menggunakan Astro dan Framer Motion."
+      }
+    }
+  ],
+  "organizations": [
+    {
+      "id": "wri",
+      "title": { "en": "General Secretary & Mentor", "id": "Sekretaris Umum & Mentor" },
+      "org": "Workshop Riset Informatika (WRI)",
+      "detail": {
+        "en": "Prepared organizational proposals and activity reports; mentored freshmen in programming fundamentals.",
+        "id": "Menyiapkan proposal dan laporan kegiatan; membimbing mahasiswa baru dalam dasar-dasar pemrograman."
+      }
+    }
+  ],
+  "achievements": [
+    {
+      "id": "timezone-data-integrity",
+      "title": { "en": "Fixed a critical production timezone data-integrity bug", "id": "Memperbaiki bug integritas data timezone pada production" },
+      "context": "DOT Indonesia · HRIS migration",
+      "detail": {
+        "en": "Designed a backend UTC-offset correction layer that restored attendance data accuracy without touching a legacy mobile app that was no longer maintained.",
+        "id": "Merancang lapisan koreksi offset UTC di sisi backend sehingga akurasi data absensi pulih tanpa menyentuh aplikasi mobile lama yang sudah tidak dikembangkan."
+      }
+    },
+    {
+      "id": "reusable-excel-pdf-utils",
+      "title": { "en": "Built reusable Excel/PDF import-export utilities", "id": "Membuat utilitas import/export Excel dan PDF yang reusable" },
+      "context": "DOT Indonesia",
+      "detail": {
+        "en": "Adopted as the company backend boilerplate.",
+        "id": "Diadopsi sebagai boilerplate backend perusahaan."
+      }
+    },
+    {
+      "id": "background-job-caching",
+      "title": { "en": "Cut background job latency with a high-query caching layer", "id": "Menurunkan latensi background job dengan lapisan high-query caching" },
+      "context": "DOT Indonesia · HRIS",
+      "detail": {
+        "en": "Improved app responsiveness significantly under high load.",
+        "id": "Meningkatkan responsivitas aplikasi secara signifikan di bawah beban tinggi."
+      }
+    }
+  ]
+}

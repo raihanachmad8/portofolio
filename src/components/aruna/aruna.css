@@ -1,0 +1,700 @@
+/* ============================================================
+   ARUNA CHAT — design matched to the archive reference.
+   All colors/fonts flow through theme tokens (--bg/--panel/
+   --line/--txt/--dim/--acc/--ink/--f-*) so it adapts to all
+   four themes; a few [data-theme] rules add per-edition voice.
+   ============================================================ */
+.aruna-chat {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 9000;
+  font-family: var(--f-body, sans-serif);
+}
+
+/* ---- FAB + teaser tooltip ---- */
+.aruna-toggle {
+  font-family: var(--f-mono);
+  font-weight: 700;
+  font-size: .62rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .95rem 1.3rem;
+  border-radius: 99px;
+  border: 1px solid var(--line);
+  background: var(--acc);
+  color: var(--ink);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .25);
+  transition: .25s var(--ease, cubic-bezier(.22, .68, .24, 1));
+}
+
+.aruna-icon {
+  font-size: 1.1em;
+}
+
+.aruna-toggle:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, .32);
+}
+
+.aruna-toggle:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+.aruna-tip {
+  position: absolute;
+  right: 0;
+  bottom: 72px;
+  max-width: 280px;
+  padding: .9rem 1.1rem;
+  border: 1px solid var(--acc);
+  border-radius: 12px;
+  border-bottom-right-radius: 4px;
+  background: var(--panel);
+  color: var(--txt);
+  font-size: .85rem;
+  line-height: 1.6;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity .3s var(--ease), transform .3s var(--ease);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .3);
+}
+
+.aruna-tip.show {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---- Chat window ---- */
+.aruna-window {
+  position: absolute;
+  right: 0;
+  bottom: 72px;
+  width: min(390px, calc(100vw - 32px));
+  max-height: min(620px, calc(100vh - 120px));
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg);
+  color: var(--txt);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .32);
+}
+
+.aruna-hidden {
+  display: none !important;
+}
+
+.aruna-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .9rem 1rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.aruna-header-left {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  min-width: 0;
+}
+
+.aruna-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--acc);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  font-family: var(--f-display);
+  font-size: 1.1rem;
+  font-style: italic;
+  line-height: 1;
+}
+
+.aruna-title {
+  font-family: var(--f-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: .01em;
+}
+
+.aruna-status {
+  color: var(--acc);
+  font-family: var(--f-mono);
+  font-size: .5rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  margin-top: .25rem;
+}
+
+.aruna-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--acc);
+  flex: none;
+  animation: arunaPulse 2s infinite;
+}
+
+@keyframes arunaPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+  55% { box-shadow: 0 0 0 7px rgba(0, 0, 0, 0); }
+}
+
+.aruna-close {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--dim);
+  display: grid;
+  place-items: center;
+  font-size: 1.3rem;
+  line-height: 1;
+  transition: color .2s var(--ease), border-color .2s var(--ease);
+}
+
+.aruna-close:hover {
+  border-color: var(--acc);
+  color: var(--acc);
+}
+
+.aruna-close:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+/* ---- Messages ---- */
+.aruna-messages {
+  min-height: 280px;
+  max-height: 390px;
+  padding: 1rem;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: .75rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.aruna-msg {
+  max-width: 88%;
+  padding: .72rem .9rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  font-size: .86rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  animation: arunaMsgIn .28s var(--ease);
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+@keyframes arunaMsgIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.aruna-msg strong {
+  color: var(--acc);
+}
+
+.aruna-msg-user {
+  align-self: flex-end;
+  border-bottom-right-radius: 5px;
+  background: var(--acc);
+  border-color: var(--acc);
+  color: var(--ink);
+  max-width: 75%;
+  padding: .6rem .9rem;
+  font-size: .84rem;
+  word-break: break-word;
+}
+
+.aruna-msg-user::selection {
+  background: rgba(0, 0, 0, .25);
+  color: inherit;
+}
+
+.aruna-msg-user strong {
+  color: inherit;
+}
+
+.aruna-msg-aruna {
+  align-self: flex-start;
+  border-bottom-left-radius: 5px;
+  /* Solid themed bubble — translucency let the page content show through and
+     made the answer look like it ignored the active theme. */
+  background: var(--panel);
+}
+
+.aruna-msg-aruna::selection {
+  background: color-mix(in srgb, var(--acc) 35%, transparent);
+  color: var(--txt);
+}
+
+.aruna-tagname {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: .5rem;
+  letter-spacing: .18em;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--acc);
+  margin-bottom: .3rem;
+}
+
+.aruna-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin-top: .55rem;
+  padding-top: .5rem;
+  border-top: 1px solid var(--line);
+}
+
+.aruna-source-chip {
+  font-family: var(--f-mono);
+  font-size: .5rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: .3rem .6rem;
+}
+
+.aruna-source-link {
+  cursor: pointer;
+  transition: color .2s var(--ease), border-color .2s var(--ease);
+}
+
+.aruna-source-link:hover,
+.aruna-source-link:focus-visible {
+  border-color: var(--acc);
+  color: var(--acc);
+}
+
+/* ---- Navigation actions ("go to the section/page" buttons) ---- */
+.aruna-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin-top: .6rem;
+}
+
+.aruna-action-btn {
+  font-family: var(--f-mono);
+  font-size: .52rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--acc);
+  border: 1px solid var(--acc);
+  border-radius: 99px;
+  padding: .32rem .7rem;
+  background: transparent;
+  transition: background .2s var(--ease), color .2s var(--ease), transform .2s var(--ease);
+}
+
+.aruna-action-btn:hover {
+  background: var(--acc);
+  color: var(--ink);
+  transform: translateY(-1px);
+}
+
+.aruna-action-btn:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+/* ---- Copy button (bottom of each ARUNA answer bubble) ---- */
+.aruna-copy {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: .5rem;
+}
+
+.aruna-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-family: var(--f-mono);
+  font-size: .5rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: .24rem .55rem;
+  cursor: pointer;
+  transition: color .2s var(--ease), border-color .2s var(--ease);
+}
+
+.aruna-copy-btn svg {
+  width: 11px;
+  height: 11px;
+}
+
+.aruna-copy-btn:hover {
+  border-color: var(--acc);
+  color: var(--acc);
+}
+
+.aruna-copy-btn.copied {
+  border-color: var(--acc);
+  color: var(--acc);
+}
+
+/* ---- Thinking chain (o1-style) ---- */
+.aruna-thinking {
+  background: var(--panel2);
+}
+
+.aruna-think-ttl {
+  font-family: var(--f-mono);
+  font-size: .58rem;
+  letter-spacing: .14em;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--acc);
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .3rem;
+}
+
+.aruna-think-lines i {
+  display: block;
+  font-family: var(--f-mono);
+  font-style: normal;
+  font-size: .66rem;
+  line-height: 1.7;
+  color: var(--dim);
+}
+
+.aruna-think-lines .aruna-think-ok {
+  color: var(--dim);
+}
+
+.aruna-think-lines .aruna-think-warn {
+  color: var(--warn);
+  font-weight: 700;
+}
+
+.aruna-think-lines .aruna-think-done {
+  color: var(--acc);
+}
+
+.aruna-think-toggle {
+  font-family: var(--f-mono);
+  font-size: .54rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--acc);
+  border: 1px solid var(--acc);
+  border-radius: 99px;
+  padding: .22rem .6rem;
+  background: transparent;
+  transition: background .2s var(--ease), color .2s var(--ease);
+}
+
+.aruna-think-toggle:hover {
+  background: var(--acc);
+  color: var(--ink);
+}
+
+/* ---- Suggestions / chips ---- */
+.aruna-suggestions {
+  padding: 0 1rem .8rem;
+}
+
+.aruna-suggestions:empty {
+  display: none;
+}
+
+.aruna-suggestions-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+}
+
+.aruna-suggestion-chip {
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: .42rem .75rem;
+  color: var(--dim);
+  font-family: var(--f-mono);
+  font-size: .52rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  transition: color .2s var(--ease), border-color .2s var(--ease), transform .2s var(--ease);
+}
+
+.aruna-suggestion-chip:hover {
+  border-color: var(--acc);
+  color: var(--acc);
+  transform: translateY(-1px);
+}
+
+/* ---- Command palette (slash commands) ---- */
+.aruna-cmd-palette {
+  margin: 0 1rem .6rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  max-height: 240px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.aruna-cmd-palette:empty {
+  display: none;
+}
+
+.aruna-cmd-item {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding: .6rem .9rem;
+  cursor: pointer;
+  transition: background .12s var(--ease);
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  color: var(--txt);
+  font: inherit;
+}
+
+.aruna-cmd-item:hover,
+.aruna-cmd-item.aruna-cmd-active {
+  background: color-mix(in srgb, var(--acc) 12%, transparent);
+}
+
+.aruna-cmd-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--acc) 15%, transparent);
+  color: var(--acc);
+  display: grid;
+  place-items: center;
+  font-family: var(--f-mono);
+  font-size: .65rem;
+  font-weight: 700;
+  flex: none;
+}
+
+.aruna-cmd-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.aruna-cmd-name {
+  font-family: var(--f-mono);
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--txt);
+  letter-spacing: .02em;
+}
+
+.aruna-cmd-desc {
+  font-size: .68rem;
+  color: var(--dim);
+  margin-top: .1rem;
+}
+
+/* ---- Message action buttons ---- */
+.aruna-actions-row {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  margin-top: .45rem;
+  opacity: 0;
+  transition: opacity .15s var(--ease);
+}
+
+.aruna-msg:hover .aruna-actions-row {
+  opacity: 1;
+}
+
+.aruna-action-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--dim);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: color .15s var(--ease), border-color .15s var(--ease), background .15s var(--ease);
+}
+
+.aruna-action-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.aruna-action-icon:hover {
+  border-color: var(--acc);
+  color: var(--acc);
+  background: color-mix(in srgb, var(--acc) 8%, transparent);
+}
+
+.aruna-action-icon:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+.aruna-action-icon.active {
+  border-color: var(--acc);
+  color: var(--acc);
+  background: color-mix(in srgb, var(--acc) 12%, transparent);
+}
+
+/* ---- Input ---- */
+.aruna-input-area {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .85rem 1rem;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.aruna-prompt {
+  font-family: var(--f-mono);
+  font-weight: 700;
+  color: var(--acc);
+  font-size: .9rem;
+  flex: none;
+}
+
+.aruna-input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--txt);
+  font: inherit;
+  font-size: .84rem;
+  line-height: 1.4;
+  outline: none;
+  padding: .72rem .4rem;
+}
+
+.aruna-input::placeholder {
+  color: var(--dim);
+}
+
+.aruna-send {
+  flex: none;
+  border-radius: 8px;
+  background: var(--acc);
+  color: var(--ink);
+  font-family: var(--f-mono);
+  font-size: .58rem;
+  letter-spacing: .14em;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: .72rem .95rem;
+  transition: transform .2s var(--ease), opacity .2s var(--ease), background .2s var(--ease);
+}
+
+.aruna-send:hover {
+  transform: translateY(-1px);
+  opacity: .92;
+}
+
+.aruna-send:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ---- Per-edition voice (fonts/effects already flow via tokens) ---- */
+[data-theme='gallery'] .aruna-title {
+  font-weight: 400;
+  font-style: italic;
+  text-transform: none;
+}
+
+[data-theme='gallery'] .aruna-avatar {
+  font-style: italic;
+}
+
+[data-theme='terminal'] .aruna-title {
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  font-size: .9rem;
+}
+
+[data-theme='swiss'] .aruna-title {
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+
+[data-theme='editorial'] .aruna-title {
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 480px) {
+  .aruna-chat {
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .aruna-tip {
+    right: 0;
+    bottom: 64px;
+  }
+
+  .aruna-window {
+    right: 0;
+    bottom: 64px;
+    width: calc(100vw - 24px);
+    max-height: calc(100vh - 92px);
+  }
+
+  .aruna-messages {
+    min-height: 240px;
+    max-height: calc(100vh - 270px);
+  }
+
+  .aruna-think-lines i {
+    font-size: .62rem;
+  }
+}
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .aruna-dot {
+    animation: none;
+  }
+
+  .aruna-msg {
+    animation: none;
+  }
+}

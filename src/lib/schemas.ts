@@ -5,16 +5,27 @@
  */
 
 import { z } from 'zod';
-import { LANGUAGES, THEMES } from './notion-options';
+import { DEFAULT_THEME } from './utils';
+import { LANGUAGES, THEMES } from './constants';
+
+const MIN_PROJECT_YEAR = 2020;
+const FUTURE_YEAR_BUFFER = 5;
+const MAX_READ_TIME_MINS = 120;
+const MAX_TITLE_LENGTH = 100;
+const MAX_BLOG_TITLE_LENGTH = 200;
+const MAX_DESCRIPTION_LENGTH = 500;
+const MAX_EXCERPT_LENGTH = 300;
+const DEFAULT_SITE_TITLE = 'Portfolio';
+const DEFAULT_SITE_DESCRIPTION = 'Personal portfolio';
 
 /** Project data schema */
 export const ProjectSchema = z.object({
   id: z.string().optional(),
-  title: z.string().min(1, 'Title required').max(100, 'Title too long'),
+  title: z.string().min(1, 'Title required').max(MAX_TITLE_LENGTH, 'Title too long'),
   slug: z.string().regex(/^[a-z0-9-]+$/, 'Invalid slug format').optional(),
   category: z.string().min(1, 'Category required'),
-  year: z.number().int().min(2020, 'Too old').max(new Date().getFullYear() + 5, 'Too far future'),
-  description: z.string().min(10, 'Description too short').max(500, 'Description too long'),
+  year: z.number().int().min(MIN_PROJECT_YEAR, 'Too old').max(new Date().getFullYear() + FUTURE_YEAR_BUFFER, 'Too far future'),
+  description: z.string().min(10, 'Description too short').max(MAX_DESCRIPTION_LENGTH, 'Description too long'),
   content: z.string().optional(),
   has_ui: z.boolean().default(true),
   stack: z.string().min(1, 'Stack required'),
@@ -48,11 +59,11 @@ export const SkillsByCategorySchema = z.object({
 /** Experience entry schema */
 export const ExperienceSchema = z.object({
   id: z.string().optional(),
-  title: z.string().min(1, 'Title required').max(100, 'Title too long'),
-  company: z.string().min(1, 'Company required').max(100, 'Company too long'),
+  title: z.string().min(1, 'Title required').max(MAX_TITLE_LENGTH, 'Title too long'),
+  company: z.string().min(1, 'Company required').max(MAX_TITLE_LENGTH, 'Company too long'),
   period: z.string().optional(),
   location: z.string().optional(),
-  detail: z.string().max(500, 'Detail too long').optional(),
+  detail: z.string().max(MAX_DESCRIPTION_LENGTH, 'Detail too long').optional(),
   now: z.boolean().optional(),
   order: z.number().int().min(0).default(0),
 });
@@ -60,12 +71,12 @@ export const ExperienceSchema = z.object({
 /** Blog post schema */
 export const BlogSchema = z.object({
   id: z.string().optional(),
-  title: z.string().min(1, 'Title required').max(200, 'Title too long'),
+  title: z.string().min(1, 'Title required').max(MAX_BLOG_TITLE_LENGTH, 'Title too long'),
   slug: z.string().regex(/^[a-z0-9-]+$/, 'Invalid slug format').optional(),
-  excerpt: z.string().min(10, 'Excerpt too short').max(300, 'Excerpt too long'),
+  excerpt: z.string().min(10, 'Excerpt too short').max(MAX_EXCERPT_LENGTH, 'Excerpt too long'),
   category: z.string().min(1, 'Category required'),
   published_date: z.string().or(z.date()).transform(v => String(v)),
-  read_time: z.number().int().min(1, 'Min 1 min').max(120, 'Max 120 mins').optional(),
+  read_time: z.number().int().min(1, 'Min 1 min').max(MAX_READ_TIME_MINS, 'Max 120 mins').optional(),
   featured: z.boolean().default(false),
   tags: z.array(z.string()).optional(),
   content: z.string().optional(),
@@ -92,7 +103,7 @@ export const ProfileSchema = z.object({
   available: z.boolean().default(true),
   tickerItems: z.array(z.string()).default([]),
   language: z.enum(LANGUAGES).default('en'),
-  theme: z.enum(THEMES).default('gallery'),
+  theme: z.enum(THEMES).default(DEFAULT_THEME),
   site_title: z.string().optional().or(z.literal('')),
   site_description: z.string().optional().or(z.literal('')),
 });
@@ -104,14 +115,6 @@ export const TickerItemSchema = z.object({
   order: z.number().int().min(0).default(0),
 });
 
-/** Site settings schema */
-export const SettingsSchema = z.object({
-  site_title: z.string().default('Portfolio'),
-  site_description: z.string().default('Personal portfolio'),
-  theme: z.enum(THEMES).default('gallery'),
-  language: z.enum(LANGUAGES).default('en'),
-});
-
 /** Inferred TypeScript types */
 export type Project = z.infer<typeof ProjectSchema>;
 export type Skill = z.infer<typeof SkillSchema>;
@@ -119,5 +122,4 @@ export type SkillsByCategory = z.infer<typeof SkillsByCategorySchema>;
 export type Experience = z.infer<typeof ExperienceSchema>;
 export type Blog = z.infer<typeof BlogSchema>;
 export type Profile = z.infer<typeof ProfileSchema>;
-export type Settings = z.infer<typeof SettingsSchema>;
 export type TickerItem = z.infer<typeof TickerItemSchema>;

@@ -23,3 +23,7 @@ npm-debug.log*
 
 # dependencies
 node_modules/
+
+# aruna generated payload (build script output)
+public/data/aruna-kb/
+scripts/.aruna-*

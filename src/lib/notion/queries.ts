@@ -69,8 +69,8 @@ export async function fetchProjects(config: NotionConfig) {
     stack: getProp(page, 'stack'),
     github_url: getProp(page, 'github_url') || null,
     live_url: getProp(page, 'live_url') || null,
-      featured: getCheckbox(page, 'featured'),
-      order: Number(getProp(page, 'order')) || 0,
+    featured: getCheckbox(page, 'featured'),
+    order: Number(getProp(page, 'order')) || 0,
     image_url: getProp(page, 'image_url') || null,
   })).then((r) => r?.sort((a, b) => a.order - b.order) ?? null);
 }

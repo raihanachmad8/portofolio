@@ -60,7 +60,7 @@
 /* hero */
 [data-theme="gallery"] #boot { display: none; }
 [data-theme="gallery"] h1 { font-family: var(--f-display); font-weight: 400; font-style: italic; text-transform: none; letter-spacing: 0; line-height: 1.08; font-size: clamp(2.8rem, 6vw, 5rem); }
-[data-theme="gallery"] .outl { color: var(--txt); -webkit-text-stroke: 0; }
+[data-theme="gallery"] .outline { color: var(--txt); -webkit-text-stroke: 0; }
 [data-theme="gallery"] .role-line { color: var(--acc); }
 [data-theme="gallery"] .hero-sub { color: var(--dim); }
 [data-theme="gallery"] .hero-sub b { color: var(--txt); }
@@ -73,7 +73,7 @@
 [data-theme="gallery"] .btn.ghost:hover { background: var(--txt); color: var(--bg); }
 [data-theme="gallery"] .hud { border-color: rgba(217, 164, 75, .4); background: var(--panel); }
 [data-theme="gallery"] .hud-img img { filter: sepia(.25) contrast(1.04); }
-[data-theme="gallery"] .hud-row .v.acc { color: var(--acc); }
+[data-theme="gallery"] .hud-row .hud-value.acc { color: var(--acc); }
 [data-theme="gallery"] .scroll-hint .line { background: var(--line); }
 [data-theme="gallery"] .scroll-hint .line::after { background: var(--acc); }
 
@@ -150,8 +150,8 @@
 [data-theme="gallery"] .about-txt p b { color: var(--txt); }
 [data-theme="gallery"] .about-ph { border-color: rgba(217, 164, 75, .4); }
 [data-theme="gallery"] .about-ph img { filter: sepia(.3); }
-[data-theme="gallery"] .facts .n { font-family: var(--f-display); font-weight: 400; color: var(--acc); }
-[data-theme="gallery"] .facts .l { color: var(--dim); }
+[data-theme="gallery"] .facts .fact-value { font-family: var(--f-display); font-weight: 400; color: var(--acc); }
+[data-theme="gallery"] .facts .fact-label { color: var(--dim); }
 [data-theme="gallery"] .principles li i { color: var(--acc); }
 [data-theme="gallery"] .principles li span { color: var(--dim); }
 
@@ -174,10 +174,10 @@
 [data-theme="gallery"] .skill-col { border-radius: 0; background: transparent; }
 [data-theme="gallery"] .skill-col h3 { color: var(--acc); }
 [data-theme="gallery"] .skill-col h3::after { background: var(--line); }
-[data-theme="gallery"] .sk .row span:last-child { color: var(--dim); }
-[data-theme="gallery"] .sb { height: auto; border-radius: 0; background: transparent; display: flex; gap: .35rem; }
-[data-theme="gallery"] .sb span { width: 0; border-radius: 0; background: transparent; transition: none; position: relative; }
-[data-theme="gallery"] .sb { position: relative; }
+[data-theme="gallery"] .skill-row .row span:last-child { color: var(--dim); }
+[data-theme="gallery"] .skill-bar { height: auto; border-radius: 0; background: transparent; display: flex; gap: .35rem; }
+[data-theme="gallery"] .skill-bar span { width: 0; border-radius: 0; background: transparent; transition: none; position: relative; }
+[data-theme="gallery"] .skill-bar { position: relative; }
 [data-theme="gallery"] .skill-col .tools i { color: var(--dim); }
 [data-theme="gallery"] .sk-note { color: var(--dim); }
 [data-theme="gallery"] .sk-note b { color: var(--acc); font-weight: 400; }
@@ -190,8 +190,8 @@
 [data-theme="gallery"] .xp-row .period { color: var(--dim); }
 [data-theme="gallery"] .xp-row.now .period { color: var(--acc); }
 [data-theme="gallery"] .xp-row h3 { font-weight: 600; }
-[data-theme="gallery"] .xp-row .co { font-family: var(--f-display); font-style: italic; color: var(--acc); text-transform: none; letter-spacing: 0; font-size: 1rem; }
-[data-theme="gallery"] .xp-row .loc { color: var(--dim); }
+[data-theme="gallery"] .xp-row .company { font-family: var(--f-display); font-style: italic; color: var(--acc); text-transform: none; letter-spacing: 0; font-size: 1rem; }
+[data-theme="gallery"] .xp-row .location { color: var(--dim); }
 [data-theme="gallery"] .xp-row p { color: var(--dim); }
 
 /* achievements */
@@ -219,31 +219,3 @@
 [data-theme="gallery"] .socials a:hover, [data-theme="gallery"] .socials button:hover { border-color: var(--acc); color: var(--acc); }
 [data-theme="gallery"] .c-foot { border-color: var(--line); color: var(--dim); }
 [data-theme="gallery"] .c-foot a:hover { color: var(--acc); }
-
-/* chat */
-[data-theme="gallery"] #aiFab { background: var(--acc); color: var(--ink); box-shadow: 0 14px 34px rgba(217, 164, 75, .35); }
-[data-theme="gallery"] #aiTip { background: var(--panel); border-color: rgba(217, 164, 75, .5); color: var(--txt); }
-[data-theme="gallery"] .chat { background: var(--bg); border-color: rgba(217, 164, 75, .4); box-shadow: 0 40px 90px rgba(0, 0, 0, .6); }
-[data-theme="gallery"] .chat > header { background: var(--panel); color: var(--txt); }
-[data-theme="gallery"] .chat .ava { background: var(--acc); color: var(--ink); border-radius: 50%; font-family: var(--f-display); font-style: italic; font-size: 1.1rem; }
-[data-theme="gallery"] .chat header b { font-family: var(--f-display); font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 1.05rem; }
-[data-theme="gallery"] .chat header small { color: var(--acc); }
-[data-theme="gallery"] .chat header .close { border-color: rgba(239, 230, 214, .25); }
-[data-theme="gallery"] .chat header .close:hover { border-color: var(--acc); color: var(--acc); }
-[data-theme="gallery"] .c-body { scrollbar-color: var(--panel) transparent; }
-[data-theme="gallery"] .msg.bot { background: rgba(239, 230, 214, .06); border: 1px solid var(--line); border-radius: 16px; border-bottom-left-radius: 5px; }
-[data-theme="gallery"] .msg.user { background: var(--acc); color: var(--ink); border-radius: 16px; border-bottom-right-radius: 5px; }
-[data-theme="gallery"] .msg .tagname { color: var(--acc); }
-[data-theme="gallery"] .msg .act { color: var(--acc); }
-[data-theme="gallery"] .msg .act:hover { background: var(--acc); color: var(--ink); }
-[data-theme="gallery"] .nxt { background: transparent; color: var(--dim); }
-[data-theme="gallery"] .nxt:hover { border-color: var(--acc); color: var(--acc); }
-[data-theme="gallery"] .typing .dots i { background: var(--acc); }
-[data-theme="gallery"] .c-chips button { color: var(--dim); }
-[data-theme="gallery"] .c-chips button:hover { border-color: var(--acc); color: var(--acc); }
-[data-theme="gallery"] .c-input { background: var(--panel); }
-[data-theme="gallery"] .c-input > span { color: var(--acc); }
-[data-theme="gallery"] .c-input input { color: var(--txt); }
-[data-theme="gallery"] .c-input input::placeholder { color: var(--dim); }
-[data-theme="gallery"] .c-input button { background: var(--acc); color: var(--ink); }
-[data-theme="gallery"] .c-input button:hover { background: var(--txt); }

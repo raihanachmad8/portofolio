@@ -1,6 +1,6 @@
 ---
 import type { Profile } from '../lib/schemas';
-import { createTranslator, detectLocale } from '@i18n';
+import { getLocale } from '@i18n';
 
 interface Props {
   profile?: Profile;
@@ -14,15 +14,14 @@ const linkedin = profile?.linkedin ?? '';
 const cv_url = profile?.cv_url ?? '#';
 const location = profile?.location ?? '';
 
-const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
-const t = createTranslator(locale);
+const { t } = getLocale(Astro);
 ---
 
 <section class="contact" id="contact">
   <div class="wrap">
     <h2 class="contact-title">{t('contact.title')}</h2>
     <a href={`mailto:${email}`} class="email-link">{email} ↗</a>
-    <div class="socials d-2" data-reveal>
+    <div class="socials delay-2" data-reveal>
       <a href={github} target="_blank" rel="noopener">{t('common.github')} ↗</a>
       <a href={linkedin} target="_blank" rel="noopener">{t('common.linkedin')} ↗</a>
       <a href={cv_url} target="_blank" rel="noopener">{t('common.cv')} ↗</a>

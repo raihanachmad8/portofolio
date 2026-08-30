@@ -44,12 +44,3 @@ export const SKILL_CATEGORY_OPTIONS = ['Backend', 'Frontend', 'Database', 'DevOp
 
 /** Blog category options */
 export const BLOG_CATEGORY_OPTIONS = ['Backend', 'DevOps', 'Career', 'Frontend', 'Architecture'];
-
-/** Experience type options */
-export const EXPERIENCE_TYPE_OPTIONS = ['Work', 'Internship', 'Freelance', 'Campus', 'Milestone'];
-
-/** Language options */
-export const LANGUAGE_OPTIONS = ['id', 'en'];
-
-/** Theme options */
-export const THEME_OPTIONS = ['terminal', 'editorial', 'gallery', 'swiss'];

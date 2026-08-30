@@ -2,12 +2,18 @@
 import SectionHead from './SectionHead.astro';
 import { getExperience } from '../lib/content';
 import { getRuntimeEnv } from '../lib/utils';
-import { createTranslator, detectLocale } from '@i18n';
+import { getLocale } from '@i18n';
+import type { Experience } from '@lib/schemas';
 
 const env = getRuntimeEnv(Astro);
-const experience = await getExperience(env);
-const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
-const t = createTranslator(locale);
+let experience: Experience[] = [];
+try {
+  experience = await getExperience(env);
+} catch (e) {
+  console.warn('[Experience] Failed to fetch experience:', (e as Error).message);
+  experience = [];
+}
+const { t } = getLocale(Astro);
 ---
 
 <section id="journey">
@@ -19,8 +25,8 @@ const t = createTranslator(locale);
           <span class="period">{xp.period}</span>
           <div>
             <h3>{xp.title}</h3>
-            <span class="co">{xp.company}</span>
-            <span class="loc">{xp.location}</span>
+            <span class="company">{xp.company}</span>
+            <span class="location">{xp.location}</span>
           </div>
           <p>{xp.detail}</p>
         </div>

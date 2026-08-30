@@ -2,25 +2,26 @@
 import Base from '@layouts/Base.astro';
 import Header from '@components/Header.astro';
 import ContactFooter from '@components/ContactFooter.astro';
-import { getPostBySlug, getProjectContent, getProfile } from '@lib/content';
-import { fmtDate, getRuntimeEnv } from '@lib/utils';
+import { getPostBySlug, getProfile } from '@lib/content';
+import { formatDate, getRuntimeEnv, SITE_URL, OG_DEFAULT_IMAGE } from '@lib/utils';
 import { marked } from 'marked';
-import { detectLocale, createTranslator } from '@i18n';
+import { getLocale } from '@i18n';
 import SEO from '@components/SEO.astro';
+import { buildBreadcrumbSchema } from '@lib/seo-helpers';
 
 const { slug } = Astro.params;
+if (!slug) return new Response('Not found', { status: 404 });
 const env = getRuntimeEnv(Astro);
-const post = await getPostBySlug(slug as string, env);
+const post = await getPostBySlug(slug, env);
 const profile = await getProfile(env);
-const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
-const t = createTranslator(locale);
+const { locale, t } = getLocale(Astro);
 
 if (!post) {
-  return Astro.redirect('/blog');
+  return new Response('Not found', { status: 404 });
 }
 
 const contentHtml = marked(post.content || '');
-const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://raihanachmad.web.id';
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || SITE_URL;
 const postUrl = `${siteUrl}/blog/${post.slug}`;
 
 const blogPostingSchema = {
@@ -28,7 +29,7 @@ const blogPostingSchema = {
   '@type': 'BlogPosting',
   headline: post.title,
   description: post.excerpt,
-  image: `${siteUrl}/images/og-default.jpg`,
+  image: `${siteUrl}${OG_DEFAULT_IMAGE}`,
   url: postUrl,
   datePublished: post.published_date,
   dateModified: post.published_date,
@@ -50,42 +51,23 @@ const blogPostingSchema = {
   keywords: post.tags?.join(', '),
 };
 
-const breadcrumbSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: [
-    {
-      '@type': 'ListItem',
-      position: 1,
-      name: t('common.home'),
-      item: siteUrl,
-    },
-    {
-      '@type': 'ListItem',
-      position: 2,
-      name: t('blog.title'),
-      item: `${siteUrl}/blog`,
-    },
-    {
-      '@type': 'ListItem',
-      position: 3,
-      name: post.title,
-      item: postUrl,
-    },
-  ],
-};
+const breadcrumbSchema = buildBreadcrumbSchema([
+  { name: t('common.home'), url: siteUrl },
+  { name: t('blog.title'), url: `${siteUrl}/blog` },
+  { name: post.title, url: postUrl },
+]);
 ---
 
-<Base lang={locale} title={`${post.title} — ${t('blog.title')}`} description={post.excerpt} themeDefault="gallery">
+<Base lang={locale} title={`${post.title} — ${t('blog.title')}`} themeDefault="gallery">
   <SEO
     title={`${post.title} — ${t('blog.title')}`}
     description={post.excerpt}
-    image={post.cover_image || '/images/og-default.jpg'}
+    image={OG_DEFAULT_IMAGE}
     url={postUrl}
     type="article"
     author={t('seo.siteName')}
     publishedTime={post.published_date}
-    modifiedTime={post.updated_date || post.published_date}
+    modifiedTime={post.published_date}
     sameAs={[profile.github, profile.linkedin].filter(Boolean)}
   />
   <script type="application/ld+json" set:html={JSON.stringify(blogPostingSchema)} />
@@ -105,7 +87,7 @@ const breadcrumbSchema = {
         <article>
           <div class="blog-post-meta mono">
             <span class="blog-post-category">{post.category}</span>
-            <span>{fmtDate(post.published_date)}</span>
+            <span>{formatDate(post.published_date)}</span>
             <span>{post.read_time} {t('blog.minRead')}</span>
           </div>
           <h1 class="blog-post-title">{post.title}</h1>

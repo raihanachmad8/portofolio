@@ -85,3 +85,23 @@ export function getOgLocale(locale: Locale): string {
   };
   return localeMap[locale] || 'en_US';
 }
+
+/**
+ * Convenience helper — detect locale and create translator in one call.
+ * Replaces the 3-line boilerplate duplicated across 14+ .astro files.
+ *
+ * @example
+ * ```astro
+ * ---
+ * import { getLocale } from '@i18n';
+ * const { locale, t } = getLocale(Astro);
+ * ---
+ * ```
+ */
+export function getLocale(context: { request: Request; url: URL }): {
+  locale: Locale;
+  t: (key: string) => string;
+} {
+  const locale = detectLocale(context.request.headers.get('cookie') ?? undefined, context.url);
+  return { locale, t: createTranslator(locale) };
+}

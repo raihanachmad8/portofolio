@@ -6,11 +6,10 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { Client } from '@notionhq/client';
 import {
   createNotionClient,
+  findTitle,
   formatStatus,
-  getPlainText,
   hasUsableEnvValue,
   normalizeNotionId,
   queryAllPages,
@@ -22,20 +21,11 @@ import {
   toRichTextProperty,
   toSelectProperty,
   toTitleProperty,
-  toUrlProperty,
   toMultiSelectProperty,
-  parseFrontmatter,
-} from '../notion-utils.mjs';
+  toUrlProperty,
+} from '../lib/notion-client.mjs';
+import { parseFrontmatter } from '../lib/frontmatter.mjs';
 import { mdToNotionBlocks } from '../md-to-notion.mjs';
-
-function findTitle(page) {
-  for (const [, prop] of Object.entries(page.properties || {})) {
-    if (prop.type === 'title') {
-      return prop.title?.map((t) => t.plain_text).join('') ?? '';
-    }
-  }
-  return '';
-}
 
 async function createPage(notion, dataSourceId, properties) {
   await notion.pages.create({
@@ -181,7 +171,7 @@ async function migrateExperience(notion, env) {
 
   for (const file of files) {
     const raw = fs.readFileSync(path.join(expDir, file), 'utf8');
-    const { metadata: fm } = parseFrontmatter(raw);
+    const { data: fm } = parseFrontmatter(raw);
     if (!fm.title) continue;
     if (existing.has(fm.title)) {
       skipped++;
@@ -218,9 +208,7 @@ async function migrateProjects(notion, env) {
     return;
   }
 
-  const c = new Client({ auth: env.NOTION_TOKEN });
-  const db = await c.databases.retrieve({ database_id: dbId });
-  const dsId = db.data_sources[0].id;
+  const dsId = await resolveDataSourceId(notion, dbId);
   const siteUrl = env.PUBLIC_SITE_URL || '';
   const existingTitles = await getExistingTitles(notion, dbId);
 
@@ -230,7 +218,7 @@ async function migrateProjects(notion, env) {
 
   for (const file of files) {
     const content = fs.readFileSync(mdxDir + '/' + file, 'utf8');
-    const { metadata: fm, body } = parseFrontmatter(content);
+    const { data: fm, body } = parseFrontmatter(content);
     if (Object.keys(fm).length === 0) continue;
 
     if (existingTitles.has(fm.title)) {
@@ -261,7 +249,7 @@ async function migrateProjects(notion, env) {
       if (coverUrl) cover = { type: 'external', external: { url: coverUrl } };
     }
 
-    const page = await c.pages.create({
+    const page = await notion.pages.create({
       parent: { type: 'data_source_id', data_source_id: dsId },
       cover,
       properties: {
@@ -282,13 +270,13 @@ async function migrateProjects(notion, env) {
     });
 
     if (blocks.length > 100) {
-      await c.blocks.children.append({ block_id: page.id, children: blocks.slice(100) });
+      await notion.blocks.children.append({ block_id: page.id, children: blocks.slice(100) });
     }
 
     if (tableBlock) {
       const firstRow = tableRows[0];
       const restRows = tableRows.slice(1);
-      const tableResp = await c.blocks.children.append({
+      const tableResp = await notion.blocks.children.append({
         block_id: page.id,
         children: [{
           type: 'table',
@@ -301,7 +289,7 @@ async function migrateProjects(notion, env) {
         }],
       });
       if (restRows.length > 0) {
-        await c.blocks.children.append({ block_id: tableResp.results[0].id, children: restRows });
+        await notion.blocks.children.append({ block_id: tableResp.results[0].id, children: restRows });
       }
     }
 
@@ -327,9 +315,7 @@ async function migrateBlog(notion, env) {
     return;
   }
 
-  const c = new Client({ auth: env.NOTION_TOKEN });
-  const db = await c.databases.retrieve({ database_id: dbId });
-  const dsId = db.data_sources[0].id;
+  const dsId = await resolveDataSourceId(notion, dbId);
   const existing = await getExistingTitles(notion, dbId);
 
   const files = fs.readdirSync(blogDir).filter((f) => f.endsWith('.mdx'));
@@ -339,7 +325,7 @@ async function migrateBlog(notion, env) {
 
   for (const file of files) {
     const raw = fs.readFileSync(path.join(blogDir, file), 'utf8');
-    const { metadata: fm, body } = parseFrontmatter(raw);
+    const { data: fm, body } = parseFrontmatter(raw);
     if (!fm.title) continue;
     if (existing.has(fm.title)) {
       skipped++;
@@ -351,7 +337,7 @@ async function migrateBlog(notion, env) {
     const blocks = mdToNotionBlocks(body);
 
     // Create page with metadata + content blocks
-    await c.pages.create({
+    await notion.pages.create({
       parent: { type: 'data_source_id', data_source_id: dsId },
       properties: {
         title: toTitleProperty(fm.title),
