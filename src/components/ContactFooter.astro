@@ -1,12 +1,19 @@
 ---
 import type { Profile } from '../lib/schemas';
+import { getProfile } from '../lib/content';
+import { getRuntimeEnv } from '../lib/utils';
 import { getLocale } from '@i18n';
 
 interface Props {
   profile?: Profile;
 }
 
-const { profile } = Astro.props;
+const { profile: propProfile } = Astro.props;
+const env = getRuntimeEnv(Astro);
+// Pages that already fetch profile pass it as a prop (avoids a second fetch);
+// otherwise ContactFooter fetches its own so every page gets a complete footer.
+const profile = propProfile ?? (await getProfile(env));
+
 const name = profile?.name ?? '';
 const email = profile?.email ?? '';
 const github = profile?.github ?? '';

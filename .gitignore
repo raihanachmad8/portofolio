@@ -5,6 +5,9 @@ dist/
 .astro/
 .wrangler/
 
+# playwright mcp session state
+.playwright-mcp/
+
 # environment variables
 .env
 .env.production

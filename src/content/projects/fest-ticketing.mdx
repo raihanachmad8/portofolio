@@ -4,127 +4,211 @@ slug: fest-ticketing
 category: "Campus Project"
 year: 2024
 has_ui: true
-description: "AI-powered face recognition ticketing system — a Flutter mobile client paired with a FastAPI backend using MTCNN, Facenet, and Cosine Similarity for secure event access."
-stack: "Python,FastAPI,Flutter,Dart,MTCNN,Facenet,PostgreSQL,OpenCV,MediaPipe,Docker"
+description: "FastAPI event-ticketing backend with 27 endpoints and an 11-table PostgreSQL schema, built across three courses with a face-verification PoC using MediaPipe FaceMesh and FaceNet."
+stack: "Python,FastAPI,PostgreSQL,SQLAlchemy,MediaPipe,FaceNet,OpenCV,Docker"
 github_url: "https://github.com/raihanachmad8/ngefastapi"
+live_url: ""
 featured: true
-image_url: "null"
+image_url: "/images/projects/fest-ticketing/cover.png"
 order: 5
 ---
 
 ## Overview
 
-Fest Ticketing is a complete AI-powered face recognition ticketing system built as a combined project for 3 university courses — Digital Image Processing, Machine Learning, and Mobile Programming. The system lets attendees register their face via a Flutter mobile app, then at the venue, a camera captures their image and the FastAPI backend matches it against stored embeddings.
+Fest Ticketing is an event-ticketing backend built as a combined project for three university courses: Digital Image Processing, Machine Learning, and Mobile Programming. The FastAPI service exposes 27 endpoints for authentication, event and organizer management, and a payment flow, backed by an 11-table PostgreSQL schema. During the course window, the machine-learning thread built a face-verification proof of concept with MediaPipe FaceMesh, FaceNet, and cosine similarity; that pipeline is disabled in the current repository. The mobile client lives in a separate Flutter project.
 
-I built the AI backend pipeline (Python/FastAPI) while collaborating with the mobile team on the Flutter client. The result is a working PoC that proves face recognition can replace traditional paper or barcode-based ticketing.
+| Metric | Value |
+|---|---|
+| API endpoints | 27 |
+| Database tables | 11 |
+| Backend | FastAPI + SQLAlchemy |
+| Database | PostgreSQL (migrated from MongoDB) |
+| Auth | OTP email verification + personal access tokens |
+| Face PoC | MediaPipe FaceMesh + FaceNet + cosine similarity |
 
 ## Problem
 
-- Traditional ticketing systems can be bypassed with stolen or shared tickets — there's no way to verify the person holding the ticket is the one who bought it
-- The coursework required integrating AI (face recognition) with a mobile application across three separate courses
-- Training a face recognition model from scratch was not feasible within the deadline and hardware constraints
-- The face recognition backend needed a mobile client capable of capturing and sending face images reliably
-- Liveness detection was required to prevent photo spoofing — the app needed to capture multiple angles
+- Ticket sharing and stolen tickets are hard to catch with paper or barcode entry
+- The courses required integrating a machine-learning pipeline with a working backend
+- Three separate course assignments had to share one coherent system
+- The backend needed to be fast enough to verify an attendee at the gate
 
 ## Goal
 
-- Build a backend API that handles face detection, embedding generation, and matching
-- Integrate pre-trained models (MTCNN + Facenet) instead of training from scratch
-- Create a Flutter app that captures face images with liveness simulation
-- Demonstrate end-to-end ticketing flow: registration → face capture → venue verification
-- Build a working PoC that proves the concept is viable for real-world event access
+- Build a FastAPI backend with event, organizer, auth, and payment flows
+- Model the domain in PostgreSQL with clean relations
+- Add a face-verification pipeline using pre-trained models, not a from-scratch trainer
+- Wire a mobile client that can register a face and present it at the gate
 
 ## Role
 
-I built the AI backend pipeline independently and contributed to backend integration and API contract design, working alongside the mobile team (Flutter) and a frontend team.
+I built the AI backend and API integration and collaborated on the API contract with the mobile team. The Flutter client is a separate project in the mobile course track.
 
-**Team:** Achmad Raihan Fahrezi Effendy (AI Backend Engineer + Backend Integration) + Mobile Team + Frontend Team
-
-## User Stories
-
-- **As an attendee**, I want to register my face via the mobile app so that I can enter the event without a physical ticket
-- **As an event organizer**, I want to verify attendees automatically at the venue so that I can reduce queue times and eliminate paper tickets
-- **As a security team member**, I want to prevent ticket sharing so that only registered attendees gain access to the event
-- **As a venue operator**, I want the face recognition process to complete in under 3 seconds so that foot traffic flows smoothly at entry points
-- **As a festival attendee**, I want to capture my face from multiple angles so that the system can detect spoofing attempts and protect my identity
-
-## Use Case
-
-**Scenario: Festival Entry Verification**
-
-An attendee arrives at the festival entrance and opens the Fest Ticketing mobile app. The app guides them through a liveness simulation — capturing their face from the front, left, right, and while smiling — and uploads the images to the FastAPI backend. MTCNN detects the face in each image, Facenet generates a 128-dimensional embedding, and the vector is stored in PostgreSQL. At the venue, a camera captures the attendee's face in real time. The backend runs cosine similarity against stored embeddings, confirms a match, and signals the turnstile to open — all in under 3 seconds.
+**Team:** Achmad Raihan Fahrezi Effendy (AI Backend + Integration) + mobile and frontend tracks
 
 ## Architecture
 
 ```mermaid
 flowchart TD
-    subgraph Mobile["Flutter Mobile App"]
-        A1["Camera Capture"] --> A2["Liveness Simulation"]
-        A2 --> A3["HTTP Upload"]
-    end
-
-    subgraph Backend["FastAPI Backend"]
-        B1["Face Detection"]
-        B2["Face Embedding"]
-        B3["Face Matching"]
-        B4["Async Processing"]
-    end
-
-    subgraph AI["AI Pipeline"]
-        C1["MTCNN"] --> C2["Facenet Pre-trained"]
-        C3["Cosine Similarity"]
-    end
-
-    subgraph Infra["Infrastructure"]
-        D1[("PostgreSQL")]
-        D2["Docker"]
-        D3["OpenCV"]
-        D4["MediaPipe"]
-    end
-
-    Mobile --> Backend
-    B1 --> AI
-    B2 --> AI
-    B3 --> AI
-    B4 --> Infra
-    B1 --> D3
-    B1 --> D4
-    Backend --> D1
+    A["Mobile client (Flutter)"] --> B["FastAPI backend"]
+    B --> C["Auth endpoints"]
+    B --> D["Event endpoints"]
+    B --> E["Organizer endpoints"]
+    B --> F["Payment endpoints"]
+    C --> G[("PostgreSQL")]
+    D --> G
+    E --> G
+    F --> G
+    B --> H["Face verification (PoC)"]
+    H --> I["MediaPipe FaceMesh"]
+    H --> J["FaceNet embedding"]
+    H --> K["Cosine similarity"]
 ```
+
+The REST surface covers auth, events, organizers, users, and payments. The face-verification pipeline is a separate module that detects faces, builds embeddings, and scores matches.
+
+## Database Design
+
+Eleven tables model the ticketing domain: users with OTP verification and access tokens, event organizers, event categories and classes, events, payments, and attendances.
+
+```mermaid
+erDiagram
+    users ||--o{ personal_access_tokens : "tokens"
+    users ||--o{ otps : "verifies"
+    users ||--o{ eventorganizers : "runs"
+    eventorganizers ||--o{ events : "hosts"
+    event_categories ||--o{ event_category_association : "links"
+    events ||--o{ event_category_association : "has"
+    events ||--o{ event_classes : "classes"
+    events ||--o{ payments : "paid"
+    events ||--o{ attendances : "checked in"
+
+    users {
+        int id PK
+        string name
+        string email UK
+        string password
+        string embedding "face vec (residual)"
+    }
+    eventorganizers {
+        int id PK
+        int user_id FK
+        string organization_name
+    }
+    event_categories {
+        int id PK
+        string name
+    }
+    events {
+        int id PK
+        int organizer_id FK
+        string name
+        datetime start_date
+        datetime end_date
+        string venue
+    }
+    event_classes {
+        int id PK
+        int event_id FK
+        string class_name
+        int price
+    }
+    payments {
+        int id PK
+        int event_id FK
+        int user_id FK
+        string payment_status
+        string method
+    }
+    attendances {
+        int id PK
+        int event_id FK
+        int user_id FK
+        datetime checked_in_at
+    }
+    otps {
+        int id PK
+        int user_id FK
+        string code
+        datetime expires_at
+    }
+    personal_access_tokens {
+        int id PK
+        int user_id FK
+        string token
+    }
+```
+
+## Face Verification Flow
+
+The verification pipeline uses MediaPipe to detect face landmarks, FaceNet to build a 128-dimension embedding, and cosine similarity with a 0.7 threshold to decide a match. A 5-step liveness sequence (look straight, blink, turn left, turn right) was part of the flow to slow down photo spoofing. This pipeline is currently disabled in the repository, and remains as the machine-learning proof of concept from the course window.
+
+```mermaid
+sequenceDiagram
+    participant M as Mobile client
+    participant A as FastAPI
+    participant P as MediaPipe FaceMesh
+    participant F as FaceNet
+    participant C as Cosine similarity
+    participant D as PostgreSQL
+
+    M->>A: Upload face images (liveness steps)
+    A->>P: Detect face landmarks
+    P-->>A: Aligned face
+    A->>F: Build 128-d embedding
+    A->>D: Fetch stored embeddings
+    A->>C: Score against stored vectors
+    C-->>A: score >= 0.7
+    A-->>M: Verified or rejected
+```
+
+## API
+
+Twenty-seven live endpoints under `/api/v1`.
+
+| Area | Endpoints | Purpose |
+|---|---|---|
+| Auth | 7 | register, OTP verify, login, logout, access tokens |
+| Organizer | 6 | manage organizers |
+| Event | 8 | event CRUD, categories, classes |
+| User | 1 | current user |
+| Payment | 4 | create and confirm payments |
+
+![Booking flow in the ticketing backend](/images/projects/fest-ticketing/booking.png)
 
 ## Key Features
 
-- **Face Detection** — MTCNN detects faces in uploaded images with bounding box coordinates, handling varying lighting conditions and angles
-- **Face Embedding** — Facenet generates 128-dimensional face vectors for precise comparison
-- **Face Matching** — Cosine Similarity compares embeddings to identify registered users against the database
-- **Liveness Simulation** — Flutter app captures multiple angles (front, left, right, smile) as a guided liveness check to prevent photo spoofing
-- **Async Processing** — FastAPI handles concurrent face recognition requests efficiently for venue-scale throughput
-- **Cross-Platform Client** — Flutter mobile app works on both Android and iOS with a single codebase
-- **End-to-End Ticket Flow** — Registration → face capture → database storage → venue verification in one seamless loop
+- **Event Management**: Events, categories, classes, and organizer CRUD
+- **OTP Email Auth**: Signup verified by a one-time code before access
+- **Access Tokens**: Token-based auth for protected endpoints
+- **Payment Flow**: Payment creation and confirmation, mocked as a verification flow without a live gateway
+- **PostgreSQL Schema**: 11 tables with Alembic migrations
+- **Docker**: Compose setup for the API and database
+
+![Payment confirmation screen](/images/projects/fest-ticketing/payment.png)
 
 ## Technical Decisions
 
-- **FastAPI** was chosen for its async support and Python ecosystem for AI/ML libraries — natural fit for the recognition pipeline
-- **Pre-trained models (MTCNN + Facenet)** were used instead of training from scratch due to time and hardware constraints — not a compromise, but a practical decision
-- **Cosine Similarity** was selected for face matching because of its simplicity and effectiveness on normalized embeddings
-- **PostgreSQL** was used for storing face embeddings with vector operations
-- **Flutter** was chosen for cross-platform compatibility (Android + iOS) with a single codebase
-- **Docker** was used for containerizing the backend, ensuring consistent deployment across environments
+- **FastAPI** for async support and a natural fit with Python ML libraries
+- **MediaPipe FaceMesh** over heavier detectors, for real-time landmark detection on device-class hardware
+- **FaceNet embeddings** with **cosine similarity** instead of training a recognizer from scratch
+- **PostgreSQL** after the initial MongoDB schema, for relational integrity across events, payments, and users
+- **SQLAlchemy + Alembic** for the ORM and versioned migrations
+- **Docker** for a reproducible backend and database setup
 
 ## Challenges
 
-- **Model Training Failure** — Training a custom face recognition model failed due to time and hardware limitations. Pivoting to pre-trained models was a critical decision that saved the project
-- **Varying Conditions** — The face recognition pipeline needed to handle varying lighting conditions, angles, and image quality from mobile cameras
-- **Cross-Stack Integration** — Integrating the Flutter mobile app with the Python backend required careful API design, clear error handling for network issues, and coordination across teams
-- **API Contract Drift** — Changes in the backend API required corresponding mobile updates, enforcing tight versioning discipline
-- **Liveness vs Security** — Guided movement capture (front, left, right, smile) was a practical trade-off between security and usability for a PoC
+- The face-verification module was built under a course deadline and later disabled in the repo, so the pipeline is a proof of concept, not a production gate
+- Coordinating the API contract with a separate Flutter team required tight versioning
+- Migrating from MongoDB to PostgreSQL mid-project meant reworking the data layer
+- Varying lighting and camera angles made the liveness check the most fragile part of the pipeline
 
 ## Outcome
 
-The system successfully demonstrated end-to-end face recognition for event ticketing. Users could register their face via the mobile app, and the backend could identify them at the venue. The working PoC proved the concept was viable, though it was not production-ready. The project was presented as the final deliverable for all three courses.
+The backend delivered working event-ticketing flows with a face-verification proof of concept that used a real ML pipeline end to end. The project was the final deliverable for all three courses. The face module demonstrated the core idea, while the REST backend remained the usable surface.
+
+![Mobile-facing dashboard view](/images/projects/fest-ticketing/mobile.png)
 
 ## Final Thoughts
 
-Fest Ticketing taught me that a working PoC is better than perfect theory. The pivot from training custom models to using pre-trained models was not a compromise — it was a practical decision that delivered results within constraints. The experience also showed me how different tech stacks (Python AI backend + Flutter mobile) can integrate through well-designed APIs.
-
-Mobile-backend integration is about clear contracts and error handling. The app itself was straightforward, but making it work reliably with an AI backend required careful API design and testing. This experience reinforced my preference for backend work — I enjoy the challenge of making systems work together.
+Fest Ticketing taught me that a working proof of concept beats perfect theory. Pivoting from training a custom recognizer to composing MediaPipe and FaceNet delivered a working pipeline within the deadline. It also showed me how a Python AI backend and a separate mobile client meet at a clean API contract, and it sharpened my instinct for backend work over shipping the client.

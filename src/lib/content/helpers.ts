@@ -9,7 +9,7 @@ export async function fromNotionOrLocal<T>(
   runtimeEnv: Record<string, string | undefined> | undefined,
   cacheKey: string,
   fetchFn: (config: NotionConfig) => Promise<T | null>,
-  localFn: () => T,
+  localFn: () => T | Promise<T>,
 ): Promise<T> {
   const config = getConfig(runtimeEnv);
   if (isNotionAvailable(config)) {

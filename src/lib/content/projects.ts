@@ -4,8 +4,9 @@ import { fetchProjects, fetchPageBlocks } from '../notion';
 import { fromNotionOrLocal, getConfig } from './helpers';
 import { isNotionAvailable } from '../config';
 
-function getLocalProjects(): Project[] {
-  return getCollection('projects')
+async function getLocalProjects(): Promise<Project[]> {
+  const entries = await getCollection('projects');
+  return entries
     .map((e) => ({ ...e.data, slug: e.id, content: e.body || '' }))
     .map((p) => ProjectSchema.parse(p))
     .sort((a, b) => a.order - b.order);

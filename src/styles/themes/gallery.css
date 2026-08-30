@@ -219,3 +219,23 @@
 [data-theme="gallery"] .socials a:hover, [data-theme="gallery"] .socials button:hover { border-color: var(--acc); color: var(--acc); }
 [data-theme="gallery"] .c-foot { border-color: var(--line); color: var(--dim); }
 [data-theme="gallery"] .c-foot a:hover { color: var(--acc); }
+
+
+/* ============ GALLERY THEME — MOBILE FIXES ============ */
+@media (max-width: 640px) {
+  /* svc: row layout bisa overflow di mobile — fallback ke column */
+  [data-theme="gallery"] .svc { flex-direction: column; align-items: flex-start; gap: .8rem; padding: 1.4rem .4rem; }
+  [data-theme="gallery"] .svc .go { margin-left: 0; }
+  /* h1 gallery italic: turunkan size sedikit agar tidak overflow */
+  [data-theme="gallery"] h1 { font-size: clamp(2.2rem, 10vw, 3.8rem); }
+  /* email link gallery: italic serif besar, bisa overflow */
+  [data-theme="gallery"] .email-link { font-size: clamp(1rem, 5vw, 1.6rem); }
+}
+
+@media (max-width: 480px) {
+  [data-theme="gallery"] .svc { padding: 1.2rem .2rem; }
+  [data-theme="gallery"] h1 { font-size: clamp(2rem, 11vw, 3.2rem); }
+  /* section head tag: italic serif bisa terlalu besar */
+  [data-theme="gallery"] .section-head h2 { font-size: clamp(1.6rem, 7vw, 2.8rem); }
+  [data-theme="gallery"] .email-link { font-size: clamp(.9rem, 5.5vw, 1.4rem); }
+}

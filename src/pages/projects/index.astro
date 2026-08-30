@@ -26,12 +26,14 @@ const { locale, t } = getLocale(Astro);
         <div class="works-grid">
           <aside class="works-side">
             <p>{t('projects.description')}</p>
-            <nav class="works-index" aria-label="Project navigation">
-              {projects.map((pr) => {
-                const orderNum = String(pr.order).padStart(2, '0');
-                return <a href={`/projects/${pr.slug}`}><i>/{orderNum}</i><b>{pr.title}</b></a>;
-              })}
-            </nav>
+            <div class="works-index-wrap">
+              <nav class="works-index" aria-label="Project navigation">
+                {projects.map((pr) => {
+                  const orderNum = String(pr.order).padStart(2, '0');
+                  return <a href={`/projects/${pr.slug}`}><i>/{orderNum}</i><b>{pr.title}</b></a>;
+                })}
+              </nav>
+            </div>
           </aside>
           <div>
             {projects.map((pr) => {
@@ -40,7 +42,7 @@ const { locale, t } = getLocale(Astro);
                 <article class="proj" data-reveal>
                   <div class="proj-top mono"><span class="no">/{orderNum}</span><span>{pr.year} · {pr.category}</span></div>
                 <figure>
-                  <img src={resolveImageUrl(pr.image_url, siteUrl)} alt={pr.title} loading="lazy" />
+                  <img src={resolveImageUrl(pr.image_url, siteUrl)} alt={pr.title} loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.svg'; this.dataset.fallback=''" />
                 </figure>
                 <h3>{pr.title}</h3>
                 <p class="desc">{pr.description}</p>

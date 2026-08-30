@@ -25,11 +25,13 @@ const { t } = getLocale(Astro);
     <div class="works-grid">
       <aside class="works-side">
         <p>{t('sections.works.description')}</p>
-        <nav class="works-index" aria-label="Project navigation">
-          {projects.map((pr) => (
-            <a href={`#project-${pr.order}`}><i>/{String(pr.order).padStart(2, '0')}</i><b>{pr.title}</b></a>
-          ))}
-        </nav>
+        <div class="works-index-wrap">
+          <nav class="works-index" aria-label="Project navigation">
+            {projects.map((pr) => (
+              <a href={`#project-${pr.order}`}><i>/{String(pr.order).padStart(2, '0')}</i><b>{pr.title}</b></a>
+            ))}
+          </nav>
+        </div>
         <a href="/projects" class="view-more-link mono">{t('sections.works.viewAll')} <i>→</i></a>
       </aside>
       <div>
@@ -37,7 +39,7 @@ const { t } = getLocale(Astro);
           <article class="proj" id={`project-${pr.order}`} data-reveal>
             <div class="proj-top mono"><span class="no">/{String(pr.order).padStart(2, '0')}</span><span>{pr.year} · {pr.category}</span></div>
             <figure data-case={pr.order}>
-              <img src={resolveImageUrl(pr.image_url, siteUrl)} alt={pr.title} loading="lazy" />
+              <img src={resolveImageUrl(pr.image_url, siteUrl)} alt={pr.title} loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.svg'; this.dataset.fallback=''" />
             </figure>
             <h3>{pr.title}</h3>
             <p class="desc">{pr.description}</p>
