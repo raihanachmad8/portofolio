@@ -60,7 +60,7 @@
 /* hero */
 [data-theme="gallery"] #boot { display: none; }
 [data-theme="gallery"] h1 { font-family: var(--f-display); font-weight: 400; font-style: italic; text-transform: none; letter-spacing: 0; line-height: 1.08; font-size: clamp(2.8rem, 6vw, 5rem); }
-[data-theme="gallery"] .outline { color: var(--txt); -webkit-text-stroke: 0; }
+[data-theme="gallery"] .name-outline { color: var(--txt); -webkit-text-stroke: 0; }
 [data-theme="gallery"] .role-line { color: var(--acc); }
 [data-theme="gallery"] .hero-sub { color: var(--dim); }
 [data-theme="gallery"] .hero-sub b { color: var(--txt); }

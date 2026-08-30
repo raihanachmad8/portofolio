@@ -61,7 +61,7 @@
 /* hero */
 [data-theme="terminal"] #boot { color: var(--acc); }
 [data-theme="terminal"] h1 { color: var(--txt); font-size: clamp(2.8rem, 6.5vw, 5.2rem); }
-[data-theme="terminal"] .outline { color: transparent; -webkit-text-stroke: 1.5px var(--txt); }
+[data-theme="terminal"] .name-outline { color: transparent; -webkit-text-stroke: 1.5px var(--txt); }
 [data-theme="terminal"] .role-line { color: var(--acc); }
 [data-theme="terminal"] .hero-sub { color: var(--dim); }
 [data-theme="terminal"] .hero-sub b { color: var(--txt); }

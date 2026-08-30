@@ -56,7 +56,7 @@
 /* hero */
 [data-theme="swiss"] #boot { display: none; }
 [data-theme="swiss"] h1 { color: var(--ink); letter-spacing: .01em; font-size: clamp(3.2rem, 9.4vw, 7.8rem); }
-[data-theme="swiss"] .outline { color: var(--acc); -webkit-text-stroke: 0; text-shadow: 7px 7px 0 var(--acc2); }
+[data-theme="swiss"] .name-outline { color: var(--acc); -webkit-text-stroke: 0; text-shadow: 7px 7px 0 var(--acc2); }
 [data-theme="swiss"] .role-line { display: inline-flex; gap: .6rem; align-items: center; background: var(--ink); color: var(--bg); padding: .6rem 1.1rem; letter-spacing: .2em; }
 [data-theme="swiss"] .hero-sub { color: var(--dim); }
 [data-theme="swiss"] .hero-sub b { color: var(--ink); }

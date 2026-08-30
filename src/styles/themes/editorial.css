@@ -57,7 +57,7 @@
 /* hero */
 [data-theme="editorial"] #boot { display: none; }
 [data-theme="editorial"] h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(2.5rem, 6.2vw, 5.3rem); line-height: 1.05; text-transform: none; letter-spacing: -.01em; }
-[data-theme="editorial"] .outline { color: var(--ink); -webkit-text-stroke: 0; }
+[data-theme="editorial"] .name-outline { color: var(--ink); -webkit-text-stroke: 0; }
 [data-theme="editorial"] .role-line { color: var(--acc); letter-spacing: .12em; }
 [data-theme="editorial"] .hero-sub { color: var(--dim); }
 [data-theme="editorial"] .hero-sub b { color: var(--ink); }
