@@ -7,47 +7,73 @@ has_ui: true
 description: "Astro-based static site built for the InnovaTech 2024 national competition (Itechno) — exploring modern frontend tooling and performance optimization."
 stack: "Astro,HTML,CSS,JavaScript"
 github_url: "https://github.com/vunky-himawan/InnovaTech"
+live_url: ""
 featured: false
-image_url: "null"
+image_url: "/images/projects/innovatech/cover.webp"
 order: 12
 ---
 
 ## Overview
-InnovaTech was a national competition entry for the Itechno event in 2024. The project explored Astro as a static site generator, focusing on ultra-fast frontend performance and modern tooling. I participated as a team member, contributing to frontend development while learning Astro's island architecture and build-time rendering approach.
+
+InnovaTech was a national competition entry for the Itechno event in 2024. The project explored Astro as a static site generator, focusing on ultra-fast frontend performance and modern tooling. I participated as a team member, contributing to frontend development while learning Astro's island architecture and build-time rendering approach. The competition challenged teams to build performant web applications using contemporary frontend frameworks.
+
 ## Problem
-- The competition required building a web application with modern frontend tooling
-- Static site generators offered performance benefits but were unfamiliar territory
-- The team needed to deliver a polished application within the competition deadline
+
+- The competition required building a web application with modern frontend tooling that demonstrated performance best practices
+- Static site generators offered performance benefits but were unfamiliar territory for the team
+- The team needed to deliver a polished application within the competition deadline while learning new technology
+- Balancing static content delivery with interactive components required careful architectural planning
+
 ## Goal
-- Build a performant static site using Astro
-- Explore island architecture for partial hydration
-- Deliver a competition-ready application on time
+
+- Build a performant static site using Astro's build-time rendering capabilities
+- Explore island architecture for partial hydration of interactive components
+- Deliver a competition-ready application on time with polished UI
+- Demonstrate understanding of modern frontend performance optimization techniques
+
 ## Role
-I contributed to frontend development as part of the team.
+
+I contributed to frontend development as part of the team, focusing on component architecture and performance optimization.
+
 **Team:** Achmad Raihan Fahrezi Effendy (Team Member) + teammates
+
 ## Architecture
+
 ```mermaid
 flowchart TD
-A["Astro Build"] --> B["Static HTML"]
-A --> C["Island Components"]
-C --> D["React Islands"]
-C --> E["Vanilla JS Islands"]
-B --> F["CDN / Hosting"]
+    A["Astro Build"] --> B["Static HTML"]
+    A --> C["Island Components"]
+    C --> D["React Islands"]
+    C --> E["Vanilla JS Islands"]
+    B --> F["CDN / Hosting"]
 ```
+
 ## Key Features
-- **Static Site Generation** — Pre-rendered HTML for maximum performance
-- **Island Architecture** — Interactive components hydrated independently
-- **Fast Build Times** — Astro's build process optimized for speed
-- **Minimal JavaScript** — Only interactive islands load JavaScript
+
+- **Static Site Generation** — Pre-rendered HTML for maximum performance and minimal server load
+- **Island Architecture** — Interactive components hydrated independently, loading JavaScript only where needed
+- **Fast Build Times** — Astro's build process optimized for speed with efficient bundling
+- **Minimal JavaScript** — Only interactive islands load JavaScript, reducing initial page weight
+- **Performance-First Approach** — Architecture designed around core web vitals and loading speed
+
 ## Technical Decisions
-- Astro was chosen for its performance-first approach and island architecture
-- Static generation eliminated server-side rendering complexity
-- Island architecture allowed interactive components without loading a full SPA framework
+
+- **Astro** was chosen for its performance-first approach and island architecture, aligning with competition requirements
+- **Static generation** eliminated server-side rendering complexity while maximizing loading speed
+- **Island architecture** allowed interactive components without loading a full SPA framework, reducing bundle size
+- The team prioritized **build-time rendering** over runtime rendering for predictable performance
+
 ## Challenges
-- Astro's content collection system and island architecture required learning new patterns
-- Balancing static content with interactive components needed careful planning
-- Competition deadlines forced prioritization of features
+
+- Astro's content collection system and island architecture required learning new patterns compared to traditional SPA frameworks
+- Balancing static content with interactive components needed careful planning to avoid hydration issues
+- Competition deadlines forced prioritization of features, requiring decisions on what to include vs. defer
+- Coordinating team members with varying Astro experience required clear documentation and communication
+
 ## Outcome
-The team submitted the project for the InnovaTech 2024 competition. The experience provided exposure to modern frontend tooling and performance optimization techniques.
+
+The team submitted the project for the InnovaTech 2024 competition. The experience provided exposure to modern frontend tooling and performance optimization techniques that influenced how I approach frontend architecture in subsequent projects. The performance benchmarks demonstrated the benefits of static generation and island architecture.
+
 ## Final Thoughts
-InnovaTech taught me that frontend performance is not just about minification and caching — it is about architecture. Astro's approach to shipping minimal JavaScript by default changed how I think about frontend applications. The experience complemented my backend focus by showing how the frontend can be optimized at the build level.
+
+InnovaTech taught me that frontend performance is not just about minification and caching — it is about architecture. Astro's approach to shipping minimal JavaScript by default changed how I think about frontend applications. The experience complemented my backend focus by showing how the frontend can be optimized at the build level, a lesson that influenced my approach to full-stack development.

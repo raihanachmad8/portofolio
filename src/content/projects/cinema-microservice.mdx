@@ -7,68 +7,93 @@ has_ui: false
 description: "Cinema-domain microservice system with 7 services built with .NET Core 8, Entity Framework Core, NATS, Redis, Ocelot API Gateway, and Kubernetes."
 stack: "C#,.NET Core 8,Entity Framework Core,MSSQL,Redis,NATS,Ocelot,Docker,Kubernetes"
 github_url: "https://github.com/raihanachmad8/cinema-microservice"
+live_url: ""
 featured: true
-image_url: "null"
-order: 8
+image_url: "/images/projects/cinema-microservice/cover.webp"
+order: 6
 ---
 
 ## Overview
-Cinema Microservice was built during a two-week internship training program. The task was to learn .NET and build a microservice-based backend for a cinema domain. The system includes 7 services: IdentityService (JWT/OAuth), StudioService, MovieService, ScheduleService, TicketService, TransactionService, and Ocelot API Gateway. This was my first exposure to C# and the .NET ecosystem.
+
+Cinema Microservice was built during a two-week internship training program. The task was to learn .NET and build a microservice-based backend for a cinema domain. The system includes 7 services: IdentityService (JWT/OAuth), StudioService, MovieService, ScheduleService, TicketService, TransactionService, and Ocelot API Gateway. This was my first exposure to C# and the .NET ecosystem, requiring rapid learning of a new language and framework.
+
 ## Problem
-- The internship training required learning .NET and building a microservice within two weeks
+
+- The internship training required learning .NET and building a microservice within two weeks — an aggressive timeline
 - I needed to understand C#, Entity Framework Core, and the .NET dependency injection system from scratch
 - The cinema domain required handling shows, seats, bookings, and payments across multiple services
+- Distributed systems introduce complexity around service communication, data consistency, and deployment
+
 ## Goal
-- Learn .NET fundamentals and build working microservices
-- Implement service separation with NATS message broker for inter-service communication
-- Add Redis caching, Ocelot API Gateway, and Kubernetes deployment manifests
+
+- Learn .NET fundamentals and build working microservices with proper service separation
+- Implement NATS message broker for asynchronous inter-service communication
+- Add Redis caching for frequently accessed data and Ocelot API Gateway for unified routing
+- Create Kubernetes deployment manifests for container orchestration
+
 ## Role
-I built the backend services independently during the training period.
+
+I built the backend services independently during the training period, learning .NET while implementing the microservice architecture.
+
 **Team:** Achmad Raihan Fahrezi Effendy (Backend Developer)
+
 ## Architecture
+
 ```mermaid
 flowchart TD
-A["Ocelot API Gateway"] --> B["IdentityService"]
-A --> C["MovieService"]
-A --> D["ScheduleService"]
-A --> E["TicketService"]
-A --> F["TransactionService"]
-A --> G["StudioService"]
-B --> H[("MSSQL")]
-C --> H
-D --> H
-E --> H
-F --> H
-G --> H
-B --> I["Redis Cache"]
-C --> I
-E --> I
-J["NATS Message Broker"] --> B
-J --> C
-J --> E
-J --> F
-K["Kubernetes"] --> A
-K --> B
-K --> C
+    A["Ocelot API Gateway"] --> B["IdentityService"]
+    A --> C["MovieService"]
+    A --> D["ScheduleService"]
+    A --> E["TicketService"]
+    A --> F["TransactionService"]
+    A --> G["StudioService"]
+    B --> H[("MSSQL")]
+    C --> H
+    D --> H
+    E --> H
+    F --> H
+    G --> H
+    B --> I["Redis Cache"]
+    C --> I
+    E --> I
+    J["NATS Message Broker"] --> B
+    J --> C
+    J --> E
+    J --> F
+    K["Kubernetes"] --> A
+    K --> B
+    K --> C
 ```
+
 ## Key Features
-- **7 Microservices** — Identity, Movie, Studio, Schedule, Ticket, Transaction, API Gateway
-- **JWT/OAuth Authentication** — IdentityService handles auth across all services
-- **NATS Messaging** — Asynchronous communication between services
-- **Redis Caching** — Cached frequently accessed data (movies, schedules)
-- **Ocelot Gateway** — Unified entry point with routing and rate limiting
-- **Kubernetes Manifests** — Deployment configs for container orchestration
+
+- **7 Microservices** — Identity, Movie, Studio, Schedule, Ticket, Transaction, API Gateway with clear separation of concerns
+- **JWT/OAuth Authentication** — IdentityService handles authentication and authorization across all services
+- **NATS Messaging** — Asynchronous communication between services for event-driven architecture
+- **Redis Caching** — Cached frequently accessed data (movies, schedules) to reduce database load
+- **Ocelot Gateway** — Unified entry point with routing, rate limiting, and request aggregation
+- **Kubernetes Manifests** — Deployment configs for container orchestration and scaling
+- **Entity Framework Core** — Standard ORM for data access with migrations and code-first approach
+
 ## Technical Decisions
-- .NET was required by the training program
-- Entity Framework Core was used because it is the standard ORM in the .NET ecosystem
-- NATS was chosen for lightweight inter-service messaging
-- Ocelot provided a simple API gateway without the overhead of Kong or Envoy
-- Kubernetes manifests were included to demonstrate container orchestration knowledge
+
+- **.NET** was required by the training program, providing exposure to a major enterprise framework
+- **Entity Framework Core** was used because it is the standard ORM in the .NET ecosystem with strong community support
+- **NATS** was chosen for lightweight inter-service messaging, simpler than RabbitMQ for the training scope
+- **Ocelot** provided a simple API gateway without the overhead of Kong or Envoy, appropriate for the project scale
+- **Kubernetes manifests** were included to demonstrate container orchestration knowledge and deployment readiness
+
 ## Challenges
-- Learning C# and .NET in two weeks while building a working project was intense
-- The dependency injection system in .NET is more explicit than in NestJS — understanding service lifetimes took time
-- Debugging across 7 services required learning new tools and distributed tracing concepts
+
+- Learning C# and .NET in two weeks while building a working project was intense — the language syntax, LINQ, and async/await patterns required rapid adaptation
+- The dependency injection system in .NET is more explicit than in NestJS — understanding service lifetimes (Singleton, Scoped, Transient) took time
+- Debugging across 7 services required learning new tools and distributed tracing concepts for a different ecosystem
+- Coordinating data consistency across microservices without distributed transactions introduced new architectural challenges
+
 ## Outcome
-The project was completed during the training period and demonstrated working microservice communication with NATS, Redis caching, and Ocelot routing. It showed me that backend concepts transfer across languages.
+
+The project was completed during the training period and demonstrated working microservice communication with NATS, Redis caching, and Ocelot routing. It showed me that backend concepts transfer across languages — dependency injection, service separation, and message brokers work the same way in .NET as in Node.js. The training experience expanded my technical versatility.
+
 ## Final Thoughts
-Cinema Microservice taught me that the language matters less than the patterns. Dependency injection, service separation, and message brokers work the same way whether you use TypeScript, PHP, or C#. The two weeks were intense, but the breadth of experience was worth it.
+
+Cinema Microservice taught me that the language matters less than the patterns. Dependency injection, service separation, and message brokers work the same way whether you use TypeScript, PHP, or C#. The two weeks were intense, but the breadth of experience was worth it. This project proved that my understanding of software architecture transcends any single technology stack, making me a more adaptable developer.

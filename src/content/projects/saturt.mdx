@@ -14,56 +14,79 @@ order: 4
 ---
 
 ## Overview
-SatuRT was built for a university course on Framework Programming (Laravel). The system manages neighborhood association (RT) data — residents, finances, events, complaints, document requests, and UMKM (local business) directory — and integrates 3 parallel Decision Support Systems (SPK) for analytical decision-making. While other teams implemented 1-2 SPK methods, I designed the architecture to support all 3, making the system significantly more functionally rich.
+
+SatuRT was built for a university course on Framework Programming (Laravel). The system manages neighborhood association (RT) data — residents, finances, events, complaints, document requests, and UMKM (local business) directory — and integrates 3 parallel Decision Support Systems (SPK) for analytical decision-making. While other teams implemented 1-2 SPK methods, I designed the architecture to support all 3, making the system significantly more functionally rich. The project was deployed to production at saturt.cloud for real-world testing.
+
 ## Problem
-- Neighborhood associations (RT) manage resident data, dues, and events on paper or scattered spreadsheets
+
+- Neighborhood associations (RT) manage resident data, dues, and events on paper or scattered spreadsheets, leading to data loss and inefficiency
 - The coursework required integrating multiple Decision Support Systems for analytical decision-making
 - The team of 4 needed clear delegation — CRUD tasks to members, architecture and SPK logic to the lead
+- Existing neighborhood management tools lacked the analytical capabilities needed for data-driven decisions
+
 ## Goal
+
 - Build a Laravel application with role-based access control (RBAC) using Laravel Sanctum
-- Integrate 3 SPK methods in parallel for resident and aid analysis
+- Integrate 3 SPK methods in parallel for resident analysis and aid allocation
 - Implement PDF generation for reports and HTML purification for user content
-- Deploy to a live server for real-world testing
+- Deploy to a live server for real-world testing and demonstration
+
 ## Role
-I led the architecture and core implementation, delegating CRUD operations to team members and focusing on RBAC and SPK logic.
+
+I led the architecture and core implementation, delegating CRUD operations to team members and focusing on RBAC and SPK logic. I also handled the production deployment and server configuration.
+
 **Team:** Achmad Raihan Fahrezi Effendy (Lead Developer) + 3 teammates
+
 ## Architecture
+
 ```mermaid
 flowchart TD
-A["Laravel 10 App"] --> B["Auth + Sanctum"]
-A --> C["Controllers"]
-A --> D["SPK Engine"]
-C --> E["Eloquent ORM"]
-D --> F["SPK Method 1"]
-D --> G["SPK Method 2"]
-D --> H["SPK Method 3"]
-E --> I[("MySQL")]
-J["Blade Templates"] --> K["Views"]
-L["Alpine.js"] --> K
-M["Tailwind CSS"] --> K
-N["DomPDF"] --> O["PDF Reports"]
+    A["Laravel 10 App"] --> B["Auth + Sanctum"]
+    A --> C["Controllers"]
+    A --> D["SPK Engine"]
+    C --> E["Eloquent ORM"]
+    D --> F["SPK Method 1"]
+    D --> G["SPK Method 2"]
+    D --> H["SPK Method 3"]
+    E --> I[("MySQL")]
+    J["Blade Templates"] --> K["Views"]
+    L["Alpine.js"] --> K
+    M["Tailwind CSS"] --> K
+    N["DomPDF"] --> O["PDF Reports"]
 ```
+
 ## Key Features
+
 - **Role-Based Access Control** — Laravel Sanctum auth with separate permissions for RT heads, residents, and administrators
 - **3 Parallel SPK Methods** — Implemented 3 decision support systems for resident analysis and aid allocation (other teams only managed 1-2)
 - **Resident Management** — CRUD operations for resident profiles with family structure tracking
-- **Financial Tracking** — Record dues payments, expenses, and generate PDF reports
-- **Complaint System** — Residents can submit complaints with status tracking
-- **Document Requests** — Request and track official documents
-- **UMKM Directory** — Local business directory for the neighborhood
-- **Event Management** — Create and manage neighborhood events
-- **Live Deployment** — Deployed to production at saturt.cloud
+- **Financial Tracking** — Record dues payments, expenses, and generate PDF reports with DomPDF
+- **Complaint System** — Residents can submit complaints with status tracking and response workflow
+- **Document Requests** — Request and track official documents with approval workflow
+- **UMKM Directory** — Local business directory for the neighborhood community
+- **Event Management** — Create and manage neighborhood events with attendance tracking
+- **Live Deployment** — Deployed to production at saturt.cloud with SSL and domain configuration
+
 ## Technical Decisions
-- Laravel was chosen for its mature ecosystem, built-in auth, and RBAC support
-- Sanctum was used for token-based authentication
-- Alpine.js provided lightweight interactivity without full SPA overhead
-- DomPDF was added for generating printable reports
-- Intervention Image handled image processing for resident photos
+
+- **Laravel** was chosen for its mature ecosystem, built-in auth, and comprehensive RBAC support
+- **Sanctum** was used for token-based authentication with SPA-friendly cookie-based sessions
+- **Alpine.js** provided lightweight interactivity without full SPA overhead, keeping the frontend simple
+- **DomPDF** was added for generating printable reports and official documents
+- **Intervention Image** handled image processing for resident photos with automatic resizing
+- **Tailwind CSS** was chosen for rapid UI development with utility-first CSS
+
 ## Challenges
-- Delegating CRUD tasks while maintaining code quality required consistent code review
-- Integrating 3 SPK methods without them interfering with each other demanded careful module separation
-- Deploying to production for the first time taught me about server configuration, SSL, and domain setup
+
+- Delegating CRUD tasks while maintaining code quality required consistent code review and coding standards documentation
+- Integrating 3 SPK methods without them interfering with each other demanded careful module separation and dependency management
+- Deploying to production for the first time taught me about server configuration, SSL certificates, and domain setup
+- Managing team dynamics with different skill levels required patience and clear communication about expectations
+
 ## Outcome
-The system was deployed and demonstrated at the course presentation. The 3-SPK architecture was noted as significantly more functionally rich than other teams' implementations. The live deployment at saturt.cloud proved the system could handle real-world usage.
+
+The system was deployed and demonstrated at the course presentation. The 3-SPK architecture was noted as significantly more functionally rich than other teams' implementations. The live deployment at saturt.cloud proved the system could handle real-world usage and was recognized for its comprehensive feature set.
+
 ## Final Thoughts
-SatuRT taught me that architecture decisions matter more than feature count. By designing the SPK engine as a separate module, I made it possible to add analytical methods without restructuring the entire application. The lead developer role also taught me that delegation is not just about assigning tasks — it is about maintaining quality while empowering others.
+
+SatuRT taught me that architecture decisions matter more than feature count. By designing the SPK engine as a separate module, I made it possible to add analytical methods without restructuring the entire application. The lead developer role also taught me that delegation is not just about assigning tasks — it is about maintaining quality while empowering others. The production deployment experience was invaluable for understanding the gap between development and real-world usage.

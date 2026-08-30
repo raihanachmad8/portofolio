@@ -7,55 +7,80 @@ has_ui: true
 description: "VPS deployment portal hosting 6 Laravel applications for class demonstration, built with React, TypeScript, Vite, Nginx, and Ubuntu Server."
 stack: "React,TypeScript,Vite,Ubuntu Server,Nginx,DNS,Linux"
 github_url: "https://github.com/raihanachmad8/campus-project"
+live_url: ""
 featured: false
-image_url: "null"
+image_url: "/images/projects/campus-project/cover.webp"
 order: 9
 ---
 
 ## Overview
-Campus Portal was a personal initiative at the end of semester 4. Instead of each team running their Laravel applications locally on their own laptops during class demonstration — which would be chaotic and unreliable — I volunteered to set up a VPS and host all 6 applications on a single server. This was my first hands-on experience with server administration, Nginx reverse proxy, and DNS management.
+
+Campus Portal was a personal initiative at the end of semester 4. Instead of each team running their Laravel applications locally on their own laptops during class demonstration — which would be chaotic and unreliable — I volunteered to set up a VPS and host all 6 applications on a single server. This was my first hands-on experience with server administration, Nginx reverse proxy, and DNS management. The project transformed a potentially messy demonstration into a professional, centralized experience accessible through a single URL.
+
 ## Problem
-- Class demonstration involved 6 teams, each with a Laravel application
-- Running applications locally on individual laptops led to inconsistent environments, port conflicts, and demo failures
+
+- Class demonstration involved 6 teams, each with a Laravel application that needed to be presented simultaneously
+- Running applications locally on individual laptops led to inconsistent environments, port conflicts, and frequent demo failures
 - No centralized way for the lecturer and classmates to access all projects during the demonstration
+- Teams had varying levels of technical setup, making it difficult to ensure everyone could present their work smoothly
+
 ## Goal
-- Set up an Ubuntu VPS to host all 6 Laravel applications
-- Configure Nginx reverse proxy with unique port bindings per team
+
+- Set up an Ubuntu VPS to host all 6 Laravel applications on a single server
+- Configure Nginx reverse proxy with unique port bindings per team for isolation
 - Build a portal UI as the entry point for accessing all projects
-- Ensure applications were isolated and stable under concurrent access
+- Ensure applications were isolated and stable under concurrent access during live demonstrations
+
 ## Role
+
 I built the entire infrastructure and portal independently. This was a personal initiative, not a course requirement.
+
 **Team:** Achmad Raihan Fahrezi Effendy (Solo — 100% contribution)
+
 ## Architecture
+
 ```mermaid
 flowchart TD
-A["DNS / Domain"] --> B["Ubuntu VPS"]
-B --> C["Nginx Reverse Proxy"]
-C --> D["Team 1 - Port 8001"]
-C --> E["Team 2 - Port 8002"]
-C --> F["Team 3 - Port 8003"]
-C --> G["Team 4 - Port 8004"]
-C --> H["Team 5 - Port 8005"]
-C --> I["Team 6 - Port 8006"]
-C --> J["Portal UI - Port 3000"]
-K["React + Vite"] --> J
+    A["DNS / Domain"] --> B["Ubuntu VPS"]
+    B --> C["Nginx Reverse Proxy"]
+    C --> D["Team 1 - Port 8001"]
+    C --> E["Team 2 - Port 8002"]
+    C --> F["Team 3 - Port 8003"]
+    C --> G["Team 4 - Port 8004"]
+    C --> H["Team 5 - Port 8005"]
+    C --> I["Team 6 - Port 8006"]
+    C --> J["Portal UI - Port 3000"]
+    K["React + Vite"] --> J
 ```
+
 ## Key Features
-- **Multi-Application Hosting** — 6 Laravel apps running on a single VPS with isolated ports
-- **Nginx Reverse Proxy** — Unique port bindings per team with clean URL routing
-- **Portal UI** — React-based directory page listing all team projects
-- **Firewall Configuration** — UFW rules to ensure only necessary ports were exposed
-- **Concurrent Access Stability** — All applications remained stable during simultaneous demo usage
+
+- **Multi-Application Hosting** — 6 Laravel apps running on a single VPS with isolated ports and resource allocation
+- **Nginx Reverse Proxy** — Unique port bindings per team with clean URL routing and automatic request forwarding
+- **Portal UI** — React-based directory page listing all team projects with direct access links
+- **Firewall Configuration** — UFW rules to ensure only necessary ports were exposed for security
+- **Concurrent Access Stability** — All applications remained stable during simultaneous demo usage by the entire class
+- **DNS Management** — Configured domain routing to point to the VPS for easy access
+
 ## Technical Decisions
-- Ubuntu Server was chosen for its wide community support and familiarity
-- Nginx was selected over Apache for its lighter resource footprint on a small VPS
-- React + Vite was used for the portal UI because of fast development and build times
-- Each team got a unique port to prevent conflicts and ensure isolation
+
+- **Ubuntu Server** was chosen for its wide community support, extensive documentation, and familiarity with Linux server environments
+- **Nginx** was selected over Apache for its lighter resource footprint on a small VPS, which was critical for running 6 applications simultaneously
+- **React + Vite** was used for the portal UI because of fast development and build times, allowing rapid iteration
+- Each team got a **unique port** to prevent conflicts and ensure complete isolation between applications
+- **UFW firewall** was configured to restrict unnecessary port exposure and harden the server
+
 ## Challenges
-- This was my first time managing a production server — learning SSH, Nginx config, and firewall rules from scratch
-- Isolating 6 Laravel applications on a single VPS required careful resource management
-- Configuring Nginx reverse proxy for each application took significant trial and error
+
+- This was my first time managing a production server — learning SSH, Nginx configuration, and firewall rules from scratch under time pressure
+- Isolating 6 Laravel applications on a single VPS required careful resource management to prevent any single app from consuming too much memory or CPU
+- Configuring Nginx reverse proxy for each application took significant trial and error, especially handling path-based routing and static asset serving
+- Coordinating with 5 other teams to understand their application requirements and port configurations added a communication challenge
+
 ## Outcome
-The class demonstration ran smoothly with all 6 applications accessible through a single portal. The lecturer and classmates could access every project from their browsers without installing anything locally. This experience sparked my interest in infrastructure and DevOps.
+
+The class demonstration ran smoothly with all 6 applications accessible through a single portal. The lecturer and classmates could access every project from their browsers without installing anything locally. The project eliminated setup inconsistencies and presentation failures that plagued previous demonstrations. This experience sparked my interest in infrastructure and DevOps, leading me to explore containerization and CI/CD in later projects.
+
 ## Final Thoughts
-Campus Portal showed me that infrastructure is not just about servers — it is about solving problems. The code was simple (a React directory page), but the impact was real: a professional demonstration experience for the entire class. This project taught me that sometimes the most valuable work is not writing application code, but making other people's code accessible.
+
+Campus Portal showed me that infrastructure is not just about servers — it is about solving problems. The code was simple (a React directory page), but the impact was real: a professional demonstration experience for the entire class. This project taught me that sometimes the most valuable work is not writing application code, but making other people's code accessible. The skills I gained here — server administration, reverse proxy configuration, and DNS management — became foundational for every deployment I handled afterward.
