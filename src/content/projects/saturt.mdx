@@ -37,6 +37,20 @@ I led the architecture and core implementation, delegating CRUD operations to te
 
 **Team:** Achmad Raihan Fahrezi Effendy (Lead Developer) + 3 teammates
 
+## User Stories
+
+- **As an RT head**, I want to manage resident data and financial records so that the neighborhood association operates transparently
+- **As a resident**, I want to submit complaints and document requests online so that I don't have to visit the RT office in person
+- **As an administrator**, I want a Decision Support System that analyzes resident data so that aid allocation decisions are data-driven and fair
+- **As a community organizer**, I want to create events and track attendance so that neighborhood activities are well-coordinated
+- **As a local business owner**, I want to list my UMKM business in the directory so that neighbors can discover and support my services
+
+## Use Case
+
+**Scenario: Allocating Neighborhood Aid Using SPK**
+
+The RT head opens SatuRT and navigates to the SPK dashboard. They select the Weighted Product method and input criteria for aid eligibility — income level, family size, and health status. The system scores each resident household against the criteria and ranks them. The RT head also runs the TOPSIS method on the same data to cross-validate the results. After comparing outputs, they generate a PDF report with DomPDF and present it at the next neighborhood meeting, ensuring the allocation decision is transparent and backed by data.
+
 ## Architecture
 
 ```mermaid

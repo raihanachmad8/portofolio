@@ -37,6 +37,20 @@ I led the backend development while my teammate focused on the React frontend. I
 
 **Team:** Achmad Raihan Fahrezi Effendy (Backend Lead) + 1 teammate (Frontend)
 
+## User Stories
+
+- **As a potential adopter**, I want to browse available cats with photos and descriptions so that I can find a pet that fits my lifestyle
+- **As a shelter staff member**, I want to register new cats with intake details so that the adoption records stay accurate and up to date
+- **As a frontend developer**, I want Swagger documentation for every endpoint so that I can integrate the API without constant backend communication
+- **As an administrator**, I want input validation on every request so that invalid or malicious data never reaches the database
+- **As a system operator**, I want structured logs for every API request so that I can debug issues quickly during the tight project deadline
+
+## Use Case
+
+**Scenario: Submitting an Adoption Application**
+
+A visitor opens the Cat Stories frontend and browses the list of available cats, each showing a photo, breed, age, and temperament. They select a cat and fill out an adoption form with their contact details and living situation. The React app sends a POST request to the Express.js API, where Joi validates every field before the request reaches the controller. The validated data is inserted into MSSQL via Knex.js with parameterized queries. Winston logs the transaction, and the adopter receives a confirmation that their application is being reviewed.
+
 ## Architecture
 
 ```mermaid

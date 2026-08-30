@@ -37,6 +37,20 @@ I built the entire platform independently — backend, frontend, AI integration,
 
 **Team:** Achmad Raihan Fahrezi Effendy (Full-Stack Developer)
 
+## User Stories
+
+- **As a security engineer**, I want to run multiple SAST scanners from a single dashboard so that I don't have to switch between tools for each codebase
+- **As a developer**, I want AI-verified findings that flag true positives so that I can focus on real vulnerabilities instead of chasing false alarms
+- **As a team lead**, I want workspace-level RBAC so that each team only sees findings relevant to their repositories
+- **As a DevSecOps engineer**, I want GitHub webhooks to trigger scans automatically on push so that security checks happen continuously without manual intervention
+- **As a compliance officer**, I want PDF and XLSX reports of scan results so that I can attach them to audit documentation
+
+## Use Case
+
+**Scenario: Automated Security Scan on Pull Request**
+
+A developer pushes a code change to a GitHub repository connected to the SAST Integration platform. A webhook triggers pg-boss to queue scan jobs. Semgrep analyzes the code for vulnerabilities, Gitleaks checks for exposed secrets, and Flawfinder scans C/C++ dependencies. The raw findings are sent to the AI verification layer, where a QLoRA fine-tuned LLM classifies each finding as a true or false positive. The developer opens the dashboard and sees only verified findings with confidence scores, reducing triage time by 60%.
+
 ## Architecture
 
 ```mermaid

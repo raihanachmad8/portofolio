@@ -37,6 +37,19 @@ I contributed to frontend development as part of the team, focusing on component
 
 **Team:** Achmad Raihan Fahrezi Effendy (Team Member) + teammates
 
+## User Stories
+
+- **As a competition judge**, I want the site to load in under 1 second so that the performance demonstration is convincing
+- **As a visitor**, I want the page content visible immediately without waiting for JavaScript to download so that the reading experience feels instant
+- **As a developer on the team**, I want interactive components to hydrate independently so that static content loads fast while complex widgets still work
+- **As a performance auditor**, I want minimal JavaScript shipped to the browser so that core web vitals scores stay high
+
+## Use Case
+
+**Scenario: Evaluating the Competition Entry**
+
+A judge clicks the competition link and the page loads as pre-rendered HTML — text and layout appear instantly with no blank screen. A small interactive map widget hydrates only when it enters the viewport, downloading a minimal JavaScript bundle for that island. The rest of the page remains static HTML with zero JavaScript overhead. Lighthouse scores show near-perfect performance metrics, demonstrating that Astro's island architecture delivers on its promise of shipping minimal JavaScript by default.
+
 ## Architecture
 
 ```mermaid

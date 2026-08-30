@@ -37,6 +37,20 @@ I built the entire backend independently, designing the architecture, implementi
 
 **Team:** Achmad Raihan Fahrezi Effendy (Backend Developer)
 
+## User Stories
+
+- **As a job seeker**, I want to create a profile and upload my resume so that companies can find and evaluate me
+- **As a company recruiter**, I want to post job openings with detailed descriptions so that qualified candidates can apply directly
+- **As an administrator**, I want role-based access control so that each user type only sees the features relevant to them
+- **As a developer**, I want Swagger documentation for every endpoint so that the API is self-documenting for evaluators
+- **As a job applicant**, I want to track the status of my applications so that I know where I stand in the hiring process
+
+## Use Case
+
+**Scenario: Applying for a Job Position**
+
+A job seeker registers on Ngejoblist and verifies their account via JWT authentication. They browse available positions, filtering by location and job type. After finding a suitable role at a tech company, they submit an application with a cover letter. The application is stored via Prisma with proper relational linking between the user, job, and company. The company recruiter logs in, navigates to their dashboard, and reviews incoming applications sorted by date. They shortlist the candidate, triggering a status update that the applicant can track in real time.
+
 ## Architecture
 
 ```mermaid

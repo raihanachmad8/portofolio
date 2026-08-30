@@ -37,6 +37,19 @@ I built the entire backend independently under competition conditions, managing 
 
 **Team:** Achmad Raihan Fahrezi Effendy (Solo Developer)
 
+## User Stories
+
+- **As a competition evaluator**, I want well-structured modular code so that I can assess architectural quality at a glance
+- **As an API consumer**, I want consistent response formats and error messages so that I can integrate the API without guessing edge cases
+- **As a system administrator**, I want structured logs with Winston so that I can trace requests and diagnose issues in production
+- **As a performance-conscious developer**, I want response caching so that frequently accessed endpoints return results without hitting the database
+
+## Use Case
+
+**Scenario: Competing at Iconic IT 2024**
+
+On competition day, the evaluator sends authenticated requests to the Vacation REST API. JWT guards enforce role-based access on every endpoint. The request hits a NestJS controller, passes through DTO validation with Zod, and reaches the service layer. Prisma executes a type-safe query against PostgreSQL. Winston logs the request with timing metadata, and cache-manager returns a cached response for repeat queries. The evaluator reviews the Swagger documentation, inspects the modular architecture, and scores the submission — landing 6th nationally.
+
 ## Architecture
 
 ```mermaid

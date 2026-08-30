@@ -26,6 +26,20 @@ Frozeria Next was built for a BNSP (Badan Nasional Sertifikasi Profesi) certific
 ## Role
 I built the entire application independently.
 **Team:** Achmad Raihan Fahrezi Effendy (Full-Stack Developer)
+## User Stories
+
+- **As a warehouse staff member**, I want to view stock levels across all freezers on a dashboard so that I can identify low-stock items at a glance
+- **As a inventory manager**, I want to add and update frozen-food products with photos so that the catalog stays accurate and visual
+- **As a quality assurance officer**, I want to track stock history per item so that I can trace when a product was received and moved between freezers
+- **As a BNSP assessor**, I want clean code with proper architecture so that the application meets certification standards
+- **As a deployment engineer**, I want pluggable storage backends so that the app works locally, on Cloudinary, or on S3 without code changes
+
+## Use Case
+
+**Scenario: Daily Stock Reconciliation**
+
+A warehouse manager opens the Frozeria Next dashboard and sees summary cards showing total stock across 5 freezers, items expiring this week, and recent inbound shipments. They navigate to a specific freezer and notice a product is running low. They click into the item detail page, which shows the full stock history — when it was received, how many units were moved, and current quantity. They upload a new product photo through the pluggable storage driver (Cloudinary in production), update the stock count, and the dashboard reflects the change in real time via TanStack Query.
+
 ## Architecture
 ```mermaid
 flowchart TD

@@ -40,6 +40,20 @@ I built the AI backend pipeline independently and contributed to backend integra
 
 **Team:** Achmad Raihan Fahrezi Effendy (AI Backend Engineer + Backend Integration) + Mobile Team + Frontend Team
 
+## User Stories
+
+- **As an attendee**, I want to register my face via the mobile app so that I can enter the event without a physical ticket
+- **As an event organizer**, I want to verify attendees automatically at the venue so that I can reduce queue times and eliminate paper tickets
+- **As a security team member**, I want to prevent ticket sharing so that only registered attendees gain access to the event
+- **As a venue operator**, I want the face recognition process to complete in under 3 seconds so that foot traffic flows smoothly at entry points
+- **As a festival attendee**, I want to capture my face from multiple angles so that the system can detect spoofing attempts and protect my identity
+
+## Use Case
+
+**Scenario: Festival Entry Verification**
+
+An attendee arrives at the festival entrance and opens the Fest Ticketing mobile app. The app guides them through a liveness simulation — capturing their face from the front, left, right, and while smiling — and uploads the images to the FastAPI backend. MTCNN detects the face in each image, Facenet generates a 128-dimensional embedding, and the vector is stored in PostgreSQL. At the venue, a camera captures the attendee's face in real time. The backend runs cosine similarity against stored embeddings, confirms a match, and signals the turnstile to open — all in under 3 seconds.
+
 ## Architecture
 
 ```mermaid

@@ -37,6 +37,20 @@ I built the entire infrastructure and portal independently. This was a personal 
 
 **Team:** Achmad Raihan Fahrezi Effendy (Solo — 100% contribution)
 
+## User Stories
+
+- **As a class lecturer**, I want to access all 6 team projects from a single URL so that I can evaluate demonstrations without switching between machines
+- **As a student team member**, I want my Laravel app hosted on a stable server so that my demo doesn't fail due to local environment issues
+- **As a portal visitor**, I want a clean directory page listing all projects so that I can navigate to any team's work instantly
+- **As a server administrator**, I want each application isolated on its own port so that one app crashing doesn't affect the others
+- **As a demonstration organizer**, I want all apps accessible simultaneously so that the class presentation runs smoothly without delays
+
+## Use Case
+
+**Scenario: Class Demonstration Day**
+
+On presentation day, the lecturer opens the portal URL and sees a React-based directory page listing all 6 team projects. She clicks on Team 3's project, which Nginx routes to port 8003 on the Ubuntu VPS. Each team's Laravel application runs independently in its own process, isolated by port binding. The entire class accesses the projects concurrently through the portal without any application crashing or slowing down. After the demonstration, the server remains available for asynchronous evaluation.
+
 ## Architecture
 
 ```mermaid

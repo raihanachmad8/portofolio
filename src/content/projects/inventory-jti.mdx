@@ -37,6 +37,20 @@ I led the fullstack architecture and core implementation for a team of 5 develop
 
 **Team:** Achmad Raihan Fahrezi Effendy (Lead Developer) + 4 teammates
 
+## User Stories
+
+- **As a warehouse manager**, I want to add, update, and track inventory items so that stock levels are always accurate
+- **As a team member**, I want a consistent MVC architecture so that I can contribute code without understanding the entire codebase
+- **As a developer**, I want a custom PHP autoloader so that I never have to write manual `require` statements for class files
+- **As a system administrator**, I want prepared statements on every database query so that the application is protected against SQL injection
+- **As a project evaluator**, I want a reusable core engine so that the same architecture can power multiple applications from one codebase
+
+## Use Case
+
+**Scenario: Managing Inventory Without a Framework**
+
+A warehouse staff member opens the Inventory JTI application and navigates to the item list. They click "Add New Item" and fill in the product name, quantity, and category. The request hits the custom router, which resolves to the ItemController via the PHP autoloader. The controller validates the input, passes it to the ItemModel, and the model inserts the record through PDO with prepared statements. The view renders a Bootstrap table showing the updated inventory — all running on a native PHP MVC architecture built from scratch without Laravel or any framework.
+
 ## Architecture
 
 ```mermaid

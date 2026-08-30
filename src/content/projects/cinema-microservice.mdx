@@ -37,6 +37,20 @@ I built the backend services independently during the training period, learning 
 
 **Team:** Achmad Raihan Fahrezi Effendy (Backend Developer)
 
+## User Stories
+
+- **As a moviegoer**, I want to browse available movies and showtimes so that I can plan my cinema visit
+- **As a cinema administrator**, I want to manage studios, movies, and schedules from a single dashboard so that operations stay organized
+- **As a ticket buyer**, I want to reserve a seat and complete payment seamlessly so that my booking is confirmed instantly
+- **As a backend developer**, I want each service to communicate asynchronously via NATS so that failures in one service don't cascade to others
+- **As a DevOps engineer**, I want Kubernetes deployment manifests ready so that the system can scale horizontally during peak hours
+
+## Use Case
+
+**Scenario: Booking a Movie Ticket**
+
+A moviegoer opens the cinema app and browses the movie catalog served by MovieService. They select a film and view available showtimes from ScheduleService, which retrieves cached results from Redis. The user picks a time slot and selects a seat. TicketService reserves the seat and publishes a booking event via NATS. TransactionService consumes the event, processes the payment, and confirms the reservation. The moviegoer receives a confirmation with their seat number and showtime — the entire flow routed through the Ocelot API Gateway with JWT authentication.
+
 ## Architecture
 
 ```mermaid
