@@ -123,37 +123,3 @@ export interface NotionProfileData {
   site_title: string;
   site_description: string;
 }
-
-/** Typed project data from Notion */
-export interface NotionProjectData {
-  title: string;
-  slug: string;
-  category: string;
-  year: number;
-  description: string;
-  has_ui: boolean;
-  stack: string;
-  github_url: string | null;
-  live_url: string | null;
-  featured: boolean;
-  order: number;
-  image_url: string | null;
-}
-
-/** Typed skill data from Notion */
-export interface NotionSkillData {
-  name: string;
-  level: number;
-  category: string;
-}
-
-/** Typed experience data from Notion */
-export interface NotionExperienceData {
-  title: string;
-  company: string;
-  period: string;
-  location: string;
-  detail: string;
-  now: boolean;
-  order: number;
-}

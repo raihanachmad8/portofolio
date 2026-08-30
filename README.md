@@ -1,160 +1,148 @@
-# Portfolio v2.0
+# Portfolio
 
-Personal portfolio built with Astro 5, Notion CMS, and multi-theme system.
+Personal portfolio website built with Astro 5, Notion CMS, and multi-theme system.
 
-> **v2.0** — Full rewrite from [raihanachmad.web.id](https://github.com/raihanachmad8/raihanachmad.web.id) (v1.0, Dec 2024). New architecture: Notion CMS, MDX content collections, multi-theme, unified CLI.
+**Live:** [raihanachmad.web.id](https://raihanachmad.web.id)
 
 ## Tech Stack
 
-- **Framework:** Astro 5 + TypeScript
-- **Styling:** Tailwind CSS
-- **CMS:** Notion API v5 (primary) + Local JSON/MDX (fallback)
-- **Validation:** Zod
-- **Deployment:** Cloudflare Workers
-- **Markdown:** Marked + Mermaid
+| Layer | Technology |
+|-------|-----------|
+| Framework | Astro 5 + TypeScript (strict) |
+| Styling | CSS custom properties + themes |
+| CMS | Notion API v5 (primary) + Local JSON/MDX (fallback) |
+| Validation | Zod |
+| Deployment | Cloudflare Workers (SSR) |
+| AI Assistant | Aruna — client-side RAG-like chatbot (no LLM) |
 
 ## Quick Start
 
 ```bash
-# Install dependencies
 npm install
-
-# Start dev server
-npm run dev
-
-# Build for production
-npm run build
+npm run dev        # localhost:4321
+npm run build      # production build
 ```
 
 ## Project Structure
 
 ```
 src/
-├── components/          # Astro components (About, Blog, Hero, etc.)
-├── content/
-│   ├── config.ts        # Content collection schemas
-│   ├── projects/        # MDX project files
-│   └── blog/            # MDX blog posts
-├── layouts/
-│   └── PageHead.astro   # Root layout with theme + scripts
+├── components/              # UI components
+│   ├── aruna/               # Chatbot subsystem (client-side)
+│   ├── Header.astro, Hero.astro, About.astro, etc.
+│   └── README.md
+├── content/                 # MDX content collections
+│   ├── blog/
+│   ├── projects/
+│   └── experience/
 ├── lib/
-│   ├── notion/          # Notion adapter (client, queries, types)
-│   ├── config.ts        # App configuration
-│   ├── content.ts       # Content orchestration layer
-│   ├── notion-options.ts # Shared option constants
-│   ├── schemas.ts       # Zod validation schemas
-│   └── utils.ts         # Shared utilities
-├── pages/               # Astro page routes
-└── styles/              # Global CSS + theme CSS
+│   ├── constants.ts         # Centralized config (SITE_CONFIG)
+│   ├── utils.ts             # Utility functions
+│   ├── config.ts            # Notion config resolver
+│   ├── schemas.ts           # Zod validation schemas
+│   ├── content/             # Content layer (per-type modules)
+│   │   ├── projects.ts, blog.ts, profile.ts
+│   │   ├── skills.ts, experience.ts, ticker.ts
+│   │   └── cache.ts, helpers.ts
+│   ├── aruna/               # Chatbot engine
+│   │   ├── engine.ts        # Core orchestration
+│   │   ├── intent.ts        # Intent detection
+│   │   ├── responses.ts     # Response composition
+│   │   ├── kb.ts, ranker.ts, lookup.ts, etc.
+│   │   └── types.ts
+│   └── notion/              # Notion adapter
+│       ├── client.ts, queries.ts, types.ts
+├── pages/                   # File-based routing
+├── styles/                  # Global CSS + 4 themes
+├── i18n/                    # EN/ID translations
+└── data/                    # Static data (QA, CV)
 
 scripts/
-├── notion.mjs           # Unified Notion CLI
-├── notion-utils.mjs     # Shared script utilities
-├── notion-options.mjs   # Seed option constants
-├── md-to-notion.mjs     # Generic MD → Notion blocks converter
-└── commands/            # CLI subcommands (bootstrap, migrate, sync, etc.)
-
-public/
-└── data/content.json    # Local fallback data
+├── lib/                     # Shared Node.js utilities
+├── commands/                # CLI subcommands
+└── aruna-build.mjs          # KB build script
 ```
 
-## Notion CMS
+## Architecture
 
-Data is stored in Notion databases and fetched at runtime.
+### Content Layer
 
-### Environment Variables
+```
+Component → content/[type].ts → Notion API (or local fallback) → Zod → Type
+```
+
+Each content type has its own module with shared caching via `content/cache.ts`.
+
+### Aruna Chatbot
+
+```
+User Input → Tokenizer → TF Scoring → Intent Detection → Critic → Template Response
+```
+
+- Client-side only, no LLM, no API calls
+- Bilingual (EN/ID)
+- Knowledge base built from portfolio content
+
+### Themes
+
+Four built-in themes: `gallery` (default), `terminal`, `editorial`, `swiss`.
+
+Switch via URL: `/?theme=terminal` or theme buttons in header.
+
+## Environment Variables
 
 ```env
-# Notion (server-only)
+# Notion CMS (server-only)
 NOTION_TOKEN=ntn_xxx
 NOTION_DB_PROFILE=xxx
 NOTION_DB_PROJECTS=xxx
 NOTION_DB_SKILLS=xxx
 NOTION_DB_EXPERIENCE=xxx
+NOTION_DB_BLOG=xxx
+NOTION_DB_TICKER=xxx
+NOTION_DB_SETTINGS=xxx
 NOTION_PARENT_PAGE_ID=xxx
 
 # Site (public)
 PUBLIC_SITE_URL=https://your-domain.com
-PUBLIC_DATA_SOURCE=notion          # "notion" or "local"
-NOTION_FALLBACK_LOCAL=true         # fallback to local on Notion failure
+PUBLIC_DATA_SOURCE=notion    # "notion" or "local"
 PUBLIC_DEBUG_MODE=false
 ```
 
-### CLI Commands
+## CLI Commands
 
-```bash
-# Bootstrap — create Notion databases
-npm run notion:bootstrap
-
-# Migrate — seed local data to Notion
-npm run notion:migrate             # all
-node scripts/notion.mjs migrate -t profile
-node scripts/notion.mjs migrate -t skills
-node scripts/notion.mjs migrate -t experience
-node scripts/notion.mjs migrate -t projects
-
-# Sync — Notion → JSON (local fallback)
-npm run notion:sync
-
-# Verify — check Notion block content
-npm run notion:verify
-
-# Clean — archive Notion pages
-npm run notion:clean
-node scripts/notion.mjs clean -t projects
-```
-
-### Data Flow
-
-```
-Notion (primary)
-    ↓ fetch at runtime
-content.ts (orchestration)
-    ↓ Zod validation
-schemas.ts (types)
-    ↓
-components (render)
-
-Local JSON/MDX (fallback)
-    ↓ when PUBLIC_DATA_SOURCE=local
-content.ts
-    ↓
-components
-```
-
-## Themes
-
-Four built-in themes: `gallery` (default), `terminal`, `editorial`, `swiss`.
-
-Switch via URL: `/?theme=terminal` or localStorage.
+| Command | Description |
+|---------|-------------|
+| `npm run notion:bootstrap` | Create Notion databases |
+| `npm run notion:migrate` | Seed local data to Notion |
+| `npm run notion:sync` | Pull Notion → local |
+| `npm run notion:verify` | Check Notion connection |
+| `npm run notion:clean` | Archive Notion pages |
+| `npm run aruna:build` | Build chatbot knowledge base |
+| `npm run i18n:verify` | Verify translation completeness |
 
 ## Adding Content
 
-### Projects (MDX)
+### Projects
 
-Create `.mdx` files in `src/content/projects/`:
+Create `.mdx` in `src/content/projects/`:
 
 ```mdx
 ---
 title: My Project
 category: Backend API
 year: 2026
-description: A brief description
+description: Brief description
 stack: TypeScript,Node.js,PostgreSQL
 featured: true
-card_color: dark
 ---
-
-## Overview
 
 Project content here...
 ```
 
-Then seed to Notion: `node scripts/notion.mjs migrate -t projects`
-
 ### Skills / Experience
 
-Edit `public/data/content.json` or add directly in Notion UI.
+Edit `src/data/content.json` or add directly in Notion UI.
 
 ## License
 

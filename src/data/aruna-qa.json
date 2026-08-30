@@ -1,0 +1,202 @@
+[
+  {
+    "id": "qa_contact",
+    "kind": "qa",
+    "topic": "contact",
+    "lang": "en",
+    "title": "contact email github linkedin",
+    "text": "contact email github linkedin reach how to contact socials",
+    "answer": "You can reach me via email, GitHub, or LinkedIn — ask for any of those and I'll share the details.",
+    "recommend": ["project", "skill"]
+  },
+  {
+    "id": "qa_contact_id",
+    "kind": "qa",
+    "topic": "contact",
+    "lang": "id",
+    "title": "kontak email github linkedin",
+    "text": "kontak email github linkedin cara menghubungi sosmed",
+    "answer": "Kamu bisa menghubungi saya lewat email, GitHub, atau LinkedIn — sebut salah satunya dan saya akan bagikan detailnya.",
+    "recommend": ["project", "skill"]
+  },
+  {
+    "id": "qa_about",
+    "kind": "qa",
+    "topic": "about",
+    "lang": "en",
+    "title": "about who are you tell me about yourself",
+    "text": "about who are you tell me about yourself profile",
+    "answer": "I'm Raihan, a Fullstack Software Engineer. I'm a fresh graduate in Informatics Engineering from Politeknik Negeri Malang (GPA 3.90) with a 10-month internship at DOT Indonesia and projects spanning backend, frontend, and infrastructure. Ask me about projects, skills, experience, or my CV.",
+    "recommend": ["project", "skill", "experience", "cv"]
+  },
+  {
+    "id": "qa_about_id",
+    "kind": "qa",
+    "topic": "about",
+    "lang": "id",
+    "title": "tentang siapa kamu ceritakan dirimu",
+    "text": "tentang siapa kamu ceritakan dirimu profile biodata",
+    "answer": "Saya Raihan, Fullstack Software Engineer. Lulusan Teknik Informatika Politeknik Negeri Malang (IPK 3.90) dengan magang 10 bulan di DOT Indonesia dan proyek yang mencakup backend, frontend, hingga infrastruktur. Tanya soal proyek, skill, pengalaman, atau CV saya.",
+    "recommend": ["project", "skill", "experience", "cv"]
+  },
+  {
+    "id": "qa_experience",
+    "kind": "qa",
+    "topic": "experience",
+    "lang": "en",
+    "title": "experience what have you done work history",
+    "text": "experience what have you done work history career",
+    "answer": "My key experience is a 10-month backend engineering internship at DOT Indonesia (.NET Core microservices, HRIS fullstack migration, Redis caching, data-integrity fixes), plus a part-time assistant lecturer role at Politeknik Negeri Malang and 12 academic/competition projects.",
+    "recommend": ["project", "skill", "cv"]
+  },
+  {
+    "id": "qa_experience_id",
+    "kind": "qa",
+    "topic": "experience",
+    "lang": "id",
+    "title": "pengalaman apa saja yang sudah pernah dilakukan magang",
+    "text": "pengalaman magang kerja apa saja yang sudah pernah dilakukan karir",
+    "answer": "Pengalaman utama saya adalah magang 10 bulan sebagai backend engineer di DOT Indonesia (microservices .NET Core, migrasi fullstack HRIS, caching Redis, perbaikan integritas data), ditambah asisten dosen paruh waktu di Politeknik Negeri Malang dan 12 proyek akademik/kompetisi.",
+    "recommend": ["project", "skill", "cv"]
+  },
+  {
+    "id": "qa_education",
+    "kind": "qa",
+    "topic": "education",
+    "lang": "en",
+    "title": "education where did you study university school",
+    "text": "education where did you study university school gpa degree",
+    "answer": "I studied D4 Informatics Engineering at Politeknik Negeri Malang, graduating with a GPA of 3.90/4.00 (Aug 2022 — Aug 2026). I also received a PKM-KC national research grant that reached the PKP2 stage and published an Intellectual Property (HKI) record.",
+    "recommend": ["cv", "experience", "skill"]
+  },
+  {
+    "id": "qa_education_id",
+    "kind": "qa",
+    "topic": "education",
+    "lang": "id",
+    "title": "pendidikan kuliah kampus sekolah ipk",
+    "text": "pendidikan kuliah kampus sekolah ipk jurusan",
+    "answer": "Saya menempuh D4 Teknik Informatika di Politeknik Negeri Malang, lulus dengan IPK 3.90/4.00 (Agu 2022 — Agu 2026). Saya juga menerima hibah riset mahasiswa nasional PKM-KC yang lolos hingga tahap PKP2 dan menerbitkan Hak Kekayaan Intelektual (HKI).",
+    "recommend": ["cv", "experience", "skill"]
+  },
+  {
+    "id": "qa_certification",
+    "kind": "qa",
+    "topic": "certification",
+    "lang": "en",
+    "title": "certification certificate bnsp",
+    "text": "certification certificate bnsp sertifikat professional",
+    "answer": "I hold a BNSP Professional Certification as a Fullstack Developer (2026), assessed through Frozeria Next — a frozen-food stock management app built with Next.js 16, Ant Design, Drizzle ORM, and Neon Postgres.",
+    "recommend": ["project", "skill", "cv"]
+  },
+  {
+    "id": "qa_certification_id",
+    "kind": "qa",
+    "topic": "certification",
+    "lang": "id",
+    "title": "sertifikasi sertifikat bnsp",
+    "text": "sertifikasi sertifikat bnsp professional",
+    "answer": "Saya memiliki Sertifikasi Profesi BNSP sebagai Fullstack Developer (2026), dinilai lewat Frozeria Next — aplikasi manajemen stok makanan beku berbasis Next.js 16, Ant Design, Drizzle ORM, dan Neon Postgres.",
+    "recommend": ["project", "skill", "cv"]
+  },
+  {
+    "id": "qa_competition",
+    "kind": "qa",
+    "topic": "competition",
+    "lang": "en",
+    "title": "competition contest award winner",
+    "text": "competition contest award winner lomba",
+    "answer": "I ranked 6th nationally in Iconic IT 2024 (Web Development) with 'Vacation RestAPI' built on NestJS, and I participated in InnovaTech 2024 (Web Design) experimenting with Astro and Framer Motion.",
+    "recommend": ["project", "cv", "experience"]
+  },
+  {
+    "id": "qa_competition_id",
+    "kind": "qa",
+    "topic": "competition",
+    "lang": "id",
+    "title": "kompetisi lomba juara penghargaan",
+    "text": "kompetisi lomba juara penghargaan menang",
+    "answer": "Saya meraih peringkat 6 nasional di Iconic IT 2024 (Pengembangan Web) lewat 'Vacation RestAPI' berbasis NestJS, dan berpartisipasi di InnovaTech 2024 (Desain Web) dengan eksperimen Astro dan Framer Motion.",
+    "recommend": ["project", "cv", "experience"]
+  },
+  {
+    "id": "qa_organization",
+    "kind": "qa",
+    "topic": "organization",
+    "lang": "en",
+    "title": "organization organizations wri mentor committee",
+    "text": "organization organizations wri mentor committee himpunan",
+    "answer": "I served as General Secretary & Mentor at Workshop Riset Informatika (WRI) — preparing proposals and activity reports and mentoring freshmen in programming fundamentals.",
+    "recommend": ["experience", "cv", "education"]
+  },
+  {
+    "id": "qa_organization_id",
+    "kind": "qa",
+    "topic": "organization",
+    "lang": "id",
+    "title": "organisasi wri mentor kepanitiaan himpunan",
+    "text": "organisasi wri mentor kepanitiaan himpunan organisasi",
+    "answer": "Saya pernah menjadi Sekretaris Umum & Mentor di Workshop Riset Informatika (WRI) — menyiapkan proposal dan laporan kegiatan serta membimbing mahasiswa baru dalam dasar-dasar pemrograman.",
+    "recommend": ["experience", "cv", "education"]
+  },
+  {
+    "id": "qa_availability",
+    "kind": "qa",
+    "topic": "availability",
+    "lang": "en",
+    "title": "available open to work hire opportunity",
+    "text": "available open to work hire opportunity job freelance contract",
+    "answer": "Yes, I'm open to fullstack engineering opportunities — backend systems, frontend interfaces, and end-to-end product delivery. Reach out and let's talk!",
+    "recommend": ["contact", "project", "skill"]
+  },
+  {
+    "id": "qa_availability_id",
+    "kind": "qa",
+    "topic": "availability",
+    "lang": "id",
+    "title": "tersedia open to work lowongan kerja kesempatan",
+    "text": "tersedia open to work lowongan kerja kesempatan freelance kontrak",
+    "answer": "Ya, saya terbuka untuk peluang fullstack engineering — sistem backend, antarmuka frontend, dan pengiriman produk end-to-end. Hubungi saya dan mari berdiskusi!",
+    "recommend": ["contact", "project", "skill"]
+  },
+  {
+    "id": "qa_location",
+    "kind": "qa",
+    "topic": "location",
+    "lang": "en",
+    "title": "where are you based location",
+    "text": "where are you based location live domicile city",
+    "answer": "I'm based in Malang Regency, East Java, Indonesia, and open to remote or on-site opportunities.",
+    "recommend": ["contact", "experience"]
+  },
+  {
+    "id": "qa_location_id",
+    "kind": "qa",
+    "topic": "location",
+    "lang": "id",
+    "title": "berada di mana lokasi domisili",
+    "text": "berada di mana lokasi domisili kota tinggal",
+    "answer": "Saya berdomisili di Kabupaten Malang, Jawa Timur, Indonesia, dan terbuka untuk peluang remote maupun on-site.",
+    "recommend": ["contact", "experience"]
+  },
+  {
+    "id": "qa_theme",
+    "kind": "qa",
+    "topic": "theme",
+    "lang": "en",
+    "title": "theme switch theme change color",
+    "text": "theme switch theme change color dark light",
+    "answer": "Use /theme gallery, /theme terminal, /theme editorial, or /theme swiss to switch the look.",
+    "recommend": ["project", "skill"]
+  },
+  {
+    "id": "qa_theme_id",
+    "kind": "qa",
+    "topic": "theme",
+    "lang": "id",
+    "title": "tema ganti tema warna",
+    "text": "tema ganti tema warna gelap terang",
+    "answer": "Gunakan /theme gallery, /theme terminal, /theme editorial, atau /theme swiss untuk mengganti tampilan.",
+    "recommend": ["project", "skill"]
+  }
+]

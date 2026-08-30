@@ -1,7 +1,8 @@
 ---
 import SectionHead from './SectionHead.astro';
 import type { Profile } from '../lib/schemas';
-import { createTranslator, detectLocale } from '@i18n';
+import { getLocale } from '@i18n';
+import { PROFILE_FORMAL_IMAGE } from '@lib/utils';
 
 interface Props {
   profile?: Profile;
@@ -10,8 +11,7 @@ interface Props {
 const { profile } = Astro.props;
 if (!profile) return null;
 
-const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
-const t = createTranslator(locale);
+const { t } = getLocale(Astro);
 ---
 
 <section id="about">
@@ -21,21 +21,21 @@ const t = createTranslator(locale);
       <div class="about-txt">
         <p class="lead" data-reveal>{profile.aboutLead}</p>
         {profile.aboutParas?.map((par: string, i: number) => (
-          <p data-reveal class={`d-${i + 2}`}>{par}</p>
+          <p data-reveal class={`delay-${i + 2}`}>{par}</p>
         ))}
-        <div class="facts d-4" data-reveal>
-          {profile.facts?.map((f: any) => (
-            <div><span class="n">{f.value}</span><span class="l">{f.label}</span></div>
+        <div class="facts delay-4" data-reveal>
+          {profile.facts?.map((f: { value: number; label: string }) => (
+            <div><span class="fact-value">{f.value}</span><span class="fact-label">{f.label}</span></div>
           ))}
         </div>
-        <ul class="principles d-5" data-reveal>
-          {profile.principles?.map((pr: any) => (
+        <ul class="principles delay-5" data-reveal>
+          {profile.principles?.map((pr: { no: string; title: string; description: string }) => (
             <li><i>// {pr.no}</i><b>{pr.title}</b><span>{pr.description}</span></li>
           ))}
         </ul>
       </div>
-      <div class="d-3" data-reveal>
-        <div class="about-ph"><img src="/images/profile-formal.jpg" alt={profile.name} loading="lazy" /></div>
+      <div class="delay-3" data-reveal>
+        <div class="about-ph"><img src={PROFILE_FORMAL_IMAGE} alt={profile.name} loading="lazy" /></div>
         <p class="about-photo-cap"><span>Fig. 01</span><span>{profile.location}</span></p>
       </div>
     </div>

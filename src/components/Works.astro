@@ -1,17 +1,22 @@
 ---
 import SectionHead from './SectionHead.astro';
 import { getAllProjects } from '../lib/content';
-import { resolveImageUrl } from '../lib/config';
-import { getRuntimeEnv } from '../lib/utils';
-import { createTranslator, detectLocale } from '@i18n';
+import { resolveImageUrl, getRuntimeEnv } from '../lib/utils';
+import { getLocale } from '@i18n';
+import type { Project } from '@lib/schemas';
 
 const env = getRuntimeEnv(Astro);
 const siteUrl = env?.PUBLIC_SITE_URL;
-const allProjects = await getAllProjects(env);
+let allProjects: Project[] = [];
+try {
+  allProjects = await getAllProjects(env);
+} catch (e) {
+  console.warn('[Works] Failed to fetch projects:', (e as Error).message);
+  allProjects = [];
+}
 const projects = allProjects.filter(p => p.featured);
 
-const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
-const t = createTranslator(locale);
+const { t } = getLocale(Astro);
 ---
 
 <section id="work">

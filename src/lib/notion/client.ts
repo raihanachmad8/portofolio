@@ -6,6 +6,7 @@
 
 import { Client } from '@notionhq/client';
 import type { NotionPage, DbType, DbSchema, NotionDataSource, PropertyValue } from './types';
+import { blocksToMarkdown } from '../../../scripts/lib/notion-to-md.mjs';
 
 /** Timeout for Notion API calls in milliseconds */
 const QUERY_TIMEOUT_MS = 10_000;
@@ -96,7 +97,11 @@ const DB_SCHEMAS: Record<DbType, DbSchema> = {
   },
 };
 
-/** Cache for resolved database IDs */
+/**
+ * Cache for resolved database IDs — module-level singleton to avoid repeated
+ * Notion search calls within a single process lifecycle. Mutable by design:
+ * database IDs are stable and the cache is write-once per key.
+ */
 const dbIdCache: Partial<Record<DbType, string>> = {};
 
 /**
@@ -307,109 +312,4 @@ export async function fetchBlocks(
   } while (cursor);
 
   return blocksToMarkdown(results);
-}
-
-/**
- * Converts Notion blocks to markdown string.
- * @param blocks - Array of Notion blocks
- * @returns Markdown string
- */
-function blocksToMarkdown(blocks: Record<string, unknown>[]): string {
-  const lines: string[] = [];
-
-  for (const block of blocks) {
-    switch (block.type) {
-      case 'heading_1':
-        lines.push('# ' + getBlockText(block.heading_1 as Record<string, unknown>));
-        break;
-      case 'heading_2':
-        lines.push('## ' + getBlockText(block.heading_2 as Record<string, unknown>));
-        break;
-      case 'heading_3':
-        lines.push('### ' + getBlockText(block.heading_3 as Record<string, unknown>));
-        break;
-      case 'paragraph':
-        lines.push(getBlockText(block.paragraph as Record<string, unknown>));
-        break;
-      case 'bulleted_list_item':
-        lines.push('- ' + getBlockText(block.bulleted_list_item as Record<string, unknown>));
-        break;
-      case 'numbered_list_item':
-        lines.push('1. ' + getBlockText(block.numbered_list_item as Record<string, unknown>));
-        break;
-      case 'code': {
-        const codeBlock = block.code as Record<string, unknown>;
-        lines.push('```' + (codeBlock?.language || ''));
-        lines.push(getBlockText(codeBlock));
-        lines.push('```');
-        break;
-      }
-      case 'quote':
-        lines.push('> ' + getBlockText(block.quote as Record<string, unknown>));
-        break;
-      case 'divider':
-        lines.push('---');
-        break;
-      case 'image': {
-        const img = block.image as Record<string, unknown>;
-        const url = (img?.external as Record<string, unknown>)?.url
-          || (img?.file as Record<string, unknown>)?.url
-          || '';
-        const caption = img?.caption ? getBlockText(img as Record<string, unknown>) : '';
-        lines.push(`![${caption}](${url})`);
-        break;
-      }
-      case 'callout': {
-        const callout = block.callout as Record<string, unknown>;
-        const icon = callout?.icon?.type === 'emoji' ? (callout.icon as Record<string, unknown>).emoji + ' ' : '';
-        lines.push('> ' + icon + getBlockText(callout));
-        break;
-      }
-      case 'toggle': {
-        const toggle = block.toggle as Record<string, unknown>;
-        lines.push('<details>');
-        lines.push('<summary>' + getBlockText(toggle) + '</summary>');
-        lines.push('</details>');
-        break;
-      }
-      case 'bookmark': {
-        const bookmark = block.bookmark as Record<string, unknown>;
-        lines.push(`[Bookmark](${bookmark?.url || ''})`);
-        break;
-      }
-      case 'embed': {
-        const embed = block.embed as Record<string, unknown>;
-        lines.push(`[Embed](${embed?.url || ''})`);
-        break;
-      }
-      case 'table': {
-        lines.push('| ... |');
-        lines.push('| --- |');
-        break;
-      }
-      case 'table_row': {
-        const row = block.table_row as Record<string, unknown>;
-        const cells = row?.cells as Array<Array<Record<string, unknown>>> | undefined;
-        if (cells) {
-          const cellTexts = cells.map((cell) => getBlockText({ rich_text: cell }));
-          lines.push('| ' + cellTexts.join(' | ') + ' |');
-        }
-        break;
-      }
-      default:
-        break;
-    }
-  }
-
-  return lines.join('\n');
-}
-
-/**
- * Extracts text from a Notion block content object.
- * @param block - Block content (e.g., heading, paragraph)
- * @returns Extracted text
- */
-function getBlockText(block: Record<string, unknown>): string {
-  const richText = block?.rich_text as Array<{ plain_text: string }> | undefined;
-  return richText?.map((t) => t.plain_text).join('') ?? '';
 }

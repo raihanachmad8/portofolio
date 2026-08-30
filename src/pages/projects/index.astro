@@ -3,19 +3,17 @@ import Base from '@layouts/Base.astro';
 import Header from '@components/Header.astro';
 import ContactFooter from '@components/ContactFooter.astro';
 import { getAllProjects } from '@lib/content';
-import { resolveImageUrl } from '@lib/config';
-import { getRuntimeEnv } from '@lib/utils';
-import { detectLocale, createTranslator } from '@i18n';
+import { resolveImageUrl, getRuntimeEnv } from '@lib/utils';
+import { getLocale } from '@i18n';
 import SEO from '@components/SEO.astro';
 
 const env = getRuntimeEnv(Astro);
 const projects = await getAllProjects(env);
 const siteUrl = env?.PUBLIC_SITE_URL;
-const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
-const t = createTranslator(locale);
+const { locale, t } = getLocale(Astro);
 ---
 
-<Base lang={locale} title={`${t('projects.title')} — ${t('seo.siteName')}`} description={t('projects.description')} themeDefault="gallery">
+<Base lang={locale} title={`${t('projects.title')} — ${t('seo.siteName')}`} themeDefault="gallery">
   <SEO title={`${t('projects.title')} — ${t('seo.siteName')}`} description={t('projects.description')} />
   <Header />
   <main id="top">
@@ -29,15 +27,18 @@ const t = createTranslator(locale);
           <aside class="works-side">
             <p>{t('projects.description')}</p>
             <nav class="works-index" aria-label="Project navigation">
-              {projects.map((pr) => (
-                <a href={`/projects/${pr.slug}`}><i>/{String(pr.order).padStart(2, '0')}</i><b>{pr.title}</b></a>
-              ))}
+              {projects.map((pr) => {
+                const orderNum = String(pr.order).padStart(2, '0');
+                return <a href={`/projects/${pr.slug}`}><i>/{orderNum}</i><b>{pr.title}</b></a>;
+              })}
             </nav>
           </aside>
           <div>
-            {projects.map((pr) => (
-              <article class="proj" data-reveal>
-                <div class="proj-top mono"><span class="no">/{String(pr.order).padStart(2, '0')}</span><span>{pr.year} · {pr.category}</span></div>
+            {projects.map((pr) => {
+              const orderNum = String(pr.order).padStart(2, '0');
+              return (
+                <article class="proj" data-reveal>
+                  <div class="proj-top mono"><span class="no">/{orderNum}</span><span>{pr.year} · {pr.category}</span></div>
                 <figure>
                   <img src={resolveImageUrl(pr.image_url, siteUrl)} alt={pr.title} loading="lazy" />
                 </figure>
@@ -48,7 +49,8 @@ const t = createTranslator(locale);
                 </div>
                 <a href={`/projects/${pr.slug}`} class="arrow-link">{t('projects.viewDetails')}<i>→</i></a>
               </article>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

@@ -12,7 +12,7 @@ import {
   readEnvFile,
   toRichTextArray,
   updateEnvValues,
-} from '../notion-utils.mjs';
+} from '../lib/notion-client.mjs';
 import {
   PROJECT_STACK_OPTIONS,
   PROJECT_CATEGORY_OPTIONS,

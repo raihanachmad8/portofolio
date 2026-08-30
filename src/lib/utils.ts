@@ -1,38 +1,37 @@
-/**
- * Shared utility functions and constants.
- * @module utils
- */
+import type { APIContext } from 'astro';
+import { SITE_CONFIG } from './constants';
 
-/**
- * Formats a date string to a readable format.
- * @param d - ISO date string
- * @returns Formatted date (e.g., "Aug 26, 2026")
- */
-export function fmtDate(d: string): string {
-  if (!d) return '';
-  return new Date(d).toLocaleDateString('en-US', {
+export function formatDate(dateStr: string): string {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
   });
 }
 
-/**
- * Extracts runtime environment from Astro context.
- * @param Astro - Astro global context
- * @returns Runtime environment variables
- */
-export function getRuntimeEnv(Astro: Record<string, unknown>) {
-  return (Astro.locals as Record<string, unknown>)?.runtime?.env;
+export function getRuntimeEnv(context: APIContext) {
+  return (context.locals as Record<string, unknown>)?.runtime?.env;
 }
 
-/** Default theme name */
-export const DEFAULT_THEME = 'gallery';
+// Re-export from constants for backward compatibility
+export const DEFAULT_THEME = SITE_CONFIG.theme.default;
+export const PLACEHOLDER_IMAGE = SITE_CONFIG.images.placeholder;
+export const SITE_URL = SITE_CONFIG.url;
+export const OG_DEFAULT_IMAGE = SITE_CONFIG.images.og;
+export const PROFILE_IMAGE = SITE_CONFIG.images.profile;
+export const PROFILE_FORMAL_IMAGE = SITE_CONFIG.images.profileFormal;
+export const FEATURED_POST_LIMIT = SITE_CONFIG.content.featuredPostsLimit;
 
-/** Placeholder image path for missing images */
-export const PLACEHOLDER_IMAGE = '/images/placeholder.svg';
+export function resolveImageUrl(path: string | null | undefined, siteUrl?: string): string {
+  if (!path) return PLACEHOLDER_IMAGE;
+  if (path.startsWith('http')) return path;
+  if (!siteUrl) return path;
+  return `${siteUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+}
 
-/** Site section definitions */
 export const SECTIONS = [
   { id: 'work', tag: '01', label: 'Works' },
   { id: 'about', tag: '02', label: 'About' },

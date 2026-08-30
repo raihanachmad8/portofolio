@@ -2,20 +2,21 @@
 import { SECTIONS } from '../lib/utils';
 import { getProfile } from '../lib/content';
 import { getRuntimeEnv } from '../lib/utils';
-import { createTranslator, detectLocale } from '@i18n';
-
-interface Props {
-  shortName?: string;
-  available?: boolean;
-}
+import { getLocale } from '@i18n';
+import type { Profile } from '@lib/schemas';
 
 const env = getRuntimeEnv(Astro);
-const profile = await getProfile(env);
+let profile: Profile = { shortName: 'dev' } as Profile;
+try {
+  profile = await getProfile(env);
+} catch (e) {
+  console.warn('[Header] Failed to fetch profile:', (e as Error).message);
+  profile = { shortName: 'dev' };
+}
 const shortName = profile.shortName || 'dev';
 const available = profile.available;
 
-const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
-const t = createTranslator(locale);
+const { locale, t } = getLocale(Astro);
 ---
 
 <header id="hdr">
@@ -28,7 +29,7 @@ const t = createTranslator(locale);
     </nav>
     <div class="header-actions">
       <div class="lang-switcher">
-        <button class="lang-btn" data-lang={locale === 'en' ? 'id' : 'en'} onclick="switchLang(this.dataset.lang)" aria-label="Switch language">{locale === 'en' ? 'ID' : 'EN'}</button>
+        <button class="lang-btn" data-lang={locale === 'en' ? 'id' : 'en'} aria-label="Switch language">{locale === 'en' ? 'ID' : 'EN'}</button>
       </div>
       <div class="theme-switcher" role="radiogroup" aria-label="Theme selection">
         <button class="theme-btn" data-theme="gallery" role="radio" aria-checked="false" aria-label="Gallery theme">G</button>
@@ -53,8 +54,10 @@ const t = createTranslator(locale);
 </div>
 
 <script is:inline>
-  function switchLang(lang) {
-    document.cookie = `locale=${lang};path=/;max-age=31536000;SameSite=Lax;Secure`;
+  document.querySelector('.lang-btn').addEventListener('click', function() {
+    const lang = this.dataset.lang;
+    const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+    document.cookie = `locale=${lang};path=/;max-age=${COOKIE_MAX_AGE};SameSite=Lax;Secure`;
     window.location.reload();
-  }
+  });
 </script>

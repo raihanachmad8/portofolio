@@ -12,15 +12,14 @@ import NewsTicker from '@components/NewsTicker.astro';
 import SEO from '@components/SEO.astro';
 import { getProfile } from '@lib/content';
 import { getRuntimeEnv } from '@lib/utils';
-import { detectLocale, createTranslator } from '@i18n';
+import { getLocale } from '@i18n';
 
 const env = getRuntimeEnv(Astro);
 const profile = await getProfile(env);
-const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
-const t = createTranslator(locale);
+const { locale } = getLocale(Astro);
 ---
 
-<Base lang={locale} title={`${profile.name} — ${profile.roleTitle}`} description={profile.heroSub} themeDefault="gallery">
+<Base lang={locale} title={`${profile.name} — ${profile.roleTitle}`} themeDefault="gallery">
   <SEO
     title={`${profile.name} — ${profile.roleTitle}`}
     description={profile.heroSub}

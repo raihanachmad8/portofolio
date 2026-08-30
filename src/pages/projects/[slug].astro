@@ -3,31 +3,31 @@ import Base from '@layouts/Base.astro';
 import Header from '@components/Header.astro';
 import ContactFooter from '@components/ContactFooter.astro';
 import { getProjectBySlug, getProjectContent, getProfile } from '@lib/content';
-import { getRuntimeEnv } from '@lib/utils';
+import { resolveImageUrl, getRuntimeEnv, SITE_URL, OG_DEFAULT_IMAGE } from '@lib/utils';
 import { marked } from 'marked';
-import { detectLocale, createTranslator } from '@i18n';
+import { getLocale } from '@i18n';
 import SEO from '@components/SEO.astro';
+import { buildBreadcrumbSchema } from '@lib/seo-helpers';
 
 const { slug } = Astro.params;
+if (!slug) return new Response('Not found', { status: 404 });
 const env = getRuntimeEnv(Astro);
-const project = await getProjectBySlug(slug as string, env);
+const project = await getProjectBySlug(slug, env);
 const profile = await getProfile(env);
-const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
-const t = createTranslator(locale);
+const { locale, t } = getLocale(Astro);
 
 if (!project) {
-  return Astro.redirect('/projects');
+  return new Response('Not found', { status: 404 });
 }
 
 const contentMd = await getProjectContent(project.id, project.content || '', env);
 const contentHtml = marked(contentMd);
 
 const hasUi = project.has_ui !== false;
-import { resolveImageUrl } from '@lib/config';
 const imgSrc = resolveImageUrl(project.image_url, env?.PUBLIC_SITE_URL);
 const stackItems = project.stack.split(',').map((tech: string) => tech.trim());
 
-const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://raihanachmad.web.id';
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || SITE_URL;
 const projectUrl = `${siteUrl}/projects/${project.slug}`;
 
 const softwareSourceCodeSchema = {
@@ -35,7 +35,7 @@ const softwareSourceCodeSchema = {
   '@type': 'SoftwareSourceCode',
   name: project.title,
   description: project.description,
-  url: project.url || project.github_url || projectUrl,
+  url: project.github_url || projectUrl,
   codeRepository: project.github_url || '',
   programmingLanguage: stackItems,
   runtimePlatform: project.category,
@@ -47,33 +47,14 @@ const softwareSourceCodeSchema = {
   },
 };
 
-const breadcrumbSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: [
-    {
-      '@type': 'ListItem',
-      position: 1,
-      name: t('common.home'),
-      item: siteUrl,
-    },
-    {
-      '@type': 'ListItem',
-      position: 2,
-      name: t('projects.title'),
-      item: `${siteUrl}/projects`,
-    },
-    {
-      '@type': 'ListItem',
-      position: 3,
-      name: project.title,
-      item: projectUrl,
-    },
-  ],
-};
+const breadcrumbSchema = buildBreadcrumbSchema([
+  { name: t('common.home'), url: siteUrl },
+  { name: t('projects.title'), url: `${siteUrl}/projects` },
+  { name: project.title, url: projectUrl },
+]);
 ---
 
-<Base lang={locale} title={`${project.title} — ${t('projects.title')}`} description={project.description} themeDefault="gallery">
+<Base lang={locale} title={`${project.title} — ${t('projects.title')}`} themeDefault="gallery">
   <SEO
     title={`${project.title} — ${t('projects.title')}`}
     description={project.description}

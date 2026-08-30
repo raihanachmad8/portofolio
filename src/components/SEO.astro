@@ -1,13 +1,12 @@
 ---
-import { createTranslator, detectLocale, getOgLocale, localizedPath } from '@i18n';
+import { getLocale, getOgLocale, localizedPath } from '@i18n';
 import type { Locale } from '@i18n';
+import { SITE_URL } from '@lib/utils';
 
 interface Props {
   title?: string;
   description?: string;
   image?: string;
-  imageWidth?: number;
-  imageHeight?: number;
   url?: string;
   type?: string;
   author?: string;
@@ -20,8 +19,6 @@ const {
   title,
   description,
   image = '/images/og-default.jpg',
-  imageWidth = 1200,
-  imageHeight = 630,
   url = Astro.url.href,
   type = 'website',
   author = '',
@@ -30,15 +27,18 @@ const {
   sameAs = [],
 } = Astro.props;
 
-const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
-const t = createTranslator(locale);
+const { locale, t } = getLocale(Astro);
+
+const imageWidth = 1200;
+const imageHeight = 630;
 
 const seoTitle = title || t('seo.defaultTitle');
 const seoDescription = description || t('seo.defaultDescription');
 const siteName = t('seo.siteName');
 const ogLocale = getOgLocale(locale);
 
-const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://raihanachmad.web.id';
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || SITE_URL;
+
 const fullImageUrl = image.startsWith('http') ? image : `${siteUrl}${image}`;
 
 const alternates: { lang: Locale; href: string }[] = [

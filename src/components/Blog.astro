@@ -1,17 +1,23 @@
 ---
 import SectionHead from './SectionHead.astro';
 import { getAllPosts } from '../lib/content';
-import { fmtDate, getRuntimeEnv } from '../lib/utils';
-import { createTranslator, detectLocale } from '@i18n';
+import { formatDate, getRuntimeEnv, FEATURED_POST_LIMIT } from '../lib/utils';
+import { getLocale } from '@i18n';
+import type { Blog } from '@lib/schemas';
 
 const env = getRuntimeEnv(Astro);
-const allPosts = await getAllPosts(env);
+let allPosts: Blog[] = [];
+try {
+  allPosts = await getAllPosts(env);
+} catch (e) {
+  console.warn('[Blog] Failed to fetch posts:', (e as Error).message);
+  allPosts = [];
+}
 const posts = allPosts
   .filter(p => p.featured)
-  .slice(0, 4);
+  .slice(0, FEATURED_POST_LIMIT);
 
-const locale = detectLocale(Astro.request.headers.get('cookie'), Astro.url);
-const t = createTranslator(locale);
+const { t } = getLocale(Astro);
 ---
 
 <section id="blog">
@@ -22,7 +28,7 @@ const t = createTranslator(locale);
         <a href={`/blog/${post.slug}`} class="blog-card" data-reveal>
           <div class="blog-card-top mono">
             <span>{post.category}</span>
-            <span>{fmtDate(post.published_date)}</span>
+            <span>{formatDate(post.published_date)}</span>
           </div>
           <h3>{post.title}</h3>
           <p>{post.excerpt}</p>
