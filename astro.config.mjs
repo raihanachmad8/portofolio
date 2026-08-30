@@ -6,7 +6,7 @@ import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
   output: 'server',
-  adapter: cloudflare(),
+  adapter: cloudflare({ mode: 'pages' }),
   integrations: [tailwind(), mdx()],
   i18n: {
     defaultLocale: 'en',
