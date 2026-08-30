@@ -49,8 +49,9 @@
   position: absolute;
   right: 0;
   bottom: 72px;
-  max-width: 400px;
-  padding: .9rem 1.1rem;
+  max-width: min(400px, calc(100vw - 48px));
+  white-space: nowrap;
+  padding: .7rem 1rem;
   border: 1px solid var(--acc);
   border-radius: 12px;
   border-bottom-right-radius: 4px;
@@ -669,7 +670,6 @@
   .aruna-tip {
     right: 0;
     bottom: 64px;
-    max-width: calc(100vw - 24px);
   }
 
   .aruna-window {
