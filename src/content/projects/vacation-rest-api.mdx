@@ -4,8 +4,8 @@ slug: vacation-rest-api
 category: "Competition Project"
 year: 2024
 has_ui: false
-description: "Enterprise REST API built with NestJS, Prisma, JWT auth, Winston logging, and caching for Iconic IT 2024 national competition — ranked 6th nationally."
-stack: "NestJS 10,TypeScript,Prisma ORM,JWT,Winston,Cache Manager,Zod,Jest,Docker"
+description: "NestJS 10 enterprise REST API with 66 endpoints, JWT refresh rotation, RBAC, and a 27-model Prisma schema, built for the Iconic IT 2024 national competition and ranked 6th."
+stack: "NestJS 10,TypeScript,Prisma,PostgreSQL,JWT,Passport,bcrypt,Zod,Winston,Multer,Docker"
 github_url: "https://github.com/raihanachmad8/Vacation-Restapi"
 live_url: ""
 featured: true
@@ -15,86 +15,264 @@ order: 3
 
 ## Overview
 
-Vacation REST API was built for the Iconic IT 2024 national competition in the Web Development category. The task was to build an enterprise-style REST API using NestJS with proper modular architecture, TypeScript, and deployment readiness. I built this project solo and ranked 6th nationally — nearly making the top 5 if not for deployment issues on the final day. The competition validated my NestJS skills and taught me critical lessons about production deployment.
+Vacation REST API is an enterprise-grade NestJS backend I built solo for the Iconic IT 2024 national competition in the Web Development category. It exposes 66 endpoints across 7 feature modules, backed by a 27-model Prisma schema, JWT auth with refresh rotation, RBAC, and zod validation. I ranked 6th nationally. A deployment issue on the final day cost a higher finish, and that failure taught me more about shipping than the parts that worked.
+
+| Metric | Value |
+|---|---|
+| Endpoints | 66 |
+| Prisma models | 27 + 9 enums |
+| Feature modules | 7 |
+| Role-restricted routes | 29 |
+| Auth | JWT access + refresh rotation, DB-backed revocation |
+| Tests | ~20 cases (unit + e2e) |
 
 ## Problem
 
-- The competition required an enterprise-grade REST API built with NestJS under deadline pressure
-- I had limited experience with NestJS at the time — this was my first deep dive into the framework
-- Deployment issues on H-1 nearly derailed the submission, highlighting gaps in my deployment knowledge
-- The competition demanded professional code quality with proper patterns, not just working functionality
+- The competition demanded an enterprise-grade NestJS API under a hard deadline
+- I had little NestJS experience at that point, so the framework itself was the steep part
+- A deployment problem on H-1 put the submission at risk and exposed gaps in my release process
+- Judges scored architecture and code quality, not just working endpoints
 
 ## Goal
 
-- Build a modular, production-style REST API with NestJS demonstrating enterprise architecture patterns
-- Demonstrate enterprise patterns: guards, decorators, DTOs, and module separation
-- Add structured logging with Winston and caching with cache-manager for production readiness
-- Deploy to a live server for competition evaluation within the deadline
+- Build a modular NestJS API with clean module separation and enterprise patterns
+- Ship a real auth system: register, login, refresh rotation, and logout with revocation
+- Model four feature domains end to end: articles, hidden gems, events, and kanban boards
+- Containerize the app and add seeders so the whole data model is reproducible
 
 ## Role
 
-I built the entire backend independently under competition conditions, managing architecture, implementation, and deployment.
+I built the entire backend alone under competition conditions. Architecture, implementation, auth, seeding, and deployment were all mine.
 
 **Team:** Achmad Raihan Fahrezi Effendy (Solo Developer)
-
-## User Stories
-
-- **As a competition evaluator**, I want well-structured modular code so that I can assess architectural quality at a glance
-- **As an API consumer**, I want consistent response formats and error messages so that I can integrate the API without guessing edge cases
-- **As a system administrator**, I want structured logs with Winston so that I can trace requests and diagnose issues in production
-- **As a performance-conscious developer**, I want response caching so that frequently accessed endpoints return results without hitting the database
-
-## Use Case
-
-**Scenario: Competing at Iconic IT 2024**
-
-On competition day, the evaluator sends authenticated requests to the Vacation REST API. JWT guards enforce role-based access on every endpoint. The request hits a NestJS controller, passes through DTO validation with Zod, and reaches the service layer. Prisma executes a type-safe query against PostgreSQL. Winston logs the request with timing metadata, and cache-manager returns a cached response for repeat queries. The evaluator reviews the Swagger documentation, inspects the modular architecture, and scores the submission — landing 6th nationally.
 
 ## Architecture
 
 ```mermaid
 flowchart TD
-    A["NestJS 10 App"] --> B["Modules"]
-    B --> C["Controllers"]
-    B --> D["Services"]
-    B --> E["Guards"]
-    B --> F["Decorators"]
-    D --> G["Prisma ORM"]
-    G --> H[("PostgreSQL")]
-    I["Docker"] --> A
-    I --> H
-    J["Winston Logger"] --> A
-    K["Cache Manager"] --> D
+    A["Client"] --> G["JwtAuthGuard (global)"]
+    G --> B["Controller"]
+    B --> C["RolesGuard + @Roles"]
+    B --> D["Service"]
+    D --> E["ValidationService (zod)"]
+    D --> F["PrismaService"]
+    F --> H[("PostgreSQL")]
+    D --> I["Winston Logger"]
+    D --> J["CacheManager (view dedupe)"]
+    B --> K["Multer file upload"]
 ```
+
+Seven feature modules sit behind a global JWT guard: auth, article, user, hidden-gems, event, board, and file-storage. Two global modules provide Prisma and the Winston logger. Guards and decorators keep auth logic out of the services.
+
+## Database Design
+
+The Prisma schema models four domains. Users own articles, hidden gems, events, and kanban boards. Articles carry tags, likes, bookmarks, and nested comments. Hidden gems carry categories, ratings, and operating hours. Boards carry teams, cards, and task lists. This is the core of the 27-model schema.
+
+```mermaid
+erDiagram
+    User ||--o{ PersonalAccessToken : "refresh tokens"
+    User ||--o{ Article : "authors"
+    Article ||--o{ Tag : "m2m"
+    Article ||--o{ ArticleComment : "has"
+    ArticleComment ||--o{ ArticleCommentReply : "replies"
+    User ||--o{ HiddenGems : "lists"
+    HiddenGemsCategory ||--o{ HiddenGems : "groups"
+    User ||--o{ HiddenGemsRating : "rates"
+    User ||--o{ Event : "hosts"
+    EventCategory ||--o{ Event : "groups"
+    User ||--o{ KanbanBoard : "owns"
+    KanbanBoard ||--o{ KanbanTeam : "team"
+    KanbanBoard ||--o{ KanbanCard : "cards"
+    KanbanCard ||--o{ KanbanTaskList : "tasks"
+
+    User {
+        string user_id PK
+        string role "ADMIN / MEMBER"
+        string fullname
+        string email UK
+        string username UK
+        string password
+        string salt
+    }
+    PersonalAccessToken {
+        int id PK
+        string access_token UK
+        string refresh_token UK
+        string user_id FK
+        datetime expires_access_token
+        datetime expires_refresh_token
+    }
+    Article {
+        string article_id PK
+        string title
+        text content
+        string status "DRAFT / PUBLISHED"
+        int count_view
+        string user_id FK
+    }
+    Tag {
+        string tag_name PK
+    }
+    ArticleComment {
+        string comment_id PK
+        string article_id FK
+        string user_id FK
+        text comment
+    }
+    ArticleCommentReply {
+        string reply_id PK
+        string comment_id FK
+        string parent_id "self-reply"
+        text comment
+    }
+    HiddenGems {
+        string hidden_gem_id PK
+        string title
+        int price_start
+        int price_end
+        string status "PENDING / REVISION / REJECT / APPROVE"
+        string category_id FK
+        string user_id FK
+    }
+    HiddenGemsRating {
+        string hidden_gem_id FK
+        string user_id FK
+        float rating
+    }
+    Event {
+        string event_id PK
+        string title
+        int price_start
+        int price_end
+        string status "PENDING / REVISION / REJECT / APPROVE"
+        string category_id FK
+        string user_id FK
+    }
+    KanbanBoard {
+        string board_id PK
+        string title
+        string user_id FK
+    }
+    KanbanTeam {
+        string team_id PK
+        string board_id FK
+        string user_id FK
+        string role "OWNER / ADMIN / MEMBER"
+        string permission "EDIT / COMMENT / VIEW"
+    }
+    KanbanCard {
+        string card_id PK
+        string board_id FK
+        string title
+        string status "TODO / DOING / DONE"
+        string priority "LOW / MEDIUM / HIGH"
+    }
+    KanbanTaskList {
+        string task_list_id PK
+        string card_id FK
+        text task
+        boolean is_done
+    }
+```
+
+## Auth Flow
+
+Auth uses an access token and a rotating refresh token, both stored in the database so any session can be revoked. Register hashes the password with bcrypt and a per-user salt, then issues a token pair. Every refresh deletes the old pair and issues a new one.
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant A as AuthController
+    participant S as AuthService
+    participant D as Prisma (PostgreSQL)
+    participant V as ValidationService
+
+    C->>A: POST /auth/register
+    A->>V: validate (zod)
+    A->>S: register(data)
+    S->>D: Check email unique
+    S->>D: Create user (bcrypt + salt)
+    S->>D: Store access + refresh token
+    S-->>C: { access_token, refresh_token }
+    C->>A: POST /auth/refresh (refresh token)
+    A->>S: refresh(user)
+    S->>D: Delete old token row
+    S->>D: Issue new pair
+    S-->>C: new token pair
+    C->>A: DELETE /auth/logout
+    A->>S: logout(user)
+    S->>D: Revoke active tokens
+```
+
+## Content Workflow
+
+Hidden gems and events run through a moderation state machine. A member submits a listing as PENDING. An admin approves it, sends it back for REVISION, or rejects it. A revision resets the listing to PENDING again.
+
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING: Member submits
+    PENDING --> APPROVE: Admin approves
+    PENDING --> REVISION: Admin requests changes
+    PENDING --> REJECT: Admin rejects
+    REVISION --> PENDING: Member resubmits
+    APPROVE --> [*]
+    REJECT --> [*]
+```
+
+![NestJS module and controller structure](/images/projects/vacation-rest-api/api.png)
 
 ## Key Features
 
-- **Modular Architecture** — Clean separation of modules, controllers, services, and guards following NestJS conventions
-- **Enterprise Patterns** — Custom decorators, DTOs with validation, and guard-based authentication
-- **Schema-Driven Data Access** — Prisma for type-safe database operations with migrations and seeding
-- **Structured Logging** — Winston integration for request tracking and debugging with custom log formats
-- **Response Caching** — Cache-manager for frequently accessed data with configurable TTL
-- **Docker Integration** — Containerized development and deployment environment for consistency
+- **JWT Auth with Rotation**: Access token (3h) plus a refresh token (3d), rotated on every refresh and revoked on logout
+- **DB-Backed Sessions**: Every token row lives in `refresh_tokens`, so a leaked token is revoked instantly
+- **RBAC**: `RolesGuard` with 29 role-restricted handlers across ADMIN and MEMBER
+- **Three-Layer Board ACL**: Access, edit-permission, and ownership guards for kanban teams
+- **zod Validation**: Services validate through a shared `ValidationService`, with a global filter mapping `ZodError` to HTTP 400
+- **Four Feature Domains**: Articles, hidden gems, events, and kanban boards, each with nested comments, likes, and status flows
+- **Winston Logging**: Console and file transports wired through the Prisma client and a user-agent middleware
+- **Prisma Seeders**: 24 seeder files generate 8 users, 15 articles, 10 hidden gems, 10 events, and 10 boards
+- **Multer File Storage**: Uploads land on disk with per-user folders and a public serve route
+- **Docker**: Multi-stage Dockerfile for dev and production builds
+
+## Routes
+
+66 endpoints across 7 prefixes. Fourteen are public; the rest sit behind the global JWT guard.
+
+| Module | Endpoints | Notable routes |
+|---|---|---|
+| auth | 4 | register, login, refresh, logout |
+| user | 3 | profile, update, search |
+| article | 14 | CRUD, tags, like, bookmark, nested comments |
+| hidden-gems | 13 | CRUD, categories, ratings, admin approve/reject/revision |
+| event | 11 | CRUD, categories, interest, admin moderation |
+| file-storage | 3 | upload, delete, public serve |
+| board | 18 | kanban CRUD, team invite, share links, ownership transfer |
 
 ## Technical Decisions
 
-- **NestJS** was chosen because the competition valued enterprise architecture patterns and modular design
-- **Prisma** was used for schema-first development and type safety, catching errors at compile time
-- **Winston** was added for production-ready structured logging that competitors often overlooked
-- **Cache-manager** was included to demonstrate performance optimization awareness and reduce database load
-- **Docker** was added to demonstrate production-ready deployment practices and environment consistency
+- **NestJS** because the competition valued modular architecture and dependency injection
+- **Prisma + PostgreSQL** for schema-first development and compile-time type safety across 27 models
+- **JWT refresh rotation** over long-lived tokens, so revoking a device does not require invalidating the whole account
+- **bcrypt with per-user salt** stored in its own column, matching the pattern I used across my PHP projects
+- **zod over class-validator** for schemas that read like data, with the validation layer kept separate from the DTO classes
+- **Winston** for structured logs with file persistence, a layer most competitors skipped
+- **Cache-manager** scoped to one job, deduplicating article view counts per IP instead of caching whole responses
+
+![Mobile API client consuming the vacation endpoints](/images/projects/vacation-rest-api/mobile.jpeg)
 
 ## Challenges
 
-- Learning NestJS decorators, dependency injection, and module system under competition pressure required rapid skill acquisition
-- Deployment server issues on H-1 nearly prevented submission — this taught me the importance of deployment testing early and having rollback strategies
-- Balancing competition features with code quality required strict prioritization and scope management
-- Working solo under time pressure demanded efficient decision-making without the benefit of team collaboration
+- Learning NestJS decorators, dependency injection, and the module system under competition pressure
+- The H-1 deployment failure threatened to block the submission and taught me to test releases early with a rollback plan
+- Modeling nested comments and self-referential replies in Prisma took careful relation design
+- Keeping four feature domains consistent under a solo deadline forced strict scope control
 
 ## Outcome
 
-Ranked 6th nationally in the Web Development category at Iconic IT 2024. The judges noted the modular architecture and enterprise patterns, though deployment issues prevented a higher ranking. The experience validated my NestJS proficiency and identified deployment as a critical skill gap.
+The API ranked 6th nationally in the Web Development category at Iconic IT 2024. Judges noted the modular architecture and enterprise patterns; the deployment issue on the final day cost a higher finish. The experience confirmed my NestJS skills and flagged deployment as the gap to close next.
+
+![Competition coverage and result write-up](/images/projects/vacation-rest-api/article.jpeg)
 
 ## Final Thoughts
 
-Vacation REST API was the project that proved I could compete at a national level. The deployment failure on the final day was painful, but it taught me that deployment is not an afterthought — it is part of the product. The NestJS proficiency I gained here became the foundation for my internship work at DOT Indonesia. The competition experience reinforced that building working code is only half the challenge; getting it into production reliably is equally important.
+Vacation REST API proved I could compete at a national level. The deployment failure hurt at the time, but it made deployment a first-class part of my workflow instead of an afterthought. The NestJS skills carried into my internship at DOT Indonesia, and the lesson stuck: shipping working code is half the job, getting it into production is the other half.

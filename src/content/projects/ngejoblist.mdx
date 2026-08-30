@@ -4,8 +4,8 @@ slug: ngejoblist
 category: "Internship Requirement"
 year: 2024
 has_ui: false
-description: "Job-platform backend built with NestJS, Prisma, PostgreSQL, JWT auth, Cloudinary uploads, Winston logging, and Swagger documentation."
-stack: "NestJS 10,TypeScript,Prisma ORM,PostgreSQL,JWT,Cloudinary,Winston,Swagger,Zod,Jest"
+description: "Job-platform backend with 21 endpoints, dual JWT auth with DB-backed refresh, role-based access, Swagger docs, and 86 tests, built with NestJS, Prisma, and PostgreSQL."
+stack: "NestJS 10,TypeScript,Prisma,PostgreSQL,JWT,Passport,bcrypt,Cloudinary,Winston,Swagger,Zod,Jest"
 github_url: "https://github.com/raihanachmad8/ngejoblist"
 live_url: ""
 featured: true
@@ -15,92 +15,179 @@ order: 7
 
 ## Overview
 
-Ngejoblist was built as a technical requirement for an internship application. The task was to build a job platform backend using NestJS, demonstrating production-style API structure, authentication, and business logic. This project pushed me beyond coursework into building something that resembled a real product with enterprise-grade patterns and documentation.
+Ngejoblist is a job-platform backend built as a technical requirement for an internship application. It exposes 21 endpoints under `api/v1` for authentication, jobs, applications, and profiles, backed by a 5-model Prisma schema. Auth runs on dual JWTs with database-backed refresh tokens, Swagger documents every route, and 86 tests cover the modules. It was the project that made me proficient with NestJS.
+
+| Metric | Value |
+|---|---|
+| API endpoints | 21 |
+| Prisma models | 5 + 2 enums |
+| Tests | 86 (27 unit + 59 e2e) |
+| Feature modules | 4 |
+| Auth | JWT access + refresh, DB-backed |
+| Swagger | Live at /api/docs |
 
 ## Problem
 
-- The internship application required a technical demonstration — not just a resume, but a working backend system
-- I needed to prove I could build production-style APIs with authentication, authorization, and complex business logic
-- The job platform domain required handling multiple entities: companies, jobs, applications, and users with proper relationships
-- The code needed to demonstrate professional patterns that would impress technical evaluators
+- The internship application asked for a working backend, not just a resume
+- The job domain needs users, companies, jobs, and applications in clear relation
+- The code had to demonstrate professional patterns that a technical evaluator would trust
 
 ## Goal
 
-- Build a job platform backend that demonstrates NestJS best practices and enterprise patterns
-- Implement JWT authentication with role-based access control for different user types
-- Add Cloudinary integration for image uploads without managing file storage infrastructure
-- Document every endpoint with Swagger for professional presentation
+- Build a NestJS backend with clean module separation and enterprise patterns
+- Implement JWT authentication with role-based access for ADMIN, COMPANY, and JOBSEEKER
+- Add Cloudinary uploads and document every endpoint with Swagger
+- Cover the flow with unit and e2e tests
 
 ## Role
 
-I built the entire backend independently, designing the architecture, implementing all modules, and writing comprehensive documentation.
+I built the entire backend independently, designing the architecture, implementing the modules, and writing the tests and documentation.
 
 **Team:** Achmad Raihan Fahrezi Effendy (Backend Developer)
-
-## User Stories
-
-- **As a job seeker**, I want to create a profile and upload my resume so that companies can find and evaluate me
-- **As a company recruiter**, I want to post job openings with detailed descriptions so that qualified candidates can apply directly
-- **As an administrator**, I want role-based access control so that each user type only sees the features relevant to them
-- **As a developer**, I want Swagger documentation for every endpoint so that the API is self-documenting for evaluators
-- **As a job applicant**, I want to track the status of my applications so that I know where I stand in the hiring process
-
-## Use Case
-
-**Scenario: Applying for a Job Position**
-
-A job seeker registers on Ngejoblist and verifies their account via JWT authentication. They browse available positions, filtering by location and job type. After finding a suitable role at a tech company, they submit an application with a cover letter. The application is stored via Prisma with proper relational linking between the user, job, and company. The company recruiter logs in, navigates to their dashboard, and reviews incoming applications sorted by date. They shortlist the candidate, triggering a status update that the applicant can track in real time.
 
 ## Architecture
 
 ```mermaid
 flowchart TD
-    A["NestJS 10 App"] --> B["Auth Module"]
-    A --> C["Users Module"]
-    A --> D["Companies Module"]
-    A --> E["Jobs Module"]
-    A --> F["Applications Module"]
-    B --> G["JWT Guards"]
+    A["Client"] --> G["AtGuard (JWT access)"]
+    G --> B["NestJS modules"]
+    B --> C["Auth module"]
+    B --> D["Jobs module"]
+    B --> E["Applications module"]
+    B --> F["Profiles module"]
     C --> H["Prisma ORM"]
     D --> H
     E --> H
     F --> H
     H --> I[("PostgreSQL")]
-    J["Cloudinary"] --> E
-    K["Winston Logger"] --> A
-    L["Swagger"] --> A
+    C --> J["RtGuard (refresh)"]
+    K["Cloudinary"] --> F
+    L["Winston"] --> B
+    M["Swagger /api/docs"] --> B
 ```
+
+Four feature modules sit behind access-token guards, with refresh-token handling in the auth module. Prisma maps every entity to PostgreSQL, and Swagger documents the whole surface.
+
+## Database Design
+
+Five models model the domain. A user is either a jobseeker or a company (one to one), a company posts many jobs, a user submits many applications, and each user holds persisted access and refresh tokens.
+
+```mermaid
+erDiagram
+    User ||--o| Company : "company profile"
+    Company ||--o{ Job : "posts"
+    User ||--o{ Application : "applies"
+    Job ||--o{ Application : "receives"
+    User ||--o{ PersonalToken : "sessions"
+
+    User {
+        int id PK
+        string email UK
+        string password_hash
+        string role "ADMIN / COMPANY / JOBSEEKER"
+    }
+    Company {
+        int id PK
+        int user_id FK
+        string name
+        string description
+        string logo_url
+    }
+    Job {
+        int id PK
+        int company_id FK
+        string title
+        string description
+        int salary_min
+        int salary_max
+        string location
+        datetime expires_at
+    }
+    Application {
+        int id PK
+        int job_id FK
+        int user_id FK
+        string status "PENDING / ACCEPTED / REJECTED / CANCELLED"
+    }
+    PersonalToken {
+        int id PK
+        int user_id FK
+        string access_token
+        string refresh_token
+        datetime expires_at
+    }
+```
+
+## Auth Flow
+
+Auth issues an access token (15 minutes) and a refresh token (7 days), both persisted in `PersonalToken` so a token can be revoked server-side. A refresh issues a new access token and keeps the refresh token. Signing out deletes the active row. Two scheduled jobs run in the background: purging expired tokens daily, and cancelling applications on jobs whose deadline has passed.
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant A as AuthService
+    participant D as Prisma
+    participant V as ValidationService
+
+    C->>A: POST /auth/register
+    A->>V: validate (zod)
+    A->>D: Create user (bcrypt)
+    A->>D: Persist access + refresh tokens
+    A-->>C: token pair
+    C->>A: POST /auth/refresh (refresh token)
+    A->>D: Verify + rotate
+    A-->>C: new access token
+    C->>A: POST /auth/logout
+    A->>D: Delete active token row
+    A-->>C: signed out
+```
+
+## API
+
+Twenty-one endpoints under `api/v1`.
+
+| Area | Endpoints | Purpose |
+|---|---|---|
+| Auth | 6 | register, login, refresh, logout, change password |
+| Jobs | 5 | job CRUD with filters |
+| Applications | 5 | apply, list, review, update status |
+| Profiles | 4 | user and company profiles with uploads |
+| App | 1 | root health |
+
+![Swagger documentation for the API](/images/projects/ngejoblist/swagger.png)
 
 ## Key Features
 
-- **JWT Authentication** — Register, login, and token refresh with bcrypt password hashing and secure token storage
-- **Role-Based Access** — Separate permissions for job seekers, companies, and administrators with guard-based enforcement
-- **Job Management** — Full CRUD operations for job postings with filtering, search, and pagination
-- **Application System** — Job seekers can apply to positions, companies can review and manage applications
-- **Image Uploads** — Cloudinary integration for company logos and job images with optimization
-- **Rate Limiting** — Throttler middleware to prevent API abuse and ensure fair usage
-- **Structured Logging** — Winston with daily log rotation for production-ready monitoring
-- **Swagger Docs** — Interactive API documentation for every endpoint with request/response examples
+- **Dual JWT Auth**: 15-minute access and 7-day refresh tokens, both stored in the database
+- **DB-Backed Revocation**: Signout and expiry delete the token row server-side
+- **Role-Based Access**: ADMIN, COMPANY, and JOBSEEKER separated by guards
+- **Job Management**: Post and filter jobs with salary range and date range
+- **Application System**: Jobseekers apply, companies review and update status
+- **Profile Uploads**: Cloudinary for user and company images
+- **Swagger Docs**: Live interactive documentation with bearer auth
+- **Scheduled Jobs**: Daily token purge and auto-cancelling applications on expired jobs
+- **Test Coverage**: 27 unit and 59 e2e cases across the modules
 
 ## Technical Decisions
 
-- **NestJS** was chosen because the internship required it — this was the project that made me proficient with the framework's architecture
-- **Prisma** was used for schema-first development and type-safe database queries, catching errors at compile time
-- **Cloudinary** was chosen for image uploads to avoid managing file storage infrastructure and benefit from CDN delivery
-- **Winston with daily rotation** was added for production-ready logging that doesn't consume excessive disk space
-- **Zod** was integrated for runtime validation alongside NestJS's built-in validation pipes
+- **NestJS** because the internship required it, and it made me proficient with the framework
+- **Prisma** for schema-first development and type-safe queries
+- **Dual JWT with DB persistence** so access stays short and refresh can be revoked
+- **Cloudinary** to avoid managing file storage and get CDN delivery
+- **Zod** for runtime validation alongside the framework pipes
+- **Swagger** wired through the module so evaluators could try every endpoint in the browser
 
 ## Challenges
 
-- Understanding NestJS modules, providers, and dependency injection took significant time — the framework's explicit DI system is more complex than Express middleware
-- Designing the application flow between job seekers and companies required careful schema planning to handle many-to-many relationships
-- Building something that felt "production-ready" without actual production deployment was a mental shift from academic projects
-- Writing comprehensive Swagger documentation for every endpoint required understanding OpenAPI specification format in detail
+- NestJS's explicit dependency injection took time to internalize after Express middleware
+- Designing the company, job, and application relations required careful schema planning
+- Keeping environment and config names consistent across `.env`, the config loader, and the README took careful alignment
+- Writing complete Swagger documentation meant learning the OpenAPI spec in detail
 
 ## Outcome
 
-The project was submitted as part of the internship application and demonstrated production-style backend skills. It became the foundation for my NestJS proficiency and influenced how I approach API design. The comprehensive documentation and clean architecture were noted positively during the evaluation process.
+The project shipped as a working job platform backend with live Swagger docs, role-based auth, and 86 passing tests. It became the foundation of my NestJS proficiency and shaped how I approach API design and documentation.
 
 ## Final Thoughts
 
-Ngejoblist taught me that building for a requirement is different from building for yourself. When the stakes are higher, the code needs to be cleaner, the decisions need to be more deliberate, and the documentation needs to be more thorough. That discipline carried into every project after. The experience also confirmed that NestJS's structured approach to backend development aligns with how I think about software architecture.
+Ngejoblist taught me that building for a requirement raises the bar. When a technical evaluator will read the code, the decisions need to be deliberate and the documentation thorough. That discipline carried into every project after, and NestJS's structured approach matched how I think about backend architecture.

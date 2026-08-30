@@ -4,8 +4,8 @@ slug: cinema-microservice
 category: "Internship Training"
 year: 2025
 has_ui: false
-description: "Cinema-domain microservice system with 7 services built with .NET Core 8, Entity Framework Core, NATS, Redis, Ocelot API Gateway, and Kubernetes."
-stack: "C#,.NET Core 8,Entity Framework Core,MSSQL,Redis,NATS,Ocelot,Docker,Kubernetes"
+description: "Cinema-domain microservice backend with 6 services, 22 NATS message subjects, and an Ocelot gateway, built with .NET 8, Entity Framework Core, and Redis."
+stack: "C#,.NET 8,Entity Framework Core,MSSQL,Redis,NATS,Ocelot,Docker"
 github_url: "https://github.com/raihanachmad8/cinema-microservice"
 live_url: ""
 featured: true
@@ -15,99 +15,195 @@ order: 6
 
 ## Overview
 
-Cinema Microservice was built during a two-week internship training program. The task was to learn .NET and build a microservice-based backend for a cinema domain. The system includes 7 services: IdentityService (JWT/OAuth), StudioService, MovieService, ScheduleService, TicketService, TransactionService, and Ocelot API Gateway. This was my first exposure to C# and the .NET ecosystem, requiring rapid learning of a new language and framework.
+Cinema Microservice was a two-week internship training project in .NET. The brief was to learn C# and build a microservice backend for a cinema domain, so I split the system into 6 services behind an Ocelot API gateway: identity, studio, movie, schedule, ticket, and transaction. The services talk over NATS with 22 message subjects, and Redis backs identity tokens and seat locking. It was my first C# codebase, and it grew to 14,000 lines across 6 databases.
+
+| Metric | Value |
+|---|---|
+| Microservices | 6 + API gateway |
+| Databases | 6 (one per service) |
+| Tables | 7 |
+| NATS subjects | 22 (6 request-reply + 16 events) |
+| Gateway routes | 17 |
+| Controller actions | 31 |
+| Code size | 14,265 LOC |
 
 ## Problem
 
-- The internship training required learning .NET and building a microservice within two weeks — an aggressive timeline
-- I needed to understand C#, Entity Framework Core, and the .NET dependency injection system from scratch
-- The cinema domain required handling shows, seats, bookings, and payments across multiple services
-- Distributed systems introduce complexity around service communication, data consistency, and deployment
+- The training demanded working microservices in a language I had never used
+- Cinema booking spans movies, schedules, seats, and payments across separate services
+- Services needed to coordinate without a shared database or distributed transactions
+- The whole system had to route through a single API entry point
 
 ## Goal
 
-- Learn .NET fundamentals and build working microservices with proper service separation
-- Implement NATS message broker for asynchronous inter-service communication
-- Add Redis caching for frequently accessed data and Ocelot API Gateway for unified routing
-- Create Kubernetes deployment manifests for container orchestration
+- Learn C# and .NET while building real service separation
+- Use NATS for asynchronous communication between services
+- Add Redis for token revocation and seat locking
+- Route everything through an Ocelot API gateway
 
 ## Role
 
-I built the backend services independently during the training period, learning .NET while implementing the microservice architecture.
+I built the backend services independently during the training period, learning .NET while implementing the architecture.
 
 **Team:** Achmad Raihan Fahrezi Effendy (Backend Developer)
-
-## User Stories
-
-- **As a moviegoer**, I want to browse available movies and showtimes so that I can plan my cinema visit
-- **As a cinema administrator**, I want to manage studios, movies, and schedules from a single dashboard so that operations stay organized
-- **As a ticket buyer**, I want to reserve a seat and complete payment seamlessly so that my booking is confirmed instantly
-- **As a backend developer**, I want each service to communicate asynchronously via NATS so that failures in one service don't cascade to others
-- **As a DevOps engineer**, I want Kubernetes deployment manifests ready so that the system can scale horizontally during peak hours
-
-## Use Case
-
-**Scenario: Booking a Movie Ticket**
-
-A moviegoer opens the cinema app and browses the movie catalog served by MovieService. They select a film and view available showtimes from ScheduleService, which retrieves cached results from Redis. The user picks a time slot and selects a seat. TicketService reserves the seat and publishes a booking event via NATS. TransactionService consumes the event, processes the payment, and confirms the reservation. The moviegoer receives a confirmation with their seat number and showtime — the entire flow routed through the Ocelot API Gateway with JWT authentication.
 
 ## Architecture
 
 ```mermaid
 flowchart TD
-    A["Ocelot API Gateway"] --> B["IdentityService"]
-    A --> C["MovieService"]
-    A --> D["ScheduleService"]
-    A --> E["TicketService"]
-    A --> F["TransactionService"]
-    A --> G["StudioService"]
-    B --> H[("MSSQL")]
-    C --> H
-    D --> H
-    E --> H
-    F --> H
-    G --> H
-    B --> I["Redis Cache"]
-    C --> I
-    E --> I
-    J["NATS Message Broker"] --> B
-    J --> C
-    J --> E
-    J --> F
-    K["Kubernetes"] --> A
-    K --> B
-    K --> C
+    G["Ocelot Gateway (5000)"] --> I["IdentityService (5001)"]
+    G --> S["StudioService (5002)"]
+    G --> M["MovieService (5003)"]
+    G --> C["ScheduleService (5004)"]
+    G --> T["TicketService (5005)"]
+    G --> X["TransactionService (5006)"]
+    N["NATS broker"] --- I
+    N --- S
+    N --- M
+    N --- C
+    N --- T
+    N --- X
+    I --> R1[("Redis: token store")]
+    T --> R2[("Redis: seat lock")]
+    I --> D1[("MSSQL: users")]
+    S --> D2[("MSSQL: studios")]
+    M --> D3[("MSSQL: movies")]
+    C --> D4[("MSSQL: schedules")]
+    T --> D5[("MSSQL: seats + tickets")]
+    X --> D6[("MSSQL: transactions")]
 ```
+
+Each service owns its database and exposes its domain through the gateway. Services coordinate over NATS, and Redis appears where it earns its place: identity token storage and ticket seat locking.
+
+## Database Design
+
+Each service owns one table (Ticket owns two). Cross-service references are logical ids, with a single enforced foreign key from `tickets` to `seats`.
+
+```mermaid
+erDiagram
+    seats ||--o{ tickets : "SeatId (FK)"
+
+    users {
+        int id PK
+        string email UK
+        string password_hash
+        datetime created_at
+        datetime deleted_at "soft delete"
+    }
+    studios {
+        int id PK
+        string name
+        string address
+        datetime deleted_at
+    }
+    movies {
+        int id PK
+        string title
+        int duration_min
+        string genre
+        datetime deleted_at
+    }
+    schedules {
+        int id PK
+        int movie_id "logical ref"
+        int studio_id "logical ref"
+        datetime show_time
+        datetime deleted_at
+    }
+    seats {
+        int id PK
+        int studio_id "logical ref"
+        string seat_number
+        string row_label
+    }
+    tickets {
+        int id PK
+        int seat_id FK
+        int schedule_id "logical ref"
+        int user_id "logical ref"
+        string status
+        datetime created_at
+    }
+    transactions {
+        int id PK
+        int ticket_id "logical ref"
+        int user_id "logical ref"
+        decimal total_amount
+        string status
+        datetime created_at
+    }
+```
+
+## Booking Flow
+
+A booking moves across services through NATS. The ticket service reserves a seat with a 5-minute Redis lock, publishes `ticket.created`, and the transaction service consumes it to build the payment record.
+
+```mermaid
+sequenceDiagram
+    participant U as Client
+    participant G as Ocelot Gateway
+    participant S as ScheduleService
+    participant T as TicketService
+    participant R as Redis
+    participant N as NATS
+    participant X as TransactionService
+
+    U->>G: GET showtimes
+    G->>S: schedule.get (request-reply)
+    S-->>G: Showtimes
+    U->>G: Reserve seat
+    G->>T: Reserve
+    T->>R: Lock seat (5 min TTL)
+    R-->>T: locked
+    T->>N: publish ticket.created
+    N-->>X: consume ticket.created
+    X->>X: Create transaction (pending)
+    T-->>G: Reservation confirmed
+```
+
+## API
+
+Seventeen routes through the Ocelot gateway cover all 6 services.
+
+| Service | Port | Domain |
+|---|---|---|
+| Identity | 5001 | register, login, token refresh |
+| Studio | 5002 | studio CRUD |
+| Movie | 5003 | movie CRUD |
+| Schedule | 5004 | showtimes |
+| Ticket | 5005 | seat reservation, ticket issue |
+| Transaction | 5006 | payment records |
 
 ## Key Features
 
-- **7 Microservices** — Identity, Movie, Studio, Schedule, Ticket, Transaction, API Gateway with clear separation of concerns
-- **JWT/OAuth Authentication** — IdentityService handles authentication and authorization across all services
-- **NATS Messaging** — Asynchronous communication between services for event-driven architecture
-- **Redis Caching** — Cached frequently accessed data (movies, schedules) to reduce database load
-- **Ocelot Gateway** — Unified entry point with routing, rate limiting, and request aggregation
-- **Kubernetes Manifests** — Deployment configs for container orchestration and scaling
-- **Entity Framework Core** — Standard ORM for data access with migrations and code-first approach
+- **6 Owned Services**: Identity, Studio, Movie, Schedule, Ticket, and Transaction, each with its own database
+- **NATS Messaging**: 22 subjects, 6 request-reply and 16 publish-subscribe events
+- **Ocelot Gateway**: Single entry point routing to all services
+- **JWT with JWKS**: Identity issues RS256 tokens and exposes a JWKS metadata endpoint
+- **Redis Token Store**: Identity keeps active and revoked tokens in Redis
+- **Redis Seat Lock**: Tickets lock a seat for 5 minutes during reservation, with a 10-minute pending window
+- **EF Core Migrations**: Versioned schema per service with soft deletes
 
 ## Technical Decisions
 
-- **.NET** was required by the training program, providing exposure to a major enterprise framework
-- **Entity Framework Core** was used because it is the standard ORM in the .NET ecosystem with strong community support
-- **NATS** was chosen for lightweight inter-service messaging, simpler than RabbitMQ for the training scope
-- **Ocelot** provided a simple API gateway without the overhead of Kong or Envoy, appropriate for the project scale
-- **Kubernetes manifests** were included to demonstrate container orchestration knowledge and deployment readiness
+- **.NET 8** because the training required it, and it forced me to learn a new ecosystem quickly
+- **Entity Framework Core** as the standard .NET ORM, with one database per service
+- **NATS** over a heavier broker for lightweight pub-sub and request-reply
+- **Ocelot** as a minimal gateway appropriate for the training scope
+- **Redis** only where it pays off, token revocation and short-lived seat locks, instead of caching everywhere
+- **Logical cross-service ids** to keep services independent, with one physical FK only inside the ticket service
 
 ## Challenges
 
-- Learning C# and .NET in two weeks while building a working project was intense — the language syntax, LINQ, and async/await patterns required rapid adaptation
-- The dependency injection system in .NET is more explicit than in NestJS — understanding service lifetimes (Singleton, Scoped, Transient) took time
-- Debugging across 7 services required learning new tools and distributed tracing concepts for a different ecosystem
-- Coordinating data consistency across microservices without distributed transactions introduced new architectural challenges
+- Learning C#, LINQ, and async/await inside two weeks while building the whole system
+- Debugging message flow across 6 services required tracing NATS subjects by hand
+- Coordinating data across services without distributed transactions forced careful event design
+- Keeping one database per service meant the schema had to be duplicated across boundaries
 
 ## Outcome
 
-The project was completed during the training period and demonstrated working microservice communication with NATS, Redis caching, and Ocelot routing. It showed me that backend concepts transfer across languages — dependency injection, service separation, and message brokers work the same way in .NET as in Node.js. The training experience expanded my technical versatility.
+The training project produced a working microservice backend with NATS communication, Redis-backed seat locking, and a unified gateway. It proved that the patterns I knew from Node.js, dependency injection, service separation, and message brokers, carry straight into .NET. The system has no automated tests, and the docker-compose runs a subset of services, so the full stack runs best from the IDE.
 
 ## Final Thoughts
 
-Cinema Microservice taught me that the language matters less than the patterns. Dependency injection, service separation, and message brokers work the same way whether you use TypeScript, PHP, or C#. The two weeks were intense, but the breadth of experience was worth it. This project proved that my understanding of software architecture transcends any single technology stack, making me a more adaptable developer.
+Cinema Microservice taught me that the language matters less than the patterns. Dependency injection, service separation, and event-driven communication work the same in TypeScript, PHP, and C#. The two weeks were intense, and the breadth of the .NET ecosystem was worth the speed of learning. This project made me more adaptable across backend stacks.
