@@ -1,104 +1,287 @@
 ---
-title: SAST Integration
+title: "SAST Integration"
 slug: sast-integration
-category: Thesis Project
+category: "Thesis Project"
 year: 2026
 has_ui: true
-description: "Static Application Security Testing platform with AI-powered verification using fine-tuned LLMs, built with Next.js, Ant Design, and Drizzle ORM."
-role: "Full-stack developer — platform design, AI integration, scanner integration, backend architecture, frontend development."
+description: "SAST platform thesis built on Next.js 16, Ant Design, and Drizzle with a 41-table schema, JWT auth, and workspace multi-tenancy; the SAST scanning and AI verification pipeline is the planned next milestone."
 stack: "Next.js 16,TypeScript,Ant Design,Drizzle ORM,PostgreSQL,TanStack Query,Zod,Vitest,Playwright"
 github_url: "https://github.com/raihanachmad8/sast-integration"
-live_url: null
+live_url: ""
 featured: true
-card_color: red
-image_url: null
-images: []
-order: 8
+image_url: "/images/projects/sast-integration/cover.webp"
+order: 5
 ---
 
 ## Overview
 
-SAST Integration is my thesis project — a Static Application Security Testing platform that integrates multiple security scanners (Semgrep, Gitleaks, Flawfinder) into a unified dashboard and uses fine-tuned LLMs (Qwen2.5-Coder, Llama3 via QLoRA) to verify findings and reduce false positives. The platform features multi-workspace RBAC with 24 permissions and 4 roles, SCM integration (GitHub/GitLab/Gitea), scan policies, PDF/XLSX reports, and scheduled scans.
+SAST Integration is my thesis project, currently at milestone M4 of a larger roadmap. It is a security platform for managing static-analysis workflows across workspaces, built on Next.js 16, Ant Design, and Drizzle. The foundation that is implemented and tested covers authentication, sessions, workspace multi-tenancy, teams, and a role hierarchy. The data model is the furthest along: a 41-table schema that already maps the full SAST and AI-verification domain. The scanning pipeline and the AI verification layer are the next milestones, designed in the schema and documented in the roadmap but not yet built.
+
+| Metric | Value |
+|---|---|
+| Database tables | 41 |
+| API route handlers | 24 |
+| Tests | 131 (46 unit + 42 e2e + 43 Playwright) |
+| Auth | JWT access + refresh, httpOnly cookie |
+| RBAC | 4 role levels, 24 permissions catalog |
+| Milestone | M4 (auth + workspace) |
 
 ## Problem
 
-- Traditional SAST tools produce high false-positive rates, making it difficult for developers to focus on real vulnerabilities
-- Security teams must manually triage findings from multiple scanners, which is time-consuming and error-prone
-- Existing SAST tools do not leverage AI to verify findings, leaving developers to manually validate each alert
+- Static-analysis tools drown developers in false positives that must be triaged by hand
+- No single platform ties multiple scanners to verified findings in a collaborative workspace
+- A thesis needs a research-grade platform whose data model supports the full problem even before every part ships
 
 ## Goal
 
-- Build a platform that integrates Semgrep, Gitleaks, and Flawfinder into a unified dashboard
-- Use fine-tuned LLMs (QLoRA) to classify findings as True or False Positives
-- Implement multi-workspace RBAC with granular permissions for team collaboration
-- Provide SCM integration for automatic scanning on push/PR events
+- Build a secure multi-tenant platform with rock-solid authentication as the foundation
+- Design a database that models scanners, findings, AI verification, reports, and webhooks end to end
+- Implement workspace and team management with a role hierarchy
+- Keep the SAST scanning and AI-verification milestones on the roadmap with the data model ready
 
 ## Role
 
-I built the entire platform independently — backend, frontend, AI integration, scanner orchestration, and deployment.
+I am building the entire platform independently, covering full-stack development, security, and the AI research agenda.
 
-**Team:** Achmad Raihan Fahrezi Effendy (Full-Stack Developer)
+**Team:** Achmad Raihan Fahrezi Effendy (Full-Stack Developer, thesis)
 
 ## Architecture
 
-<div class="mermaid" set:html={`flowchart TD
-  A["Next.js 16 App Router"] --> B["API Routes"]
-  A --> C["React 19 Components"]
-  B --> D["Drizzle ORM"]
-  B --> E["pg-boss Queue"]
-  D --> F[("PostgreSQL")]
-  E --> G["Scanner Workers"]
-  G --> H["Semgrep"]
-  G --> I["Gitleaks"]
-  G --> J["Flawfinder"]
-  B --> K["AI Verification"]
-  K --> L["QLoRA Fine-tuned LLMs"]
-  C --> M["Ant Design 6"]
-  C --> N["TanStack Query"]
-  O["SCM Webhooks"] --> B
-`} />
+```mermaid
+flowchart TD
+    A["Next.js 16 App Router"] --> P["proxy.ts (route guard)"]
+    P --> B["Auth (JWT access + refresh)"]
+    B --> C["Workspace module"]
+    B --> D["Members + teams"]
+    B --> E["RBAC roles"]
+    C --> F["Drizzle ORM"]
+    F --> G[("PostgreSQL")]
+    H["Scanner workers (roadmap)"] --> F
+    I["AI verification (roadmap)"] --> F
 
-| Layer | Technology | Purpose |
+    subgraph implemented["Implemented (M1-M4)"]
+        A
+        P
+        B
+        C
+        D
+        E
+        F
+        G
+    end
+
+    subgraph planned["Planned (M5+)"]
+        H
+        I
+    end
+```
+
+The implemented surface is auth, sessions, workspaces, members, and role levels. The SAST and AI modules exist as schema and roadmap entries, ready to be wired next.
+
+## Database Design
+
+The 41-table schema is the real core of the thesis. Identity and workspace tables use camelCase columns; the planned SAST domain uses snake_case. This is a subset showing both sides: the multi-tenant foundation that works today, and the scanner and AI tables that the next milestone fills.
+
+```mermaid
+erDiagram
+    users ||--o{ sessions : "sessions"
+    users ||--o{ workspace_members : "joins"
+    workspaces ||--o{ workspace_members : "members"
+    workspaces ||--o{ workspace_invitations : "invites"
+    workspaces ||--o{ projects : "owns"
+    projects ||--o{ scans : "scanned"
+    scans ||--o{ scan_results : "results"
+    scans ||--o{ findings : "finds"
+    findings ||--o{ ai_verifications : "verified"
+    workspaces ||--o{ teams : "teams"
+    teams ||--o{ team_members : "members"
+    permissions ||--o{ role_permissions : "role map"
+    users ||--o{ user_permissions : "overrides"
+
+    users {
+        uuid id PK
+        varchar email UK
+        text password_hash
+        timestamp email_verified_at
+        uuid current_workspace_id
+    }
+    sessions {
+        varchar id PK
+        uuid user_id FK
+        varchar ip_address
+        text user_agent
+    }
+    workspaces {
+        uuid id PK
+        varchar name
+        varchar slug UK
+        varchar type "personal / organization"
+    }
+    workspace_members {
+        uuid id PK
+        uuid workspace_id FK
+        uuid user_id FK
+        varchar role "owner / manager / reviewer / member"
+    }
+    workspace_invitations {
+        uuid id PK
+        uuid workspace_id FK
+        varchar email
+        varchar role
+        varchar token UK
+        timestamp expires_at
+    }
+    teams {
+        uuid id PK
+        uuid workspace_id FK
+        varchar name
+        varchar slug
+    }
+    team_members {
+        uuid id PK
+        uuid team_id FK
+        uuid user_id FK
+        varchar role "admin / contributor"
+    }
+    permissions {
+        uuid id PK
+        varchar name UK
+        varchar resource
+        varchar action
+    }
+    role_permissions {
+        uuid id PK
+        varchar role
+        uuid permission_id FK
+    }
+    projects {
+        uuid id PK
+        uuid workspace_id FK
+        varchar name
+        varchar platform
+        varchar language
+    }
+    scans {
+        uuid id PK
+        uuid project_id FK
+        varchar scanner "semgrep / gitleaks / flawfinder"
+        jsonb scan_policies
+    }
+    scan_results {
+        uuid id PK
+        uuid scan_id FK
+    }
+    findings {
+        uuid id PK
+        uuid scan_id FK
+        text cwe
+        text severity
+        text status
+    }
+    ai_verifications {
+        uuid id PK
+        uuid finding_id FK
+        varchar verdict
+        float confidence
+        text explanation
+        text fix_suggestion
+        int latency_ms
+    }
+    ai_models {
+        uuid id PK
+        varchar provider "ollama / openai_compatible / groq"
+        text base_url
+        text prompt_preset
+        varchar role
+        int priority
+    }
+```
+
+## Auth & Workspace Flow
+
+Authentication runs on JWT access and refresh tokens, with the refresh token in an httpOnly cookie and session rows checked on every request. Email verification and password reset use single-use tokens with rate limiting.
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant W as Web (auth pages)
+    participant P as proxy.ts
+    participant A as AuthService
+    participant D as PostgreSQL
+
+    U->>W: Sign up
+    W->>A: create account
+    A->>D: Insert user (bcrypt 12) + verify token
+    A->>U: Verification email
+    U->>A: Confirm email
+    A->>D: Set email_verified_at
+    U->>W: Sign in
+    W->>A: login
+    A->>D: Create session + tokens
+    A-->>W: Set refresh cookie
+    W->>P: Enter /workspaces
+    P->>A: Validate refresh token
+    A->>D: Check session row
+    A-->>W: Redirect to workspace
+```
+
+## API
+
+Twenty-four route handlers across 22 files, all auth and workspace.
+
+| Area | Handlers | Purpose |
 |---|---|---|
-| Frontend | Next.js 16, React 19 | App Router, server components |
-| UI | Ant Design 6 | Component library |
-| State | TanStack Query | Server state management |
-| Backend | Next.js API Routes | Server-side logic |
-| ORM | Drizzle ORM | Type-safe database access |
-| Database | PostgreSQL | Persistent storage |
-| Queue | pg-boss | Background scan processing |
-| AI | QLoRA (Qwen2.5-Coder, Llama3) | Vulnerability verification |
-| Validation | Zod | Schema validation |
-| Testing | Vitest, Playwright | Unit + E2E tests |
+| Auth | several | signup, signin, signout, email verify, password reset |
+| Workspace | several | CRUD, switch, settings |
+| Members | several | invite, accept, change role, remove |
+| Teams | several | team CRUD and membership |
 
 ## Key Features
 
-- **Multi-Scanner Integration** — Semgrep (SAST), Gitleaks (secrets), Flawfinder (C/C++) in one dashboard
-- **AI Verification** — QLoRA fine-tuned LLMs classify findings as True/False Positives
-- **Multi-Workspace RBAC** — 24 permissions, 4 roles for team collaboration
-- **SCM Integration** — GitHub, GitLab, Gitea webhooks for automatic scanning
-- **Scan Policies** — Configure which scanners run on which repositories
-- **Reports** — PDF and XLSX export of scan results
-- **Scheduled Scans** — Automated scanning on cron schedules
+- **JWT Auth with Refresh**: Access and refresh tokens, httpOnly refresh cookie, session rows for signout invalidation
+- **Email Verification & Password Reset**: Single-use tokens with rate limiting
+- **Workspace Multi-Tenancy**: Personal and organization workspaces with a chooser UI
+- **Member Invites**: Invite by email with role assignment and expiry
+- **Role Hierarchy**: owner, manager, reviewer, and member enforced through workspace middleware
+- **Permission Catalog**: 24 permissions and role mappings seeded in the database
+- **Route Guarding**: Next.js 16 `proxy.ts` protecting authenticated areas and redirecting guests
+- **Env Hardening**: Zod-validated environment that rejects default secrets in production
+- **Test Coverage**: 131 tests across unit, e2e, and Playwright, all green
+
+![Authentication and sign-in screen](/images/projects/sast-integration/auth.png)
+
+## Roadmap
+
+The schema and roadmap already define what comes next, even though the code does not implement it yet:
+
+- **SAST Scanning**: `scans`, `scan_results`, and `findings` tables model Semgrep, Gitleaks, and Flawfinder runs with policies
+- **AI Verification**: `ai_verifications` and `ai_models` model a model-agnostic verification layer with verdicts, confidence, and fix suggestions
+- **Reports, webhooks, quality gates, and scheduled scans**: all present as tables in the 41-table schema
+
+![Database schema overview](/images/projects/sast-integration/database.png)
 
 ## Technical Decisions
 
-- Next.js 16 with App Router for server components and API routes in one framework
-- Drizzle ORM over Prisma for lighter bundle size and SQL-like syntax
-- Ant Design for enterprise-grade components without building from scratch
-- pg-boss for background job processing without external queue infrastructure
-- QLoRA for fine-tuning LLMs on consumer hardware without full model training
+- **Next.js 16 App Router** with `proxy.ts` for route protection and server components
+- **Drizzle ORM** for a SQL-first schema that stays close to the database
+- **jose JWT** with HS256, short access tokens, and server-side session validation
+- **bcryptjs at 12 rounds** for password hashing
+- **Ant Design** for the enterprise UI surface
+- **Zod** across the stack, including strict environment validation in production
 
 ## Challenges
 
-- Integrating 3 different scanner outputs into a unified format required custom parsers for each tool
-- Fine-tuning LLMs for vulnerability classification required curating training data from real scan results
-- Designing RBAC with 24 permissions while keeping the UI intuitive required multiple iterations
+- Designing a 41-table schema that supports the full thesis problem before the code for each part exists
+- Keeping auth airtight as the foundation, since every later feature depends on it
+- Maintaining a consistent naming style across the schema as the two domains grew
+- Scoping the thesis so the implemented milestones stay shippable while the research agenda continues
 
 ## Outcome
 
-The platform successfully scans C/C++, JavaScript, and Python codebases using multiple scanners, verifies findings with AI, and presents results in a unified dashboard. The thesis documents the architecture, implementation, and evaluation of the AI verification approach.
+The project is on track for a June 2026 thesis defense with a working M4 foundation: secure auth, multi-tenant workspaces, role management, and a 41-table data model for the full SAST and AI domain. The remaining milestones build the scanning pipeline and AI verification on top of the schema already in place.
+
+![Workspace dashboard and members UI](/images/projects/sast-integration/ui.png)
 
 ## Final Thoughts
 
-SAST Integration is the most technically complex project I have built. It required understanding security scanners, AI fine-tuning, full-stack development, and academic research methodology. The project reinforced that the best software comes from understanding the problem deeply before writing the code.
+SAST Integration is the most ambitious project I have built, and it taught me to stage complexity. The schema forces the design thinking before the code, and the implemented foundation keeps the platform real while the research continues. Building it has sharpened my skills across security, full-stack development, and the discipline of a thesis timeline.

@@ -1,109 +1,307 @@
 ---
-title: SatuRT
+title: "SatuRT"
 slug: saturt
-category: Campus Project
+category: "Campus Project"
 year: 2024
 has_ui: true
-description: "Neighborhood association management system with 3 parallel Decision Support Systems (SPK) — Weighted Product and TOPSIS methods — built with Laravel 10, Blade, Tailwind CSS, Alpine.js, and MySQL."
-role: "Lead Developer — system architecture, RBAC, SPK integration, code review."
-stack: "Laravel 10,Blade,Tailwind CSS,Alpine.js,jQuery,MySQL,Sanctum,DomPDF"
+description: "Neighborhood association (RT) management system with 7 parallel Decision Support System (SPK) methods, built with Laravel 10, Blade, Tailwind CSS, Alpine.js, and MySQL, deployed at saturt.cloud."
+stack: "Laravel 10,Blade,Tailwind CSS,Alpine.js,MySQL,Sanctum,DomPDF,Intervention Image"
 github_url: "https://github.com/raihanachmad8/SatuRT"
 live_url: "https://saturt.cloud"
 featured: true
-card_color: green
 image_url: "/images/projects/saturt/cover.webp"
-images:
-  - "/images/projects/saturt/dashboard.png"
-  - "/images/projects/saturt/mockup.webp"
-  - "/images/projects/saturt/database.png"
 order: 4
 ---
 
 ## Overview
 
-SatuRT was built for a university course on Framework Programming (Laravel). The system manages neighborhood association (RT) data — residents, finances, events, complaints, document requests, and UMKM (local business) directory — and integrates 3 parallel Decision Support Systems (SPK) for analytical decision-making. While other teams implemented 1-2 SPK methods, I designed the architecture to support all 3, making the system significantly more functionally rich.
+SatuRT is a neighborhood association (RT) management system built for a Framework Programming course on Laravel. It handles resident data, family cards, finances, complaints, document requests, UMKM listings, announcements, and inventory borrowing for a single RT. On top of the daily operations, it runs a generic Decision Support engine with 7 SPK methods that rank activities, aid recipients, or any alternative against weighted criteria. The system deployed live at saturt.cloud for real-world testing.
+
+| Metric | Value |
+|---|---|
+| Database tables | 20 |
+| Routes | 150 (130 web + 20 read-only API) |
+| SPK decision methods | 7 |
+| User roles | 2 (Ketua RT, Penduduk) |
+| Models / Controllers | 17 / 29 |
+| Services | 26 |
+| Approx. code size | 33,000 LOC |
 
 ## Problem
 
-- Neighborhood associations (RT) manage resident data, dues, and events on paper or scattered spreadsheets
-- The coursework required integrating multiple Decision Support Systems for analytical decision-making
-- The team of 4 needed clear delegation — CRUD tasks to members, architecture and SPK logic to the lead
+- RT associations keep resident data, dues, and events on paper or scattered spreadsheets, which leads to loss and inefficiency
+- The course required a Decision Support System that ranks alternatives against weighted criteria
+- The team needed clear delegation: CRUD work to members, architecture and decision logic to the lead
+- Existing neighborhood tools lacked the analytics needed for data-driven decisions
 
 ## Goal
 
-- Build a Laravel application with role-based access control (RBAC) using Laravel Sanctum
-- Integrate 3 SPK methods in parallel for resident and aid analysis
-- Implement PDF generation for reports and HTML purification for user content
-- Deploy to a live server for real-world testing
+- Build a Laravel app with role-based access control using Laravel Sanctum and role middleware
+- Ship a generic Decision Support engine that works for any criteria set, not one hard-coded case
+- Generate official letters as PDF and keep a running balance of RT finances
+- Deploy to a live server for real-world use and demonstration
 
 ## Role
 
-I led the architecture and core implementation, delegating CRUD operations to team members and focusing on RBAC and SPK logic.
+I led the architecture and core implementation, delegated the CRUD work to teammates, and focused on RBAC, the decision-support engine, and the production deployment.
 
 **Team:** Achmad Raihan Fahrezi Effendy (Lead Developer) + 3 teammates
 
 ## Architecture
 
-<div class="mermaid" set:html={`flowchart TD
-  A["Laravel 10 App"] --> B["Auth + Sanctum"]
-  A --> C["Controllers"]
-  A --> D["SPK Engine"]
-  C --> E["Eloquent ORM"]
-  D --> F["SPK Method 1"]
-  D --> G["SPK Method 2"]
-  D --> H["SPK Method 3"]
-  E --> I[("MySQL")]
-  J["Blade Templates"] --> K["Views"]
-  L["Alpine.js"] --> K
-  M["Tailwind CSS"] --> K
-  N["DomPDF"] --> O["PDF Reports"]
-`} />
+```mermaid
+flowchart TD
+    A["Browser (Blade + Tailwind + Alpine)"] --> B["Laravel Router"]
+    B --> C["checkRole middleware"]
+    C --> D["Controller"]
+    D --> E["Service layer"]
+    E --> F["Model"]
+    F --> G[("MySQL")]
+    D --> H["DecisionMakerService"]
+    H --> I["7 SPK engines"]
+    D --> J["DomPDF"]
+    D --> K["Intervention Image"]
+    L["Sanctum"] --> C
+```
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Backend | Laravel 10 (PHP 8.1+) | MVC structure, auth, business logic |
-| Auth | Laravel Sanctum | Token-based authentication |
-| RBAC | Laravel Gates/Policies | Role-based access control |
-| SPK | Custom implementation | 3 parallel decision support methods |
-| Frontend | Blade Templates | Server-rendered views |
-| Interactivity | Alpine.js, jQuery | Lightweight client-side behavior |
-| Styling | Tailwind CSS | Utility-first responsive design |
-| Database | MySQL | Persistent storage |
-| PDF | barryvdh/laravel-dompdf | Report generation |
-| Images | Intervention Image | Image processing |
-| Content | stevebauman/purify | HTML purification |
-| Icons | Blade UI Kit Heroicons | Icon library |
+The app follows standard Laravel layering with a service layer on top. `DecisionMakerService` is the base for 7 SPK engines that all read the same `kriteria`, `alternatif`, and `kriteria_alternatif` tables. Sanctum guards both web and API routes, and a `checkRole` middleware enforces the RT and resident roles.
+
+## Database Design
+
+Twenty tables model the RT domain. Residents belong to family cards, every document request and complaint is a `pengajuan` with a status, finances keep a running balance, and the SPK module stores criteria, alternatives, and their normalized scores separately from the operational data.
+
+```mermaid
+erDiagram
+    roles ||--o{ users : "role_id"
+    users ||--o| penduduk : "user_id"
+    kartu_keluarga ||--o{ penduduk : "kartu_keluarga_id"
+    penduduk ||--o{ keuangan : "penduduk_id"
+    keuangan ||--o{ detail_keuangan : "keuangan_id"
+    penduduk ||--o{ pengajuan : "penduduk_id"
+    status ||--o{ pengajuan : "status_id"
+    pengajuan ||--o| persuratan : "pengajuan_id"
+    pengajuan ||--o| pelaporan : "pengajuan_id"
+    penduduk ||--o{ umkm : "penduduk_id"
+    penduduk ||--o{ informasi : "penduduk_id"
+    kriteria ||--o{ kriteria_alternatif : "kriteria_id"
+    alternatif ||--o{ kriteria_alternatif : "alternatif_id"
+    penduduk ||--o{ inventaris : "penduduk_id"
+    inventaris ||--o{ inventaris_detail : "inventaris_id"
+
+    roles {
+        string role_id PK
+        string role_name UK
+    }
+    users {
+        string user_id PK
+        string role_id FK
+        string username UK
+        string email UK
+        string password
+    }
+    kartu_keluarga {
+        string kartu_keluarga_id PK
+        string nomor_kartu_keluarga UK
+        int nomor_rt
+        int nomor_rw
+        string alamat
+    }
+    penduduk {
+        string penduduk_id PK
+        string kartu_keluarga_id FK
+        string user_id FK
+        string nik UK
+        string nama
+        string jenis_kelamin
+        string status_hubungan_dalam_keluarga
+        string pendidikan_terakhir
+        string status_penduduk
+    }
+    keuangan {
+        int keuangan_id PK
+        string penduduk_id FK
+        int total_keuangan
+        date tanggal
+    }
+    detail_keuangan {
+        int detail_keuangan_id PK
+        int keuangan_id FK
+        string jenis_keuangan "Pemasukan / Pengeluaran"
+        string asal_keuangan
+        int nominal
+    }
+    status {
+        int status_id PK
+        string nama
+    }
+    pengajuan {
+        string pengajuan_id PK
+        string penduduk_id FK
+        int status_id FK
+        string keperluan
+        date accepted_at
+    }
+    persuratan {
+        string persuratan_id PK
+        string pengajuan_id FK
+        string jenis_surat
+        string pemohon
+    }
+    pelaporan {
+        int pelaporan_id PK
+        string pengajuan_id FK
+        string jenis_pelaporan
+        string image_url
+    }
+    umkm {
+        string umkm_id PK
+        string penduduk_id FK
+        string nama_umkm
+        string jenis_umkm
+        string status
+    }
+    informasi {
+        string informasi_id PK
+        string penduduk_id FK
+        string judul_informasi
+        string jenis_informasi
+        text isi_informasi
+    }
+    kriteria {
+        int kriteria_id PK
+        string nama_kriteria
+        string jenis_kriteria "Cost / Benefit"
+        int bobot
+    }
+    alternatif {
+        int alternatif_id PK
+        string nama_alternatif
+    }
+    kriteria_alternatif {
+        int kriteria_alternatif_id PK
+        int kriteria_id FK
+        int alternatif_id FK
+        float nilai
+    }
+    inventaris {
+        string inventaris_id PK
+        string penduduk_id FK
+        string nama_inventaris
+        int jumlah
+        string jenis
+        string sumber
+    }
+    inventaris_detail {
+        string inventaris_detail_id PK
+        string inventaris_id FK
+        string penduduk_id FK
+        string kondisi "Normal / Rusak / Hilang"
+        string status "Dipinjam / Dikembalikan"
+        date tanggal_pinjam
+    }
+```
+
+## Decision Support Engine
+
+The engine is data-driven. Criteria carry a type (Cost or Benefit) and a weight; alternatives carry a score per criterion. Any method can rank the same matrix, which means the engine stays reusable across problems. The seeded use case ranks 10 neighborhood activities by 5 criteria, with Relevance and Social Impact as benefit criteria and Cost and Difficulty as cost criteria.
+
+The 7 methods implemented:
+
+| Method | Approach |
+|---|---|
+| SAW | Weighted sum of normalized Benefit (`x/max`) and Cost (`min/x`) scores |
+| SMART | Unity-min-max normalization with internally normalized weights |
+| EDAS | Distance from average, positive and negative, combined into an appraisal score |
+| MABAC | Distance from the border approximation area |
+| MOORA | Vector-normalized benefit minus cost ratio |
+| ARAS | Utility of each alternative against an ideal solution |
+| ELECTRE | Concordance and discordance matrices with dominance thresholds |
+
+The ranking pipeline is shared: build the decision matrix, normalize weights, run the method's scoring, and sort descending.
+
+```mermaid
+flowchart LR
+    A["kriteria + bobot"] --> B["Decision matrix"]
+    B --> C["Normalize (per method)"]
+    C --> D["Score alternatives"]
+    D --> E["Rank descending"]
+    E --> F["Result view / API"]
+```
+
+## Document Request Flow
+
+A resident requests a letter (KTP, KK, birth certificate, SKCK, marriage, or other). The request lands in `pengajuan` with status Menunggu, an admin (Ketua RT) approves or rejects it, and an approved request generates the official letter as a PDF through DomPDF.
+
+```mermaid
+sequenceDiagram
+    participant R as Resident
+    participant C as DocumentRequestController
+    participant D as Database
+    participant K as Ketua RT
+    participant P as DomPDF
+
+    R->>C: Submit letter request
+    C->>D: Create pengajuan (status Menunggu)
+    C->>D: Create persuratan detail
+    K->>C: List pending requests
+    K->>C: Approve request
+    C->>D: Set status Diterima + accepted_at
+    R->>C: Request PDF
+    C->>P: Render letter template
+    P-->>R: Download PDF
+```
 
 ## Key Features
 
-- **Role-Based Access Control** — Laravel Sanctum auth with separate permissions for RT heads, residents, and administrators
-- **3 Parallel SPK Methods** — Implemented 3 decision support systems for resident analysis and aid allocation (other teams only managed 1-2)
-- **Resident Management** — CRUD operations for resident profiles with family structure tracking
-- **Financial Tracking** — Record dues payments, expenses, and generate PDF reports
-- **Complaint System** — Residents can submit complaints with status tracking
-- **Document Requests** — Request and track official documents
-- **UMKM Directory** — Local business directory for the neighborhood
-- **Event Management** — Create and manage neighborhood events
-- **Live Deployment** — Deployed to production at saturt.cloud
+- **7 SPK Methods**: SAW, SMART, EDAS, MABAC, MOORA, ARAS, and ELECTRE in one data-driven engine
+- **Resident & Family Cards**: NIK-keyed residents grouped by family card, with business rules on family heads
+- **RBAC**: Sanctum auth with a `checkRole` middleware and 2 roles, including RT role transfer
+- **Running-Balance Finances**: Income and expense ledger that keeps the balance in sync on every write
+- **Document Requests + PDF**: Official letters generated with DomPDF after approval
+- **Complaints (LAPOR!)**: Residents file reports with optional images and track status
+- **Inventory & Borrowing**: Items with condition tracking (Normal, Rusak, Hilang) and borrow dates
+- **UMKM Directory**: Local business listings with public pages and a paginated API
+- **News & Announcements**: 5 content types with CKEditor and HTML sanitization
+- **Read-Only API**: 20 Sanctum-protected endpoints exposing the same data to mobile or external clients
+
+![SatuRT dashboard showing resident and financial overview](/images/projects/saturt/dashboard.png)
+
+## Routes
+
+150 routes split between web and a read-only API. The web side covers public landing pages, resident self-service, and RT administration.
+
+| Area | Routes |
+|---|---|
+| Public | home, news, UMKM listings, login, password reset |
+| Resident | document requests, complaints, profile, UMKM, family members, news |
+| Ketua RT | family cards, finances, alternatives, criteria, SPK results, inventory, accounts, document approval |
+| API | 20 read-only v1 endpoints for news, UMKM, reports, finance, SPK rankings |
 
 ## Technical Decisions
 
-- Laravel was chosen for its mature ecosystem, built-in auth, and RBAC support
-- Sanctum was used for token-based authentication
-- Alpine.js provided lightweight interactivity without full SPA overhead
-- DomPDF was added for generating printable reports
-- Intervention Image handled image processing for resident photos
+- **Laravel 10** for its mature ecosystem, Sanctum auth, and Blade templating
+- **Generic SPK engine** over hard-coded cases, so the same 7 methods rank activities, aid, or anything else defined in `kriteria`
+- **Sanctum + checkRole middleware** for token auth and role checks on both web and API routes
+- **DomPDF** for official letters that residents can download and print
+- **Intervention Image** to resize resident photos and KTP uploads on the fly
+- **Purify** to strip unsafe HTML from CKEditor content before it hits the database
+- **UUID primary keys** for resident-facing records, keeping IDs unguessable in public URLs
+
+![SatuRT database schema for residents, finances, and SPK data](/images/projects/saturt/database.png)
 
 ## Challenges
 
-- Delegating CRUD tasks while maintaining code quality required consistent code review
-- Integrating 3 SPK methods without them interfering with each other demanded careful module separation
-- Deploying to production for the first time taught me about server configuration, SSL, and domain setup
+- Keeping 7 SPK methods consistent over one decision matrix took careful weight normalization and result checking
+- Delegating CRUD while keeping code quality meant consistent reviews and written standards
+- First production deployment taught me server configuration, SSL certificates, and domain setup
+- The RT role-transfer flow had to demote the previous leader and force a re-login without breaking their session mid-action
 
 ## Outcome
 
-The system was deployed and demonstrated at the course presentation. The 3-SPK architecture was noted as significantly more functionally rich than other teams' implementations. The live deployment at saturt.cloud proved the system could handle real-world usage.
+The system deployed and demonstrated at the course presentation, and the live site at saturt.cloud handled real usage. The decision-support engine ran 7 methods side by side, far beyond the single-method implementations other teams showed. Judges noted the breadth of the feature set and the analytical module.
+
+![Second SatuRT mockup showing a feature screen](/images/projects/saturt/mockup2.png)
 
 ## Final Thoughts
 
-SatuRT taught me that architecture decisions matter more than feature count. By designing the SPK engine as a separate module, I made it possible to add analytical methods without restructuring the entire application. The lead developer role also taught me that delegation is not just about assigning tasks — it is about maintaining quality while empowering others.
+SatuRT taught me that a generic engine beats a hard-coded feature. By keeping the SPK layer data-driven, I added methods without restructuring the app, and the same engine can rank activities today and aid recipients tomorrow. The lead role also showed me that delegation is about keeping quality high while others own their pieces. And the production deployment closed the gap between code that works on a laptop and code that holds up in the real world.

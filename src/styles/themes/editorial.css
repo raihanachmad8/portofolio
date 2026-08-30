@@ -57,7 +57,7 @@
 /* hero */
 [data-theme="editorial"] #boot { display: none; }
 [data-theme="editorial"] h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(2.5rem, 6.2vw, 5.3rem); line-height: 1.05; text-transform: none; letter-spacing: -.01em; }
-[data-theme="editorial"] .outl { color: var(--ink); -webkit-text-stroke: 0; }
+[data-theme="editorial"] .name-outline { color: var(--ink); -webkit-text-stroke: 0; }
 [data-theme="editorial"] .role-line { color: var(--acc); letter-spacing: .12em; }
 [data-theme="editorial"] .hero-sub { color: var(--dim); }
 [data-theme="editorial"] .hero-sub b { color: var(--ink); }
@@ -72,7 +72,7 @@
 [data-theme="editorial"] .hud-img { padding: .8rem; background: var(--panel); transform: rotate(1.6deg); transition: transform .6s var(--ease); }
 [data-theme="editorial"] .hud:hover .hud-img { transform: rotate(0); }
 [data-theme="editorial"] .hud-img img { filter: grayscale(25%) contrast(1.03); }
-[data-theme="editorial"] .hud-row .v.acc { color: #2e9e44; }
+[data-theme="editorial"] .hud-row .hud-value.acc { color: #2e9e44; }
 [data-theme="editorial"] .scroll-hint .line { background: var(--ink); }
 [data-theme="editorial"] .scroll-hint .line::after { background: var(--acc); }
 
@@ -149,8 +149,8 @@
 [data-theme="editorial"] .about-txt p b { font-weight: 600; }
 [data-theme="editorial"] .about-ph { border: 0; border-radius: 0; }
 [data-theme="editorial"] .about-ph img { filter: grayscale(10%); }
-[data-theme="editorial"] .facts .n { font-family: var(--f-display); font-weight: 400; color: var(--acc); }
-[data-theme="editorial"] .facts .l { color: var(--dim); }
+[data-theme="editorial"] .facts .fact-value { font-family: var(--f-display); font-weight: 400; color: var(--acc); }
+[data-theme="editorial"] .facts .fact-label { color: var(--dim); }
 [data-theme="editorial"] .principles li i { color: var(--acc); }
 [data-theme="editorial"] .principles li span { color: var(--dim); }
 
@@ -173,9 +173,9 @@
 [data-theme="editorial"] .skill-col { background: rgba(255, 255, 255, .3); }
 [data-theme="editorial"] .skill-col h3 { color: var(--acc); }
 [data-theme="editorial"] .skill-col h3::after { background: var(--line); }
-[data-theme="editorial"] .sk .row span:last-child { color: var(--dim); }
-[data-theme="editorial"] .sb { height: 5px; border-radius: 0; background: var(--line); }
-[data-theme="editorial"] .sb span { border-radius: 0; background: var(--ink); }
+[data-theme="editorial"] .skill-row .row span:last-child { color: var(--dim); }
+[data-theme="editorial"] .skill-bar { height: 5px; border-radius: 0; background: var(--line); }
+[data-theme="editorial"] .skill-bar span { border-radius: 0; background: var(--ink); }
 [data-theme="editorial"] .skill-col .tools i { color: var(--dim); }
 [data-theme="editorial"] .sk-note { color: var(--dim); }
 [data-theme="editorial"] .sk-note b { color: var(--acc); font-weight: 500; }
@@ -185,8 +185,8 @@
 [data-theme="editorial"] .xp-row .period { color: var(--dim); }
 [data-theme="editorial"] .xp-row.now .period { color: var(--acc); }
 [data-theme="editorial"] .xp-row h3 { font-weight: 600; }
-[data-theme="editorial"] .xp-row .co { font-family: var(--f-display); font-style: italic; color: var(--acc); text-transform: none; letter-spacing: 0; }
-[data-theme="editorial"] .xp-row .loc { color: var(--dim); }
+[data-theme="editorial"] .xp-row .company { font-family: var(--f-display); font-style: italic; color: var(--acc); text-transform: none; letter-spacing: 0; }
+[data-theme="editorial"] .xp-row .location { color: var(--dim); }
 [data-theme="editorial"] .xp-row p { color: var(--dim); }
 
 /* achievements */
@@ -214,31 +214,3 @@
 [data-theme="editorial"] .socials a:hover, [data-theme="editorial"] .socials button:hover { background: var(--bg); color: var(--ink); border-color: var(--bg); }
 [data-theme="editorial"] .c-foot { border-color: rgba(244, 241, 234, .16); color: rgba(244, 241, 234, .55); }
 [data-theme="editorial"] .c-foot a:hover { color: var(--acc); }
-
-/* chat */
-[data-theme="editorial"] #aiFab { background: var(--ink); color: var(--bg); box-shadow: 0 14px 34px rgba(24, 21, 16, .35); }
-[data-theme="editorial"] #aiTip { background: #fff; border: 1px solid var(--ink); box-shadow: 6px 6px 0 rgba(24, 21, 16, .15); }
-[data-theme="editorial"] .chat { background: var(--bg); border: 1px solid var(--ink); box-shadow: 0 40px 90px rgba(24, 21, 16, .35); }
-[data-theme="editorial"] .chat > header { background: var(--ink); color: var(--bg); }
-[data-theme="editorial"] .chat .ava { background: var(--acc); color: var(--bg); border-radius: 50%; font-family: var(--f-display); font-style: italic; font-size: 1.05rem; }
-[data-theme="editorial"] .chat header b { font-family: var(--f-display); font-style: italic; font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 1.1rem; }
-[data-theme="editorial"] .chat header small { color: rgba(244, 241, 234, .65); }
-[data-theme="editorial"] .chat header .close { border-color: rgba(244, 241, 234, .35); color: var(--bg); }
-[data-theme="editorial"] .chat header .close:hover { background: var(--acc); border-color: var(--acc); }
-[data-theme="editorial"] .msg.bot { background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--acc); }
-[data-theme="editorial"] .msg.user { background: var(--ink); color: var(--bg); }
-[data-theme="editorial"] .msg .tagname { color: var(--acc); font-weight: 500; }
-[data-theme="editorial"] .msg .act { color: var(--acc); background: #fff; }
-[data-theme="editorial"] .msg .act:hover { background: var(--acc); color: #fff; }
-[data-theme="editorial"] .nxt { background: #fff; color: var(--dim); }
-[data-theme="editorial"] .nxt:hover { border-color: var(--acc); color: var(--acc); }
-[data-theme="editorial"] .typing .dots i { background: var(--acc); }
-[data-theme="editorial"] .c-chips { background: #fff; }
-[data-theme="editorial"] .c-chips button { color: var(--dim); }
-[data-theme="editorial"] .c-chips button:hover { border-color: var(--acc); color: var(--acc); }
-[data-theme="editorial"] .c-input { background: #fff; }
-[data-theme="editorial"] .c-input > span { font-family: var(--f-display); font-style: italic; color: var(--acc); }
-[data-theme="editorial"] .c-input input { color: var(--ink); }
-[data-theme="editorial"] .c-input input::placeholder { color: var(--dim); }
-[data-theme="editorial"] .c-input button { background: var(--ink); color: var(--bg); font-weight: 500; }
-[data-theme="editorial"] .c-input button:hover { background: var(--acc); }

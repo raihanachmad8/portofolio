@@ -1,6 +1,13 @@
 # build output
 dist/
 
+# cache
+.astro/
+.wrangler/
+
+# playwright mcp session state
+.playwright-mcp/
+
 # environment variables
 .env
 .env.production
@@ -19,3 +26,7 @@ npm-debug.log*
 
 # dependencies
 node_modules/
+
+# aruna generated payload (build script output)
+public/data/aruna-kb/
+scripts/.aruna-*

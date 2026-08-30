@@ -1,21 +1,32 @@
 ---
 import SectionHead from './SectionHead.astro';
 import { getExperience } from '../lib/content';
+import { getRuntimeEnv } from '../lib/utils';
+import { getLocale } from '@i18n';
+import type { Experience } from '@lib/schemas';
 
-const experience = await getExperience();
+const env = getRuntimeEnv(Astro);
+let experience: Experience[] = [];
+try {
+  experience = await getExperience(env);
+} catch (e) {
+  console.warn('[Experience] Failed to fetch experience:', (e as Error).message);
+  experience = [];
+}
+const { t } = getLocale(Astro);
 ---
 
 <section id="journey">
   <div class="wrap">
-    <SectionHead tag="03" title="Experience" code="//career" />
+    <SectionHead tag="04" title={t('sections.experience.title')} code={t('sections.experience.code')} />
     <div data-reveal>
       {experience.map((xp) => (
         <div class={`xp-row${xp.now ? ' now' : ''}`}>
           <span class="period">{xp.period}</span>
           <div>
             <h3>{xp.title}</h3>
-            <span class="co">{xp.company}</span>
-            <span class="loc">{xp.location}</span>
+            <span class="company">{xp.company}</span>
+            <span class="location">{xp.location}</span>
           </div>
           <p>{xp.detail}</p>
         </div>

@@ -1,60 +1,110 @@
 ---
-import PageHead from '../../layouts/PageHead.astro';
-import Header from '../../components/Header.astro';
-import ContactFooter from '../../components/ContactFooter.astro';
-import { getCollection, render } from 'astro:content';
+import Base from '@layouts/Base.astro';
+import Header from '@components/Header.astro';
+import ContactFooter from '@components/ContactFooter.astro';
+import { getPostBySlug, getProfile } from '@lib/content';
+import { formatDate, getRuntimeEnv, SITE_URL, OG_DEFAULT_IMAGE } from '@lib/utils';
+import { marked } from 'marked';
+import { getLocale } from '@i18n';
+import SEO from '@components/SEO.astro';
+import { buildBreadcrumbSchema } from '@lib/seo-helpers';
 
-export async function getStaticPaths() {
-  const posts = await getCollection('blog');
-  return posts.map(entry => ({
-    params: { slug: entry.id },
-    props: { entry },
-  }));
+const { slug } = Astro.params;
+if (!slug) return new Response('Not found', { status: 404 });
+const env = getRuntimeEnv(Astro);
+const post = await getPostBySlug(slug, env);
+const profile = await getProfile(env);
+const { locale, t } = getLocale(Astro);
+
+if (!post) {
+  return new Response('Not found', { status: 404 });
 }
 
-const { entry } = Astro.props;
-const { data } = entry;
-const { Content } = await render(entry);
+const contentHtml = marked(post.content || '');
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || SITE_URL;
+const postUrl = `${siteUrl}/blog/${post.slug}`;
 
-const fmtDate = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const blogPostingSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.title,
+  description: post.excerpt,
+  image: `${siteUrl}${OG_DEFAULT_IMAGE}`,
+  url: postUrl,
+  datePublished: post.published_date,
+  dateModified: post.published_date,
+  author: {
+    '@type': 'Person',
+    name: t('seo.siteName'),
+    url: siteUrl,
+  },
+  publisher: {
+    '@type': 'Person',
+    name: t('seo.siteName'),
+  },
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': postUrl,
+  },
+  wordCount: post.content?.split(/\s+/).length || 0,
+  articleSection: post.category,
+  keywords: post.tags?.join(', '),
+};
+
+const breadcrumbSchema = buildBreadcrumbSchema([
+  { name: t('common.home'), url: siteUrl },
+  { name: t('blog.title'), url: `${siteUrl}/blog` },
+  { name: post.title, url: postUrl },
+]);
 ---
 
-<PageHead lang="en" title={`${data.title} — Blog`} description={data.excerpt} themeDefault="gallery">
+<Base lang={locale} title={`${post.title} — ${t('blog.title')}`} themeDefault="gallery">
+  <SEO
+    title={`${post.title} — ${t('blog.title')}`}
+    description={post.excerpt}
+    image={OG_DEFAULT_IMAGE}
+    url={postUrl}
+    type="article"
+    author={t('seo.siteName')}
+    publishedTime={post.published_date}
+    modifiedTime={post.published_date}
+    sameAs={[profile.github, profile.linkedin].filter(Boolean)}
+  />
+  <script type="application/ld+json" set:html={JSON.stringify(blogPostingSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
   <Header />
   <main id="top">
     <section id="blog-post">
       <div class="wrap">
         <nav class="section-head">
-          <a href="/" class="section-link">Home</a>
+          <a href="/" class="section-link">{t('common.home')}</a>
           <span class="rule"></span>
-          <a href="/blog" class="section-link">Blog</a>
+          <a href="/blog" class="section-link">{t('blog.title')}</a>
           <span class="rule"></span>
-          <span class="mono code">{data.title}</span>
+          <span class="mono code">{post.title}</span>
         </nav>
 
         <article>
           <div class="blog-post-meta mono">
-            <span class="blog-post-category">{data.category}</span>
-            <span>{fmtDate(data.published_date)}</span>
-            <span>{data.read_time} min read</span>
+            <span class="blog-post-category">{post.category}</span>
+            <span>{formatDate(post.published_date)}</span>
+            <span>{post.read_time} {t('blog.minRead')}</span>
           </div>
-          <h1 class="blog-post-title">{data.title}</h1>
+          <h1 class="blog-post-title">{post.title}</h1>
           <div class="blog-post-tags mono">
-            {data.tags.map((tag: string) => (
+            {post.tags?.map((tag: string) => (
               <span>{tag}</span>
             ))}
           </div>
 
-          <div class="proj-content prose">
-            <Content />
-          </div>
+          <div class="proj-content prose" set:html={contentHtml} />
 
           <div class="proj-back">
-            <a href="/blog" class="arrow-link"><i>→</i><b>All Posts</b></a>
+            <a href="/blog" class="arrow-link"><i>→</i><b>{t('blog.allPosts')}</b></a>
           </div>
         </article>
       </div>
     </section>
   </main>
   <ContactFooter />
-</PageHead>
+</Base>

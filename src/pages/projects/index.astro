@@ -1,50 +1,62 @@
 ---
-import PageHead from '../../layouts/PageHead.astro';
-import Header from '../../components/Header.astro';
-import ContactFooter from '../../components/ContactFooter.astro';
-import { getCollection } from 'astro:content';
+import Base from '@layouts/Base.astro';
+import Header from '@components/Header.astro';
+import ContactFooter from '@components/ContactFooter.astro';
+import { getAllProjects } from '@lib/content';
+import { resolveImageUrl, getRuntimeEnv } from '@lib/utils';
+import { getLocale } from '@i18n';
+import SEO from '@components/SEO.astro';
 
-const allProjects = await getCollection('projects');
-const projects = allProjects.sort((a, b) => a.data.order - b.data.order);
+const env = getRuntimeEnv(Astro);
+const projects = await getAllProjects(env);
+const siteUrl = env?.PUBLIC_SITE_URL;
+const { locale, t } = getLocale(Astro);
 ---
 
-<PageHead lang="en" title="Projects — Raihan Achmad" description="All projects by Raihan Achmad" themeDefault="gallery">
+<Base lang={locale} title={`${t('projects.title')} — ${t('seo.siteName')}`} themeDefault="gallery">
+  <SEO title={`${t('projects.title')} — ${t('seo.siteName')}`} description={t('projects.description')} />
   <Header />
   <main id="top">
     <section id="projects">
       <div class="wrap">
         <div class="section-head">
-          <h2 class="section-title">All Projects</h2>
+          <h2 class="section-title">{t('projects.title')}</h2>
         </div>
 
         <div class="works-grid">
           <aside class="works-side">
-            <p>A collection of projects I've built across different technologies.</p>
-            <nav class="works-index" aria-label="Project navigation">
-              {projects.map((pr) => (
-                <a href={`/projects/${pr.id}`}><i>/{String(pr.data.order).padStart(2, '0')}</i><b>{pr.data.title}</b></a>
-              ))}
-            </nav>
+            <p>{t('projects.description')}</p>
+            <div class="works-index-wrap">
+              <nav class="works-index" aria-label="Project navigation">
+                {projects.map((pr) => {
+                  const orderNum = String(pr.order).padStart(2, '0');
+                  return <a href={`/projects/${pr.slug}`}><i>/{orderNum}</i><b>{pr.title}</b></a>;
+                })}
+              </nav>
+            </div>
           </aside>
           <div>
-            {projects.map((pr) => (
-              <article class="proj" data-reveal>
-                <div class="proj-top mono"><span class="no">/{String(pr.data.order).padStart(2, '0')}</span><span>{pr.data.year} · {pr.data.category}</span></div>
+            {projects.map((pr) => {
+              const orderNum = String(pr.order).padStart(2, '0');
+              return (
+                <article class="proj" data-reveal>
+                  <div class="proj-top mono"><span class="no">/{orderNum}</span><span>{pr.year} · {pr.category}</span></div>
                 <figure>
-                  <img src={pr.data.image_url || '/images/placeholder.svg'} alt={pr.data.title} loading="lazy" />
+                  <img src={resolveImageUrl(pr.image_url, siteUrl)} alt={pr.title} loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.svg'; this.dataset.fallback=''" />
                 </figure>
-                <h3>{pr.data.title}</h3>
-                <p class="desc">{pr.data.description}</p>
+                <h3>{pr.title}</h3>
+                <p class="desc">{pr.description}</p>
                 <div class="tags">
-                  {pr.data.stack.split(',').map((t: string) => <span>{t.trim()}</span>)}
+                  {pr.stack.split(',').map((tech: string) => <span>{tech.trim()}</span>)}
                 </div>
-                <a href={`/projects/${pr.id}`} class="arrow-link">View Details<i>→</i></a>
+                <a href={`/projects/${pr.slug}`} class="arrow-link">{t('projects.viewDetails')}<i>→</i></a>
               </article>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
     </section>
   </main>
   <ContactFooter />
-</PageHead>
+</Base>

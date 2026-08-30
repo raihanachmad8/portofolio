@@ -1,83 +1,97 @@
 ---
-title: InnovaTech
+title: "InnovaTech"
 slug: innovatech
-category: Competition Project
+category: "Competition Project"
 year: 2024
 has_ui: true
-description: "Astro-based static site built for the InnovaTech 2024 national competition (Itechno) — exploring modern frontend tooling and performance optimization."
-role: "Team Member — frontend development, Astro implementation."
-stack: "Astro,HTML,CSS,JavaScript"
+description: "Astro 4 static platform for the InnovaTech 2024 competition, with MDX content collections, UnoCSS, and client-side React islands for search, comments, and countdowns."
+stack: "Astro 4,TypeScript,UnoCSS,React 18,MDX,framer-motion"
 github_url: "https://github.com/vunky-himawan/InnovaTech"
-live_url: null
+live_url: ""
 featured: false
-card_color: pink
-image_url: null
-images: []
+image_url: "/images/projects/innovatech/cover.webp"
 order: 12
 ---
 
 ## Overview
 
-InnovaTech was a national competition entry for the Itechno event in 2024. The project explored Astro as a static site generator, focusing on ultra-fast frontend performance and modern tooling. I participated as a team member, contributing to frontend development while learning Astro's island architecture and build-time rendering approach.
+InnovaTech is an Astro-based static platform built as a team entry for the InnovaTech 2024 competition. It publishes articles, events, projects, and community pages as MDX content, and layers React islands on top for search, filtering, comments, and a countdown timer. The repository lives under my teammate Vunky Himawan's account.
+
+| Metric | Value |
+|---|---|
+| Pages | 9 |
+| Components | 34 |
+| Content docs | 21 (5 articles, 6 events, 5 projects, 5 communities) |
+| Framework | Astro 4 static |
+| Styling | UnoCSS atomic CSS |
+| Interactivity | Client-side React islands |
 
 ## Problem
 
-- The competition required building a web application with modern frontend tooling
-- Static site generators offered performance benefits but were unfamiliar territory
-- The team needed to deliver a polished application within the competition deadline
+- A competition entry needed to look and feel like a real tech community, without a backend to maintain
+- Content had to be easy to add and update during the event
+- Interactions like search and filtering had to work on a fully static deployment
 
 ## Goal
 
-- Build a performant static site using Astro
-- Explore island architecture for partial hydration
-- Deliver a competition-ready application on time
+- Build a fast static site with Astro and MDX content collections
+- Add client-side interactivity with React islands and nanostores
+- Keep everything deployable to any static host with zero servers
 
 ## Role
 
-I contributed to frontend development as part of the team.
+Team project for the InnovaTech 2024 competition. The code repository is hosted under teammate Vunky Himawan's GitHub account.
 
-**Team:** Achmad Raihan Fahrezi Effendy (Team Member) + teammates
+**Team:** InnovaTech team, repo by Vunky Himawan
 
 ## Architecture
 
-<div class="mermaid" set:html={`flowchart TD
-  A["Astro Build"] --> B["Static HTML"]
-  A --> C["Island Components"]
-  C --> D["React Islands"]
-  C --> E["Vanilla JS Islands"]
-  B --> F["CDN / Hosting"]
-`} />
+```mermaid
+flowchart TD
+    A["Astro 4 static build"] --> B["MDX content collections"]
+    A --> C["UnoCSS"]
+    A --> D["React islands"]
+    D --> E["Search + filters (nanostores)"]
+    D --> F["Comment form"]
+    D --> G["Interested toggle"]
+    D --> H["Event countdown"]
+    A --> I["Static host"]
+```
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Framework | Astro | Static site generation |
-| Rendering | Build-time | Pre-rendered HTML |
-| Islands | React, Vanilla JS | Partial hydration |
-| Styling | CSS | Custom styles |
+Astro renders every page at build time from MDX content collections. React components mount as islands for interactivity, and UnoCSS generates the atomic styles. There is no server at runtime.
+
+## Content Model
+
+Content lives in 21 MDX documents across four collections: articles, events, projects, and communities. Each page type uses a shared layout that renders the list and detail views with tags for filtering.
+
+![InnovaTech dashboard-style landing with content grid](/images/projects/innovatech/dashboard.png)
 
 ## Key Features
 
-- **Static Site Generation** — Pre-rendered HTML for maximum performance
-- **Island Architecture** — Interactive components hydrated independently
-- **Fast Build Times** — Astro's build process optimized for speed
-- **Minimal JavaScript** — Only interactive islands load JavaScript
+- **Search & Filter**: Client-side filtering across content by category and tag using nanostores
+- **Article / Event / Project Pages**: Typed layouts with tag-based navigation
+- **Comment Form**: Client-side comment entry on content pages
+- **Interested Toggle**: Heart-style engagement state per event
+- **Countdown Timer**: React countdown for upcoming event dates
 
 ## Technical Decisions
 
-- Astro was chosen for its performance-first approach and island architecture
-- Static generation eliminated server-side rendering complexity
-- Island architecture allowed interactive components without loading a full SPA framework
+- **Astro** for a fast static build with minimal JavaScript on first paint
+- **MDX content collections** so the team could author pages without touching components
+- **UnoCSS** for on-demand atomic CSS that keeps the bundle small
+- **React islands** for the few places that genuinely need interactivity
+- **framer-motion** for page and component transitions
 
 ## Challenges
 
-- Astro's content collection system and island architecture required learning new patterns
-- Balancing static content with interactive components needed careful planning
-- Competition deadlines forced prioritization of features
+- All state is client-side and resets on refresh, so filters and toggles are session-only
+- Keeping the static build fast while adding React islands required limiting where islands mount
+- Content was authored as placeholder during the competition window
 
 ## Outcome
 
-The team submitted the project for the InnovaTech 2024 competition. The experience provided exposure to modern frontend tooling and performance optimization techniques.
+The site delivered a polished static platform for the competition, with content-driven pages and working client-side interactions. It demonstrated a modern frontend toolchain in Astro, MDX, and UnoCSS.
 
 ## Final Thoughts
 
-InnovaTech taught me that frontend performance is not just about minification and caching — it is about architecture. Astro's approach to shipping minimal JavaScript by default changed how I think about frontend applications. The experience complemented my backend focus by showing how the frontend can be optimized at the build level.
+InnovaTech showed how much a static site can do without a backend. Content collections made the team's workflow simple, and React islands added just enough interactivity. The project reinforced that choosing the right tool for a static job beats reaching for a heavier stack.

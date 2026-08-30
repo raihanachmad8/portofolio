@@ -1,47 +1,46 @@
 ---
-import PageHead from '../../layouts/PageHead.astro';
-import Header from '../../components/Header.astro';
-import ContactFooter from '../../components/ContactFooter.astro';
-import { getCollection } from 'astro:content';
+import Base from '@layouts/Base.astro';
+import Header from '@components/Header.astro';
+import ContactFooter from '@components/ContactFooter.astro';
+import { getAllPosts } from '@lib/content';
+import { formatDate, getRuntimeEnv } from '@lib/utils';
+import { getLocale } from '@i18n';
+import SEO from '@components/SEO.astro';
 
-const allPosts = await getCollection('blog');
-const posts = allPosts.sort((a, b) => new Date(b.data.published_date).getTime() - new Date(a.data.published_date).getTime());
+const env = getRuntimeEnv(Astro);
+const posts = await getAllPosts(env);
+const { locale, t } = getLocale(Astro);
 
-// Extract unique categories and tags
-const categories = [...new Set(posts.map(p => p.data.category))];
-const allTags = [...new Set(posts.flatMap(p => p.data.tags || []))];
-
-function fmtDate(d: string) {
-  const dt = new Date(d);
-  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
+const categories = [...new Set(posts.map(p => p.category))];
+const allTags = [...new Set(posts.flatMap(p => p.tags || []))];
 ---
 
-<PageHead lang="en" title="Blog — Raihan Achmad" description="Articles about fullstack engineering, backend systems, frontend, DevOps, and career." themeDefault="gallery">
+<Base lang={locale} title={`${t('blog.title')} — ${t('seo.siteName')}`} themeDefault="gallery">
+  <SEO title={`${t('blog.title')} — ${t('seo.siteName')}`} description={t('seo.defaultDescription')} />
   <Header />
   <main id="top">
     <section id="blog-list">
       <div class="wrap">
         <div class="section-head">
-          <h2 class="section-title">Blog</h2>
+          <h2 class="section-title">{t('blog.title')}</h2>
           <span class="rule"></span>
-          <span class="mono code">//writing</span>
+          <span class="mono code">{t('blog.code')}</span>
         </div>
 
         <div class="blog-filters" data-reveal>
           <div class="blog-filter-group">
-            <span class="blog-filter-label mono">Category</span>
+            <span class="blog-filter-label mono">{t('blog.category')}</span>
             <div class="blog-filter-chips">
-              <button class="blog-chip active" data-filter="category" data-value="all">All</button>
+              <button class="blog-chip active" data-filter="category" data-value="all">{t('common.all')}</button>
               {categories.map(cat => (
                 <button class="blog-chip" data-filter="category" data-value={cat}>{cat}</button>
               ))}
             </div>
           </div>
           <div class="blog-filter-group">
-            <span class="blog-filter-label mono">Tags</span>
+            <span class="blog-filter-label mono">{t('blog.tags')}</span>
             <div class="blog-filter-chips">
-              <button class="blog-chip active" data-filter="tag" data-value="all">All</button>
+              <button class="blog-chip active" data-filter="tag" data-value="all">{t('common.all')}</button>
               {allTags.map(tag => (
                 <button class="blog-chip" data-filter="tag" data-value={tag}>{tag}</button>
               ))}
@@ -52,26 +51,26 @@ function fmtDate(d: string) {
         <div class="blog-grid-full">
           {posts.map((post) => (
             <a
-              href={`/blog/${post.id}`}
+              href={`/blog/${post.slug}`}
               class="blog-card"
               data-reveal
-              data-category={post.data.category}
-              data-tags={post.data.tags?.join(',')}
+              data-category={post.category}
+              data-tags={post.tags?.join(',')}
             >
               <div class="blog-card-top mono">
-                <span class="blog-card-category">{post.data.category}</span>
-                <span>{fmtDate(post.data.published_date)}</span>
+                <span class="blog-card-category">{post.category}</span>
+                <span>{formatDate(post.published_date)}</span>
               </div>
               <h3>{post.title}</h3>
-              <p>{post.data.excerpt}</p>
+              <p>{post.excerpt}</p>
               <div class="blog-card-tags">
-                {post.data.tags?.map(tag => (
+                {post.tags?.map(tag => (
                   <span class="blog-card-tag mono">{tag}</span>
                 ))}
               </div>
               <div class="blog-card-meta mono">
-                <span>{post.data.read_time} min read</span>
-                <span class="arrow-link">Read →</span>
+                <span>{post.read_time} {t('blog.minRead')}</span>
+                <span class="arrow-link">{t('blog.readMore')} →</span>
               </div>
             </a>
           ))}
@@ -80,7 +79,7 @@ function fmtDate(d: string) {
     </section>
   </main>
   <ContactFooter />
-</PageHead>
+</Base>
 
 <script>
   const chips = document.querySelectorAll('.blog-chip');
@@ -109,7 +108,6 @@ function fmtDate(d: string) {
       const filter = chip.getAttribute('data-filter');
       const value = chip.getAttribute('data-value');
 
-      // Update active state within same filter group
       const group = chip.closest('.blog-filter-chips');
       group?.querySelectorAll('.blog-chip').forEach(c => c.classList.remove('active'));
       chip.classList.add('active');

@@ -1,92 +1,99 @@
 ---
-title: Campus Portal
+title: "Campus Portal"
 slug: campus-project
-category: Personal Initiative
+category: "Personal Initiative"
 year: 2024
 has_ui: true
-description: "VPS deployment portal hosting 6 Laravel applications for class demonstration, built with React, TypeScript, Vite, Nginx, and Ubuntu Server."
-role: "Solo Developer — VPS setup, Nginx configuration, DNS management, portal UI, deployment."
-stack: "React,TypeScript,Vite,Ubuntu Server,Nginx,DNS,Linux"
+description: "React portal hosting 6 team projects for a class demonstration, with per-team subdomains, uptime monitoring, and a VPS deployment that replaced local-laptop demos."
+stack: "React,TypeScript,Vite,Tailwind CSS,Nginx,Linux"
 github_url: "https://github.com/raihanachmad8/campus-project"
-live_url: null
+live_url: ""
 featured: false
-card_color: cyan
-image_url: null
-images: []
+image_url: "/images/projects/campus-project/cover.webp"
 order: 9
 ---
 
 ## Overview
 
-Campus Portal was a personal initiative at the end of semester 4. Instead of each team running their Laravel applications locally on their own laptops during class demonstration — which would be chaotic and unreliable — I volunteered to set up a VPS and host all 6 applications on a single server. This was my first hands-on experience with server administration, Nginx reverse proxy, and DNS management.
+Campus Portal is the entry point for a class demonstration that would otherwise have been chaos. Six teams each built a Laravel application for their Web Framework course, and every team planned to demo from their own laptop. I set up a VPS, hosted all 6 applications on a single server, and built a React portal as the front door. Instead of swapping cables and fighting port conflicts, the lecturer opened one URL and walked through all 6 projects. This repo is the portal itself.
+
+| Metric | Value |
+|---|---|
+| Team apps hosted | 6 |
+| Maintainers credited | 30 (5 per team) |
+| Portal pages | 1 (SPA) |
+| Frontend | React 18 + TypeScript + Vite |
+| Monitoring | UptimeRobot status page |
 
 ## Problem
 
-- Class demonstration involved 6 teams, each with a Laravel application
-- Running applications locally on individual laptops led to inconsistent environments, port conflicts, and demo failures
-- No centralized way for the lecturer and classmates to access all projects during the demonstration
+- Six teams each built a Laravel app that had to be presented at the same class session
+- Running from local laptops caused environment drift, port conflicts, and demo failures
+- There was no single place for the lecturer and classmates to reach every project
+- Setting up each team's server locally meant 6 different configurations to babysit
 
 ## Goal
 
-- Set up an Ubuntu VPS to host all 6 Laravel applications
-- Configure Nginx reverse proxy with unique port bindings per team
-- Build a portal UI as the entry point for accessing all projects
-- Ensure applications were isolated and stable under concurrent access
+- Host all 6 applications on one Ubuntu VPS so every team demos from the same stable environment
+- Give each team its own subdomain for isolation and clean URLs
+- Build a portal page that lists the projects with links to each site and repo
+- Add uptime monitoring so a dead demo is caught before the class starts
 
 ## Role
 
-I built the entire infrastructure and portal independently. This was a personal initiative, not a course requirement.
+I built the portal and managed the hosting infrastructure as a personal initiative. The 6 applications belonged to their teams; my job was the deployment layer and the front door they all shared.
 
-**Team:** Achmad Raihan Fahrezi Effendy (Solo — 100% contribution)
+**Team:** Achmad Raihan Fahrezi Effendy (Portal + Infra) + 6 team projects
 
 ## Architecture
 
-<div class="mermaid" set:html={`flowchart TD
-  A["DNS / Domain"] --> B["Ubuntu VPS"]
-  B --> C["Nginx Reverse Proxy"]
-  C --> D["Team 1 - Port 8001"]
-  C --> E["Team 2 - Port 8002"]
-  C --> F["Team 3 - Port 8003"]
-  C --> G["Team 4 - Port 8004"]
-  C --> H["Team 5 - Port 8005"]
-  C --> I["Team 6 - Port 8006"]
-  C --> J["Portal UI - Port 3000"]
-  K["React + Vite"] --> J
-`} />
+```mermaid
+flowchart TD
+    A["Visitor"] --> B["Portal (React SPA)"]
+    B --> C["satu.campus-project.cloud"]
+    B --> D["dua.campus-project.cloud"]
+    B --> E["tiga.campus-project.cloud"]
+    B --> F["empat.campus-project.cloud"]
+    B --> G["lima.campus-project.cloud"]
+    B --> H["enam.campus-project.cloud"]
+    E --> I["UptimeRobot monitor"]
+    F --> I
+```
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Portal UI | React, TypeScript, Vite | Entry point directory |
-| Server | Ubuntu Server | VPS hosting |
-| Reverse Proxy | Nginx | Routing and port binding |
-| DNS | Domain mapping | Public access |
-| Applications | 6x Laravel apps | Team projects |
+Each team's app gets its own subdomain under `campus-project.cloud`. The portal renders a card per project with a visit link, the GitHub repo, and the team's maintainers, plus a link to the uptime status page.
+
+## Portal
+
+The SPA has one route with three sections: a hero, a short class description, and a showcase grid. Each showcase card opens a detail modal with the 5 maintainers (name and NIM) and buttons for the live site and repository.
+
+![Portal landing page with the six project cards](/images/projects/campus-project/dashboard.png)
 
 ## Key Features
 
-- **Multi-Application Hosting** — 6 Laravel apps running on a single VPS with isolated ports
-- **Nginx Reverse Proxy** — Unique port bindings per team with clean URL routing
-- **Portal UI** — React-based directory page listing all team projects
-- **Firewall Configuration** — UFW rules to ensure only necessary ports were exposed
-- **Concurrent Access Stability** — All applications remained stable during simultaneous demo usage
+- **Six Project Cards**: One card per team with name, site link, repo link, and 5 maintainers
+- **Detail Modal**: Click a card to see the full team roster and both action links
+- **Clean Navigation**: Sticky nav with the status-page diagnostic link
+- **Responsive Layout**: Tailwind-driven layout that holds up on projector and phone
+
+![Portal showcase detail with team roster](/images/projects/campus-project/features.png)
 
 ## Technical Decisions
 
-- Ubuntu Server was chosen for its wide community support and familiarity
-- Nginx was selected over Apache for its lighter resource footprint on a small VPS
-- React + Vite was used for the portal UI because of fast development and build times
-- Each team got a unique port to prevent conflicts and ensure isolation
+- **React + Vite** for a fast, static single page that deploys anywhere without a server runtime
+- **Tailwind CSS** to style the whole portal without hand-written CSS files
+- **Per-team subdomains** over ports, so each URL is clean and each app stays isolated
+- **UptimeRobot** to watch all 6 sites and surface a failure before the demonstration
 
 ## Challenges
 
-- This was my first time managing a production server — learning SSH, Nginx config, and firewall rules from scratch
-- Isolating 6 Laravel applications on a single VPS required careful resource management
-- Configuring Nginx reverse proxy for each application took significant trial and error
+- Coordinating with 5 other teams on their port bindings and access needs took patience
+- The portal had to load fast on the lab network, so the bundle stayed small
+- Every subdomain needed DNS and a reverse-proxy entry before any team could test
 
 ## Outcome
 
-The class demonstration ran smoothly with all 6 applications accessible through a single portal. The lecturer and classmates could access every project from their browsers without installing anything locally. This experience sparked my interest in infrastructure and DevOps.
+The class demonstration ran from a single URL, with all 6 applications reachable and monitored. No team had to present from a flaky local laptop. The experience introduced me to server administration, reverse proxies, and DNS, which became the foundation for every deployment I handled afterward.
 
 ## Final Thoughts
 
-Campus Portal showed me that infrastructure is not just about servers — it is about solving problems. The code was simple (a React directory page), but the impact was real: a professional demonstration experience for the entire class. This project taught me that sometimes the most valuable work is not writing application code, but making other people's code accessible.
+Campus Portal taught me that infrastructure is a product too. The portal code was a day of React, but the real work was making 6 other teams' applications reliably reachable in one place. Sometimes the most valuable thing you can build is the door everyone else walks through.

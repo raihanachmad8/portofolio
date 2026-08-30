@@ -61,7 +61,7 @@
 /* hero */
 [data-theme="terminal"] #boot { color: var(--acc); }
 [data-theme="terminal"] h1 { color: var(--txt); font-size: clamp(2.8rem, 6.5vw, 5.2rem); }
-[data-theme="terminal"] .outl { color: transparent; -webkit-text-stroke: 1.5px var(--txt); }
+[data-theme="terminal"] .name-outline { color: transparent; -webkit-text-stroke: 1.5px var(--txt); }
 [data-theme="terminal"] .role-line { color: var(--acc); }
 [data-theme="terminal"] .hero-sub { color: var(--dim); }
 [data-theme="terminal"] .hero-sub b { color: var(--txt); }
@@ -74,7 +74,7 @@
 [data-theme="terminal"] .hud { background: var(--panel); }
 [data-theme="terminal"] .hud-img img { filter: grayscale(45%) contrast(1.05); transition: filter .6s; }
 [data-theme="terminal"] .hud:hover .hud-img img { filter: grayscale(0); }
-[data-theme="terminal"] .hud-row .v.acc { color: var(--acc); }
+[data-theme="terminal"] .hud-row .hud-value.acc { color: var(--acc); }
 [data-theme="terminal"] .scroll-hint .line::after { background: var(--acc); }
 [data-theme="terminal"] .scroll-hint .line { background: var(--line); }
 
@@ -157,8 +157,8 @@
 [data-theme="terminal"] .about-txt p b { color: var(--txt); }
 [data-theme="terminal"] .about-ph { box-shadow: 10px 10px 0 rgba(216, 255, 62, .14); }
 [data-theme="terminal"] .facts div { background: var(--panel); }
-[data-theme="terminal"] .facts .n { color: var(--acc); }
-[data-theme="terminal"] .facts .l { color: var(--dim); }
+[data-theme="terminal"] .facts .fact-value { color: var(--acc); }
+[data-theme="terminal"] .facts .fact-label { color: var(--dim); }
 [data-theme="terminal"] .principles li i { color: var(--acc); }
 [data-theme="terminal"] .principles li span { color: var(--dim); }
 
@@ -179,9 +179,9 @@
 [data-theme="terminal"] .skill-col { background: var(--panel); }
 [data-theme="terminal"] .skill-col h3 { color: var(--acc); }
 [data-theme="terminal"] .skill-col h3::after { background: var(--line); }
-[data-theme="terminal"] .sk .row span:last-child { color: var(--dim); }
-[data-theme="terminal"] .sb { background: var(--line); }
-[data-theme="terminal"] .sb span { background: repeating-linear-gradient(90deg, var(--acc) 0 7px, rgba(216, 255, 62, .45) 7px 11px); }
+[data-theme="terminal"] .skill-row .row span:last-child { color: var(--dim); }
+[data-theme="terminal"] .skill-bar { background: var(--line); }
+[data-theme="terminal"] .skill-bar span { background: repeating-linear-gradient(90deg, var(--acc) 0 7px, rgba(216, 255, 62, .45) 7px 11px); }
 [data-theme="terminal"] .skill-col .tools i { color: var(--dim); }
 [data-theme="terminal"] .sk-note { color: var(--dim); }
 [data-theme="terminal"] .sk-note b { color: var(--acc); font-weight: 500; }
@@ -191,8 +191,8 @@
 [data-theme="terminal"] .xp-row .period { color: var(--dim); }
 [data-theme="terminal"] .xp-row.now .period { color: var(--acc); font-weight: 700; }
 [data-theme="terminal"] .xp-row h3 { color: var(--txt); }
-[data-theme="terminal"] .xp-row .co { color: var(--acc); }
-[data-theme="terminal"] .xp-row .loc { color: var(--dim); }
+[data-theme="terminal"] .xp-row .company { color: var(--acc); }
+[data-theme="terminal"] .xp-row .location { color: var(--dim); }
 [data-theme="terminal"] .xp-row p { color: var(--dim); }
 
 /* achievements */
@@ -219,28 +219,3 @@
 [data-theme="terminal"] .socials a, [data-theme="terminal"] .socials button { border-color: rgba(10, 12, 15, .55); color: var(--ink); }
 [data-theme="terminal"] .socials a:hover, [data-theme="terminal"] .socials button:hover { background: var(--ink); color: var(--acc); border-color: var(--ink); }
 [data-theme="terminal"] .c-foot { border-color: rgba(10, 12, 15, .35); color: rgba(10, 12, 15, .7); }
-
-/* chat */
-[data-theme="terminal"] #aiFab { background: var(--acc); color: var(--ink); box-shadow: 0 14px 34px rgba(216, 255, 62, .35); }
-[data-theme="terminal"] #aiTip { background: var(--panel); color: var(--txt); }
-[data-theme="terminal"] .chat { background: var(--panel); box-shadow: 0 40px 90px rgba(0, 0, 0, .6); }
-[data-theme="terminal"] .chat > header { background: var(--panel2); }
-[data-theme="terminal"] .chat .ava { background: var(--acc); color: var(--ink); }
-[data-theme="terminal"] .chat header small { color: var(--acc); }
-[data-theme="terminal"] .chat header .close:hover { border-color: var(--acc); color: var(--acc); }
-[data-theme="terminal"] .c-body { scrollbar-color: var(--line) transparent; }
-[data-theme="terminal"] .msg.bot { background: var(--bg); border: 1px solid var(--line); border-left: 3px solid var(--acc); }
-[data-theme="terminal"] .msg.user { background: var(--acc); color: var(--ink); }
-[data-theme="terminal"] .msg .tagname { color: var(--acc); }
-[data-theme="terminal"] .msg .act { color: var(--acc); background: var(--panel); }
-[data-theme="terminal"] .msg .act:hover { background: var(--acc); color: var(--ink); }
-[data-theme="terminal"] .nxt { background: var(--bg); color: var(--dim); }
-[data-theme="terminal"] .nxt:hover { border-color: var(--acc); color: var(--acc); }
-[data-theme="terminal"] .typing .dots i { background: var(--acc); }
-[data-theme="terminal"] .c-chips button { color: var(--dim); }
-[data-theme="terminal"] .c-chips button:hover { border-color: var(--acc); color: var(--acc); }
-[data-theme="terminal"] .c-input { background: var(--panel2); }
-[data-theme="terminal"] .c-input > span { color: var(--acc); }
-[data-theme="terminal"] .c-input input { color: var(--txt); }
-[data-theme="terminal"] .c-input input::placeholder { color: var(--dim); }
-[data-theme="terminal"] .c-input button { background: var(--acc); color: var(--ink); }

@@ -1,0 +1,90 @@
+---
+/**
+ * ArunaChat — floating portfolio assistant shell.
+ * Builds the knowledge base server-side and embeds it as a JSON payload.
+ */
+import './aruna.css';
+import { getAllProjects, getProfile, getSkillsByCategory, getExperience, getAllPosts } from '../../lib/content';
+import { buildKB, type KBEntry } from '../../lib/aruna';
+import { getRuntimeEnv } from '../../lib/utils';
+import { getLocale } from '@i18n';
+import qa from '../../data/aruna-qa.json';
+import cv from '../../data/cv.json';
+
+const env = getRuntimeEnv(Astro);
+const { locale: rawLocale } = getLocale(Astro);
+const locale = (rawLocale ?? 'en') as 'en' | 'id';
+
+let entries: KBEntry[] = [];
+try {
+  const [projects, skills, profile, experience, blog] = await Promise.all([
+    getAllProjects(env),
+    getSkillsByCategory(env),
+    getProfile(env),
+    getExperience(env),
+    getAllPosts(env).catch(() => []),
+  ]);
+  entries = buildKB({ projects, skills, experience, profile, blog, qa: qa as KBEntry[], cv });
+} catch (error) {
+  console.warn('[Aruna] Failed to preload knowledge base:', error);
+}
+
+const payload = JSON.stringify({ entries, locale }).replace(/</g, '\\u003c');
+---
+
+<div id="aruna-chat" class="aruna-chat">
+  <div id="aruna-tip" class="aruna-tip" role="status">
+    {locale === 'id' ? 'Halo! 👋 Tanya apa saja soal portofolio ini ✳' : 'Hi! 👋 Ask me anything about this portfolio ✳'}
+  </div>
+  <button id="aruna-toggle" class="aruna-toggle" type="button" aria-label="Open Aruna assistant" aria-expanded="false" aria-controls="aruna-window">
+    <span class="aruna-icon">✳</span> {locale === 'id' ? 'TANYA ARUNA' : 'ASK ARUNA'}
+  </button>
+
+  <div id="aruna-window" class="aruna-window aruna-hidden" role="dialog" aria-label="Aruna portfolio assistant" aria-hidden="true">
+    <header class="aruna-header">
+      <div class="aruna-header-left">
+        <div class="aruna-avatar" aria-hidden="true">✳</div>
+        <div>
+          <div class="aruna-title">Aruna</div>
+          <div class="aruna-status"><span class="aruna-dot" aria-hidden="true"></span>{locale === 'id' ? 'Asisten Portofolio · Online' : 'Portfolio Assistant · Online'}</div>
+        </div>
+      </div>
+      <button id="aruna-close" class="aruna-close" type="button" aria-label="Close Aruna assistant">&times;</button>
+    </header>
+
+    <div id="aruna-messages" class="aruna-messages" aria-live="polite"></div>
+    <div id="aruna-suggestions" class="aruna-suggestions" aria-label="Suggested prompts"></div>
+
+    <div id="aruna-cmd-palette" class="aruna-cmd-palette aruna-hidden" role="listbox" aria-label="Commands"></div>
+
+    <form class="aruna-input-area">
+      <span class="aruna-prompt" aria-hidden="true">&gt;</span>
+      <input
+        id="aruna-input"
+        class="aruna-input"
+        type="text"
+        placeholder={locale === 'id' ? 'Tanya apa saja… ( /help · /reset )' : 'Ask me anything… ( /help · /reset )'}
+        autocomplete="off"
+      />
+      <button id="aruna-send" class="aruna-send" type="button" aria-label="Send message">
+        {locale === 'id' ? 'KIRIM' : 'SEND'}
+      </button>
+    </form>
+  </div>
+</div>
+
+<script id="aruna-data" type="application/json" set:html={payload}></script>
+
+<script>
+  import { initArunaChat } from './ArunaChatClient';
+
+  const dataEl = document.getElementById('aruna-data');
+  if (dataEl?.textContent) {
+    try {
+      const data = JSON.parse(dataEl.textContent);
+      initArunaChat(data);
+    } catch (e) {
+      console.error('[Aruna] Failed to parse data payload:', e);
+    }
+  }
+</script>

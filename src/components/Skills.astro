@@ -1,45 +1,43 @@
 ---
 import SectionHead from './SectionHead.astro';
 import { getSkillsByCategory } from '../lib/content';
+import { getRuntimeEnv } from '../lib/utils';
+import { getLocale } from '@i18n';
+import type { Skill } from '@lib/schemas';
 
-const skills = await getSkillsByCategory();
+const env = getRuntimeEnv(Astro);
+let skills: Record<string, Skill[]> = {};
+try {
+  skills = await getSkillsByCategory(env);
+} catch (e) {
+  console.warn('[Skills] Failed to fetch skills:', (e as Error).message);
+  skills = {};
+}
+const { t } = getLocale(Astro);
+
+const categories = [
+  { key: 'backend', title: '> Backend (Core)', delay: '' },
+  { key: 'frontend', title: '> Frontend', delay: 'delay-2' },
+  { key: 'devops', title: '> DevOps & Database', delay: 'delay-4' },
+] as const;
 ---
 
 <section id="skills">
   <div class="wrap">
-    <SectionHead tag="02" title="Skills" code="//tech" />
+    <SectionHead tag="03" title={t('sections.skills.title')} code={t('sections.skills.code')} />
     <div class="skills-grid">
-      <div class="skill-col" data-reveal>
-        <h3>&gt; Backend (Core)</h3>
-        {skills.backend?.map((sk: any) => (
-          <div class="sk">
-            <div class="row"><span>{sk.name}</span><span>{sk.level}%</span></div>
-            <div class="sb"><span data-lv={`${sk.level}%`}></span></div>
-          </div>
-        ))}
-        <div class="tools">{skills.tools?.backend?.map((t: string) => <i>{t}</i>)}</div>
-      </div>
-      <div class="skill-col d-2" data-reveal>
-        <h3>&gt; Frontend</h3>
-        {skills.frontend?.map((sk: any) => (
-          <div class="sk">
-            <div class="row"><span>{sk.name}</span><span>{sk.level}%</span></div>
-            <div class="sb"><span data-lv={`${sk.level}%`}></span></div>
-          </div>
-        ))}
-        <div class="tools">{skills.tools?.frontend?.map((t: string) => <i>{t}</i>)}</div>
-      </div>
-      <div class="skill-col d-4" data-reveal>
-        <h3>&gt; DevOps &amp; Database</h3>
-        {skills.devops?.map((sk: any) => (
-          <div class="sk">
-            <div class="row"><span>{sk.name}</span><span>{sk.level}%</span></div>
-            <div class="sb"><span data-lv={`${sk.level}%`}></span></div>
-          </div>
-        ))}
-        <div class="tools">{skills.tools?.devops?.map((t: string) => <i>{t}</i>)}</div>
-      </div>
+      {categories.map((cat) => (
+        <div class={`skill-col${cat.delay ? ` ${cat.delay}` : ''}`} data-reveal>
+          <h3>&gt; {cat.title}</h3>
+          {(skills[cat.key] as Skill[] | undefined)?.map((skill: Skill) => (
+            <div class="skill-row">
+              <div class="row"><span>{skill.name}</span><span>{skill.level}%</span></div>
+              <div class="skill-bar"><span data-lv={`${skill.level}%`}></span></div>
+            </div>
+          ))}
+          <div class="tools">{skills.tools?.[cat.key]?.map((tool: string) => <i>{tool}</i>)}</div>
+        </div>
+      ))}
     </div>
-    <p class="sk-note" data-reveal><b>Database</b> — PostgreSQL · MongoDB · Redis · Prisma · Drizzle &nbsp;✳&nbsp; <b>Soft Skills</b> — Communication · Teamwork · Problem Solving</p>
   </div>
 </section>

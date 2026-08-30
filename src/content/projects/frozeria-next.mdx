@@ -1,97 +1,144 @@
 ---
-title: Frozeria Next
+title: "Frozeria Next"
 slug: frozeria-next
-category: Certification Project
+category: "Certification Project"
 year: 2026
 has_ui: true
-description: "Frozen-food stock management app built with Next.js 16, Ant Design, Drizzle ORM, and Neon Postgres for BNSP certification assessment."
-role: "Full-stack developer — system design, API implementation, frontend development, storage abstraction."
+description: "Frozen-food stock tracker built with Next.js 16, Ant Design, Drizzle ORM, and Neon Postgres, with 14 API routes, 60 unit tests, and a full CI pipeline, for BNSP certification."
 stack: "Next.js 16,TypeScript,Ant Design 6,Drizzle ORM,Neon Postgres,TanStack Query,Zod,Vitest,Playwright"
 github_url: "https://github.com/raihanachmad8/frozeria-next"
-live_url: null
+live_url: ""
 featured: true
-card_color: purple
-image_url: null
-images: []
+image_url: "/images/projects/frozeria-next/cover.webp"
 order: 7
 ---
 
 ## Overview
 
-Frozeria Next was built for a BNSP (Badan Nasional Sertifikasi Profesi) certification assessment. The task was to demonstrate full-stack development skills by building a frozen-food stock management application with CRUD operations, dashboard, photo upload with pluggable storage backends, and item detail pages. This project combined everything I had learned across campus projects, competitions, and internship training into a single, polished application.
+Frozeria Next is a frozen-food stock tracker built for a BNSP certification assessment. The task was to prove full-stack skill with a working CRUD application, and this is the result: a Next.js 16 app with an Ant Design dashboard, a Drizzle-managed Postgres schema, Zod validation, 60 unit tests, Playwright smoke tests, and a CI pipeline that gates every change. It ties together the patterns I had built up across campus projects, competitions, and the internship.
+
+| Metric | Value |
+|---|---|
+| Database tables | 2 (categories, items) |
+| API endpoints | 14 |
+| Unit tests | 60 (Vitest) |
+| E2E tests | 3 Playwright specs |
+| Pages | 4 |
+| CI | type-check + lint + test + build on every PR |
 
 ## Problem
 
-- Frozen-food businesses struggle to track inventory across multiple storage locations (freezers)
-- Manual stock tracking leads to spoilage, overstocking, and lost revenue
-- The BNSP assessment required a production-quality application with proper architecture, documentation, and deployment
+- Frozen-food businesses track stock across freezers in spreadsheets, which hides what is low
+- The BNSP assessment demanded a production-quality app with real architecture, tests, and docs
+- Certification reviewers want clean code and a documented API contract, not just working CRUD
 
 ## Goal
 
-- Build a full-stack application that demonstrates Next.js proficiency
-- Implement stock management with real-time inventory tracking
-- Support pluggable storage backends (local, Cloudinary, S3-compatible)
-- Prepare a codebase that meets BNSP certification standards
+- Build a full-stack Next.js app with proper server/client separation
+- Manage frozen-food items and categories with validation at every layer
+- Make photo uploads work through a pluggable storage driver
+- Ship tests and CI so the codebase holds up to certification review
 
 ## Role
 
-I built the entire application independently.
+I built the entire application independently, including the schema, API, tests, CI, and documentation.
 
 **Team:** Achmad Raihan Fahrezi Effendy (Full-Stack Developer)
 
 ## Architecture
 
-<div class="mermaid" set:html={`flowchart TD
-  A["Next.js 16 App Router"] --> B["API Routes"]
-  A --> C["React 19 Components"]
-  B --> D["Drizzle ORM"]
-  D --> E[("Neon Postgres")]
-  C --> F["Ant Design 6"]
-  C --> G["TanStack Query"]
-  H["Storage Driver"] --> B
-  H --> I["Local / Cloudinary / S3"]
-`} />
+```mermaid
+flowchart TD
+    A["Next.js 16 App Router"] --> B["API Routes (14)"]
+    A --> C["React 19 + Ant Design"]
+    B --> D["Drizzle ORM"]
+    D --> E[("Neon Postgres")]
+    B --> F["Zod validation"]
+    B --> G["Storage driver"]
+    G --> H["Local"]
+    G --> I["Cloudinary"]
+    C --> J["TanStack Query"]
+    K["Vitest + Playwright"] --> B
+    L["GitHub Actions CI"] --> A
+```
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Framework | Next.js 16 | Full-stack React framework |
-| Language | TypeScript 5 | Type safety across the stack |
-| UI | Ant Design 6 | Enterprise component library |
-| State | TanStack Query | Server state management |
-| ORM | Drizzle ORM | Type-safe database access |
-| Database | Neon Postgres (serverless) | Persistent storage |
-| Storage | Driver-based (Local/Cloudinary/S3) | Pluggable photo upload |
-| Validation | Zod | Schema validation |
-| Testing | Vitest, Playwright | Unit + E2E tests |
-| Deploy | Vercel | Production hosting |
+Every API route shares one response envelope with a request id, so errors and payloads are consistent across the app. Validation runs in Zod before any query, and tests plus CI wrap the whole thing.
+
+## Database Design
+
+The schema is deliberately small: `categories` and `items`, with a nullable foreign key that nulls out when a category is deleted. Non-negative stock and price are enforced at the database level with CHECK constraints.
+
+```mermaid
+erDiagram
+    categories ||--o{ items : "category_id"
+
+    categories {
+        int id PK
+        text name
+        timestamp created_at
+        timestamp updated_at
+    }
+    items {
+        int id PK
+        int category_id FK "nullable, SET NULL"
+        text name
+        int stock "CHECK >= 0"
+        int price "CHECK >= 0"
+        text description
+        text photo_url
+        timestamp created_at
+        timestamp updated_at
+    }
+```
+
+## API
+
+Fourteen endpoints under `/api/v1` cover the full CRUD surface plus dashboard and health checks.
+
+| Area | Endpoints |
+|---|---|
+| Categories | GET, POST, PUT, DELETE |
+| Items | GET list, GET by id, POST, PUT, DELETE |
+| Dashboard | GET summary |
+| Health | GET live, GET ready |
+| Uploads | POST item photo (multipart) |
 
 ## Key Features
 
-- **Stock Management** — Track frozen-food inventory across multiple freezers and locations
-- **Dashboard** — Summary cards with stock levels, recent activity, and alerts
-- **Product CRUD** — Create, read, update, delete products with categories
-- **Photo Upload** — Pluggable storage backends (local filesystem, Cloudinary, S3-compatible)
-- **Item Detail Pages** — Individual product views with stock history
-- **Responsive Design** — Works on desktop and mobile for warehouse staff
+- **Item & Category CRUD**: Full management of frozen-food items grouped by category
+- **Dashboard Summary**: Stock totals and low-stock alerting with a hardcoded threshold of 20
+- **Photo Upload Driver**: Swappable storage backends with local and Cloudinary implementations
+- **Zod Validation**: Every route validates input and returns a consistent 422 on bad data
+- **Response Envelope**: One shared shape with request-id passthrough for every API call
+- **Test Coverage**: 60 unit cases across services, schemas, and HTTP handling
+- **Playwright Smoke Tests**: Category, dashboard, and help flows against a real database
+- **CI Pipeline**: Type-check, lint, test, and build run on every PR and push to main
+- **Documented Contract**: `docs/API_CONTRACTS.md` matches the actual implementation
+
+![Frozeria dashboard with stock summary cards](/images/projects/frozeria-next/dashboard.png)
 
 ## Technical Decisions
 
-- Next.js 16 with App Router for server components and API routes
-- Ant Design for enterprise-grade components without building from scratch
-- Drizzle ORM for type-safe database access with SQL-like syntax
-- Neon Postgres for serverless PostgreSQL without managing infrastructure
-- Driver-based storage for flexibility across deployment environments
+- **Next.js 16 App Router** for server components, API routes, and middleware in one framework
+- **Drizzle ORM** over a full ORM, for SQL-like schema definitions and small bundle size
+- **Ant Design** for enterprise-grade components without hand-building a design system
+- **Zod** shared between client and server so one schema drives both sides
+- **Storage driver interface** so local development and Cloudinary production swap by config
+- **Vitest + Playwright** for fast unit tests plus real-browser smoke coverage
+- **Neon Postgres** for a serverless database with no infrastructure to manage
+
+![Inventory list page with item rows](/images/projects/frozeria-next/inventory.png)
 
 ## Challenges
 
-- Building a certification-ready application required more attention to documentation and code quality than typical projects
-- The pluggable storage abstraction needed to work consistently across local, Cloudinary, and S3 backends
-- Balancing feature completeness with code cleanliness under assessment deadlines
+- The pluggable storage abstraction had to behave identically across local and Cloudinary, so uploads never broke in one environment
+- Certification-grade code meant documenting the API contract and keeping tests green alongside features
+- Balancing scope with the assessment deadline forced a small, clean schema over a sprawling one
 
 ## Outcome
 
-The application was submitted for BNSP certification assessment. It demonstrated full-stack proficiency with Next.js, TypeScript, and modern development practices.
+The application shipped with a documented API, 60 passing unit tests, Playwright smoke coverage, and a CI pipeline that blocks bad merges. It was submitted for BNSP certification as a demonstration of full-stack Next.js, TypeScript, and Drizzle proficiency.
 
 ## Final Thoughts
 
-Frozeria Next was the project that tied everything together. Campus projects taught me the fundamentals, competitions taught me to build under pressure, internships taught me production patterns, and this project proved I could combine all of it into a polished application.
+Frozeria Next tied my experience together. Campus projects taught fundamentals, competitions taught pressure, the internship taught production patterns, and this project proved I could package all of it into a polished, tested application. The discipline of writing tests and docs alongside features carried straight into the SAST thesis work that followed.

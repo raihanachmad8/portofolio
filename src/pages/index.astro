@@ -1,29 +1,39 @@
 ---
-import PageHead from '../layouts/PageHead.astro';
-import Header from '../components/Header.astro';
-import Hero from '../components/Hero.astro';
-import Works from '../components/Works.astro';
-import About from '../components/About.astro';
-import Skills from '../components/Skills.astro';
-import Experience from '../components/Experience.astro';
-import Blog from '../components/Blog.astro';
-import ContactFooter from '../components/ContactFooter.astro';
-import NewsTicker from '../components/NewsTicker.astro';
-import { getProfile } from '../lib/content';
+import Base from '@layouts/Base.astro';
+import Header from '@components/Header.astro';
+import Hero from '@components/Hero.astro';
+import Works from '@components/Works.astro';
+import About from '@components/About.astro';
+import Skills from '@components/Skills.astro';
+import Experience from '@components/Experience.astro';
+import Blog from '@components/Blog.astro';
+import ContactFooter from '@components/ContactFooter.astro';
+import NewsTicker from '@components/NewsTicker.astro';
+import SEO from '@components/SEO.astro';
+import { getProfile } from '@lib/content';
+import { getRuntimeEnv } from '@lib/utils';
+import { getLocale } from '@i18n';
 
-const profile = await getProfile();
+const env = getRuntimeEnv(Astro);
+const profile = await getProfile(env);
+const { locale } = getLocale(Astro);
 ---
 
-<PageHead lang="en" title={`${profile.name} — ${profile.roleTitle}`} description={profile.heroSub} themeDefault="gallery">
+<Base lang={locale} title={`${profile.name} — ${profile.roleTitle}`} themeDefault="gallery">
+  <SEO
+    title={`${profile.name} — ${profile.roleTitle}`}
+    description={profile.heroSub}
+    sameAs={[profile.github, profile.linkedin].filter(Boolean)}
+  />
   <NewsTicker />
-  <Header />
+  <Header shortName={profile.shortName} available={profile.available} />
   <main id="top">
-    <Hero name={profile.name} tagline={profile.roleTitle} subtitle={profile.heroSub} location={profile.location} marquee={profile.marquee} />
+    <Hero name={profile.name} tagline={profile.roleTitle} subtitle={profile.heroSub} location={profile.location} marquee={profile.marquee} cvUrl={profile.cv_url} />
     <Works />
-    <About />
+    <About profile={profile} />
     <Skills />
     <Experience />
     <Blog />
   </main>
-  <ContactFooter />
-</PageHead>
+  <ContactFooter profile={profile} />
+</Base>

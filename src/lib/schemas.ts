@@ -1,89 +1,125 @@
-import { z } from 'zod';
+/**
+ * Zod schemas for data validation.
+ * Defines the shape of all data models used in the application.
+ * @module schemas
+ */
 
+import { z } from 'zod';
+import { DEFAULT_THEME } from './utils';
+import { LANGUAGES, THEMES } from './constants';
+
+const MIN_PROJECT_YEAR = 2020;
+const FUTURE_YEAR_BUFFER = 5;
+const MAX_READ_TIME_MINS = 120;
+const MAX_TITLE_LENGTH = 100;
+const MAX_BLOG_TITLE_LENGTH = 200;
+const MAX_DESCRIPTION_LENGTH = 500;
+const MAX_EXCERPT_LENGTH = 300;
+const DEFAULT_SITE_TITLE = 'Portfolio';
+const DEFAULT_SITE_DESCRIPTION = 'Personal portfolio';
+
+/** Project data schema */
 export const ProjectSchema = z.object({
   id: z.string().optional(),
-  title: z.string().min(1, 'Title required').max(100, 'Title too long'),
+  title: z.string().min(1, 'Title required').max(MAX_TITLE_LENGTH, 'Title too long'),
   slug: z.string().regex(/^[a-z0-9-]+$/, 'Invalid slug format').optional(),
   category: z.string().min(1, 'Category required'),
-  year: z.number().int().min(2020, 'Too old').max(2030, 'Too far future'),
-  description: z.string().min(10, 'Description too short').max(500, 'Description too long'),
+  year: z.number().int().min(MIN_PROJECT_YEAR, 'Too old').max(new Date().getFullYear() + FUTURE_YEAR_BUFFER, 'Too far future'),
+  description: z.string().min(10, 'Description too short').max(MAX_DESCRIPTION_LENGTH, 'Description too long'),
   content: z.string().optional(),
-  overview: z.string().optional(),
-  role: z.string().optional(),
-  key_features: z.array(z.string()).optional(),
-  challenges: z.array(z.string()).optional(),
-  outcome: z.string().optional(),
   has_ui: z.boolean().default(true),
   stack: z.string().min(1, 'Stack required'),
   github_url: z.string().optional().nullable(),
   live_url: z.string().optional().nullable(),
   featured: z.boolean().default(false),
-  card_color: z.string().default('dark'),
   image_url: z.string().optional().nullable(),
   images: z.array(z.string()).optional(),
   order: z.number().int().min(0).default(0),
-  created_at: z.string().datetime().optional(),
-  last_edited_at: z.string().datetime().optional(),
 });
 
+/** Skill data schema */
 export const SkillSchema = z.object({
-  id: z.string().optional(),
-  title: z.string().min(1, 'Title required').max(50, 'Title too long'),
-  category: z.enum(['backend', 'frontend', 'database', 'devops', 'tools', 'mobile', 'other']),
-  level: z.number().int().min(1, 'Min level 1').max(5, 'Max level 5'),
-  highlight: z.boolean().default(false),
-  order: z.number().int().min(0).default(0),
+  name: z.string().min(1, 'Name required').max(50, 'Name too long'),
+  level: z.number().int().min(0, 'Min level 0').max(100, 'Max level 100'),
 });
 
+/** Skills grouped by category schema */
+export const SkillsByCategorySchema = z.object({
+  backend: z.array(SkillSchema).default([]),
+  frontend: z.array(SkillSchema).default([]),
+  database: z.array(SkillSchema).default([]),
+  devops: z.array(SkillSchema).default([]),
+  tools: z.object({
+    backend: z.array(z.string()).default([]),
+    frontend: z.array(z.string()).default([]),
+    devops: z.array(z.string()).default([]),
+  }).default({ backend: [], frontend: [], devops: [] }),
+});
+
+/** Experience entry schema */
 export const ExperienceSchema = z.object({
   id: z.string().optional(),
-  title: z.string().min(1, 'Title required').max(100, 'Title too long'),
-  company: z.string().min(1, 'Company required').max(100, 'Company too long'),
+  title: z.string().min(1, 'Title required').max(MAX_TITLE_LENGTH, 'Title too long'),
+  company: z.string().min(1, 'Company required').max(MAX_TITLE_LENGTH, 'Company too long'),
   period: z.string().optional(),
   location: z.string().optional(),
-  detail: z.string().max(500, 'Detail too long').optional(),
+  detail: z.string().max(MAX_DESCRIPTION_LENGTH, 'Detail too long').optional(),
   now: z.boolean().optional(),
   order: z.number().int().min(0).default(0),
 });
 
+/** Blog post schema */
 export const BlogSchema = z.object({
   id: z.string().optional(),
-  title: z.string().min(1, 'Title required').max(200, 'Title too long'),
-  excerpt: z.string().min(10, 'Excerpt too short').max(300, 'Excerpt too long'),
-  category: z.enum(['tutorial', 'opinion', 'career', 'article', 'review', 'news']),
-  published_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
-  read_time: z.number().int().min(1, 'Min 1 min').max(120, 'Max 120 mins').optional(),
-  slug: z.string().regex(/^[a-z0-9-]+$/, 'Invalid slug format').min(1, 'Slug required'),
+  title: z.string().min(1, 'Title required').max(MAX_BLOG_TITLE_LENGTH, 'Title too long'),
+  slug: z.string().regex(/^[a-z0-9-]+$/, 'Invalid slug format').optional(),
+  excerpt: z.string().min(10, 'Excerpt too short').max(MAX_EXCERPT_LENGTH, 'Excerpt too long'),
+  category: z.string().min(1, 'Category required'),
+  published_date: z.string().or(z.date()).transform(v => String(v)),
+  read_time: z.number().int().min(1, 'Min 1 min').max(MAX_READ_TIME_MINS, 'Max 120 mins').optional(),
   featured: z.boolean().default(false),
+  tags: z.array(z.string()).optional(),
   content: z.string().optional(),
-  tags: z.string().optional(),
   order: z.number().int().min(0).default(0),
 });
 
-export const SettingsMapSchema = z.object({
-  site_title: z.string().default('Portfolio'),
-  site_description: z.string().default('Personal portfolio'),
-  site_url: z.string().url().optional(),
-  theme: z.enum(['terminal', 'editorial', 'gallery', 'swiss']).default('terminal'),
-  language: z.enum(['id', 'en']).default('id'),
-  aruna_enabled: z.enum(['true', 'false']).default('true'),
-  storage_provider: z.enum(['local', 's3', 'cloudinary']).default('local'),
-  analytics_provider: z.enum(['none', 'plausible', 'umami', 'cloudflare']).default('none'),
-  og_image: z.string().url().optional(),
-  github_url: z.string().url().optional(),
-  linkedin_url: z.string().url().optional(),
-  email: z.string().email().optional(),
+/** Profile data schema */
+export const ProfileSchema = z.object({
+  name: z.string().min(1, 'Name required'),
+  shortName: z.string().default(''),
+  roleTitle: z.string().default(''),
+  heroSub: z.string().default(''),
+  email: z.string().email('Invalid email').optional().or(z.literal('')),
+  github: z.string().optional().or(z.literal('')),
+  linkedin: z.string().optional().or(z.literal('')),
+  website: z.string().optional().or(z.literal('')),
+  cv_url: z.string().optional().or(z.literal('')),
+  location: z.string().optional().or(z.literal('')),
+  marquee: z.array(z.string()).default([]),
+  aboutLead: z.string().default(''),
+  aboutParas: z.array(z.string()).default([]),
+  facts: z.array(z.object({ value: z.number(), label: z.string() })).default([]),
+  principles: z.array(z.object({ no: z.string(), title: z.string(), description: z.string() })).default([]),
+  available: z.boolean().default(true),
+  tickerItems: z.array(z.string()).default([]),
+  language: z.enum(LANGUAGES).default('en'),
+  theme: z.enum(THEMES).default(DEFAULT_THEME),
+  site_title: z.string().optional().or(z.literal('')),
+  site_description: z.string().optional().or(z.literal('')),
 });
 
-export const ThemeConfigSchema = z.object({
-  theme: z.enum(['terminal', 'editorial', 'gallery', 'swiss']).default('terminal'),
-  sections: z.record(z.string(), z.enum(['terminal', 'editorial', 'gallery', 'swiss'])).optional(),
-  palette: z.record(z.string(), z.record(z.string(), z.string().regex(/^#[0-9a-fA-F]{6}$/))).optional(),
+/** Ticker item schema */
+export const TickerItemSchema = z.object({
+  icon: z.string().default(''),
+  text: z.string().min(1, 'Text required'),
+  order: z.number().int().min(0).default(0),
 });
 
+/** Inferred TypeScript types */
 export type Project = z.infer<typeof ProjectSchema>;
 export type Skill = z.infer<typeof SkillSchema>;
+export type SkillsByCategory = z.infer<typeof SkillsByCategorySchema>;
 export type Experience = z.infer<typeof ExperienceSchema>;
 export type Blog = z.infer<typeof BlogSchema>;
-export type SettingsMap = z.infer<typeof SettingsMapSchema>;
-export type ThemeConfig = z.infer<typeof ThemeConfigSchema>;
+export type Profile = z.infer<typeof ProfileSchema>;
+export type TickerItem = z.infer<typeof TickerItemSchema>;

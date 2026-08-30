@@ -1,39 +1,52 @@
 ---
 import SectionHead from './SectionHead.astro';
-import { getCollection } from 'astro:content';
+import { getAllProjects } from '../lib/content';
+import { resolveImageUrl, getRuntimeEnv } from '../lib/utils';
+import { getLocale } from '@i18n';
+import type { Project } from '@lib/schemas';
 
-const allProjects = await getCollection('projects');
-const projects = allProjects
-  .sort((a, b) => a.data.order - b.data.order)
-  .filter(p => p.data.featured);
+const env = getRuntimeEnv(Astro);
+const siteUrl = env?.PUBLIC_SITE_URL;
+let allProjects: Project[] = [];
+try {
+  allProjects = await getAllProjects(env);
+} catch (e) {
+  console.warn('[Works] Failed to fetch projects:', (e as Error).message);
+  allProjects = [];
+}
+const projects = allProjects.filter(p => p.featured);
+
+const { t } = getLocale(Astro);
 ---
 
 <section id="work">
   <div class="wrap">
-    <SectionHead tag="01" title="Featured Work" code="//projects" />
+    <SectionHead tag="01" title={t('sections.works.title')} code={t('sections.works.code')} />
     <div class="works-grid">
       <aside class="works-side">
-        <p>A selection of projects I've built across backend, frontend, and full-stack applications.</p>
-        <nav class="works-index" aria-label="Project navigation">
-          {projects.map((pr) => (
-            <a href={`#project-${pr.data.order}`}><i>/{String(pr.data.order).padStart(2, '0')}</i><b>{pr.data.title}</b></a>
-          ))}
-        </nav>
-        <a href="/projects" class="view-more-link mono">View All Projects <i>→</i></a>
+        <p>{t('sections.works.description')}</p>
+        <div class="works-index-wrap">
+          <nav class="works-index" aria-label="Project navigation">
+            {projects.map((pr) => (
+              <a href={`#project-${pr.order}`}><i>/{String(pr.order).padStart(2, '0')}</i><b>{pr.title}</b></a>
+            ))}
+          </nav>
+        </div>
+        <a href="/projects" class="view-more-link mono">{t('sections.works.viewAll')} <i>→</i></a>
       </aside>
       <div>
         {projects.map((pr) => (
-          <article class="proj" id={`project-${pr.data.order}`} data-reveal>
-            <div class="proj-top mono"><span class="no">/{String(pr.data.order).padStart(2, '0')}</span><span>{pr.data.year} · {pr.data.category}</span></div>
-            <figure data-case={pr.data.order}>
-              <img src={pr.data.image_url || '/images/placeholder.svg'} alt={pr.data.title} loading="lazy" />
+          <article class="proj" id={`project-${pr.order}`} data-reveal>
+            <div class="proj-top mono"><span class="no">/{String(pr.order).padStart(2, '0')}</span><span>{pr.year} · {pr.category}</span></div>
+            <figure data-case={pr.order}>
+              <img src={resolveImageUrl(pr.image_url, siteUrl)} alt={pr.title} loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.svg'; this.dataset.fallback=''" />
             </figure>
-            <h3>{pr.data.title}</h3>
-            <p class="desc">{pr.data.description}</p>
+            <h3>{pr.title}</h3>
+            <p class="desc">{pr.description}</p>
             <div class="tags">
-              {pr.data.stack.split(',').map((t: string) => <span>{t.trim()}</span>)}
+              {pr.stack.split(',').map((tech: string) => <span>{tech.trim()}</span>)}
             </div>
-            <a href={`/projects/${pr.id}`} class="arrow-link">View Case Study<i>→</i></a>
+            <a href={`/projects/${pr.slug}`} class="arrow-link">{t('sections.works.viewCase')}<i>→</i></a>
           </article>
         ))}
       </div>

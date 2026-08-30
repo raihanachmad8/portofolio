@@ -1,43 +1,118 @@
 ---
-import PageHead from '../../layouts/PageHead.astro';
-import Header from '../../components/Header.astro';
-import ContactFooter from '../../components/ContactFooter.astro';
-import { getCollection, render } from 'astro:content';
+import Base from '@layouts/Base.astro';
+import Header from '@components/Header.astro';
+import ContactFooter from '@components/ContactFooter.astro';
+import { getProjectBySlug, getProjectContent, getProfile } from '@lib/content';
+import { resolveImageUrl, getRuntimeEnv, SITE_URL, OG_DEFAULT_IMAGE } from '@lib/utils';
+import { renderMarkdown } from '@lib/content/toc';
+import { getLocale } from '@i18n';
+import SEO from '@components/SEO.astro';
+import { buildBreadcrumbSchema } from '@lib/seo-helpers';
 
-export async function getStaticPaths() {
-  const projects = await getCollection('projects');
-  return projects.map(entry => ({
-    params: { slug: entry.id },
-    props: { entry },
-  }));
+const { slug } = Astro.params;
+if (!slug) return new Response('Not found', { status: 404 });
+const env = getRuntimeEnv(Astro);
+const project = await getProjectBySlug(slug, env);
+const profile = await getProfile(env);
+const { locale, t } = getLocale(Astro);
+
+if (!project) {
+  return new Response('Not found', { status: 404 });
 }
 
-const { entry } = Astro.props;
-const { data } = entry;
-const { Content } = await render(entry);
+const contentMd = await getProjectContent(project.id, project.content || '', env);
+const { html: contentHtml, toc } = renderMarkdown(contentMd);
 
-const hasUi = data.has_ui !== false;
-const imgSrc = data.image_url || '/images/placeholder.svg';
-const stackItems = data.stack.split(',').map((t: string) => t.trim());
+// Nested table of contents built from the rendered headings.
+interface TocNode {
+  id: string;
+  text: string;
+  children: TocNode[];
+}
+function toNested(items: typeof toc): TocNode[] {
+  const root: TocNode[] = [];
+  const stack: { depth: number; node: TocNode }[] = [];
+  for (const item of items) {
+    const node: TocNode = { id: item.id, text: item.text, children: [] };
+    while (stack.length && stack[stack.length - 1].depth >= item.depth) stack.pop();
+    if (stack.length) stack[stack.length - 1].node.children.push(node);
+    else root.push(node);
+    stack.push({ depth: item.depth, node });
+  }
+  return root;
+}
+function tocHtml(nodes: TocNode[]): string {
+  return (
+    '<ol>' +
+    nodes
+      .map(
+        (n) =>
+          `<li><a href="#${n.id}">${n.text}</a>${n.children.length ? tocHtml(n.children) : ''}</li>`,
+      )
+      .join('') +
+    '</ol>'
+  );
+}
+const tocMarkup = toc.length ? tocHtml(toNested(toc)) : '';
+
+const hasUi = project.has_ui !== false;
+const imgSrc = resolveImageUrl(project.image_url, env?.PUBLIC_SITE_URL);
+const stackItems = project.stack.split(',').map((tech: string) => tech.trim());
+
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || SITE_URL;
+const projectUrl = `${siteUrl}/projects/${project.slug}`;
+
+const softwareSourceCodeSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareSourceCode',
+  name: project.title,
+  description: project.description,
+  url: project.github_url || projectUrl,
+  codeRepository: project.github_url || '',
+  programmingLanguage: stackItems,
+  runtimePlatform: project.category,
+  dateCreated: `${project.year}-01-01`,
+  author: {
+    '@type': 'Person',
+    name: t('seo.siteName'),
+    url: siteUrl,
+  },
+};
+
+const breadcrumbSchema = buildBreadcrumbSchema([
+  { name: t('common.home'), url: siteUrl },
+  { name: t('projects.title'), url: `${siteUrl}/projects` },
+  { name: project.title, url: projectUrl },
+]);
 ---
 
-<PageHead lang="en" title={`${data.title} — Case Study`} description={data.description} themeDefault="gallery">
+<Base lang={locale} title={`${project.title} — ${t('projects.title')}`} themeDefault="gallery">
+  <SEO
+    title={`${project.title} — ${t('projects.title')}`}
+    description={project.description}
+    image={imgSrc}
+    url={projectUrl}
+    type="website"
+    sameAs={[profile.github, profile.linkedin].filter(Boolean)}
+  />
+  <script type="application/ld+json" set:html={JSON.stringify(softwareSourceCodeSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
   <Header />
   <main id="top">
     <section id="project-detail">
       <div class="wrap">
 
         <nav class="section-head">
-          <a href="/" class="section-link">Home</a>
+          <a href="/" class="section-link">{t('common.home')}</a>
           <span class="rule"></span>
-          <a href="/projects" class="section-link">Projects</a>
+          <a href="/projects" class="section-link">{t('projects.title')}</a>
           <span class="rule"></span>
-          <span class="mono code">{data.title}</span>
+          <span class="mono code">{project.title}</span>
         </nav>
 
         {hasUi ? (
           <div class="proj-hero" data-reveal>
-            <img src={imgSrc} alt={data.title} loading="lazy" />
+            <img src={imgSrc} alt={project.title} loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.svg'; this.dataset.fallback=''" />
           </div>
         ) : (
           <div class="proj-terminal" data-reveal>
@@ -45,12 +120,12 @@ const stackItems = data.stack.split(',').map((t: string) => t.trim());
               <span class="terminal-dot red"></span>
               <span class="terminal-dot yellow"></span>
               <span class="terminal-dot green"></span>
-              <span class="terminal-title mono">{data.slug}</span>
+              <span class="terminal-title mono">{project.slug}</span>
             </div>
             <div class="terminal-body">
               <div class="terminal-line"><span class="t-prompt">$</span> <span class="t-cmd">cat</span> README.md</div>
-              <div class="terminal-line t-comment"># {data.title}</div>
-              <div class="terminal-line t-dim">{data.description}</div>
+              <div class="terminal-line t-comment"># {project.title}</div>
+              <div class="terminal-line t-dim">{project.description}</div>
               <div class="terminal-line"></div>
               <div class="terminal-line"><span class="t-prompt">$</span> <span class="t-cmd">tree</span> --dirsfirst -L 2</div>
               <div class="terminal-line t-dim">.</div>
@@ -73,58 +148,50 @@ const stackItems = data.stack.split(',').map((t: string) => t.trim());
 
         <div class="proj-meta" data-reveal>
           <div class="proj-meta-cell">
-            <div class="label">Category</div>
-            <div class="value">{data.category}</div>
+            <div class="label">{t('projects.category')}</div>
+            <div class="value">{project.category}</div>
           </div>
           <div class="proj-meta-cell">
-            <div class="label">Year</div>
-            <div class="value">{data.year}</div>
+            <div class="label">{t('projects.year')}</div>
+            <div class="value">{project.year}</div>
           </div>
           <div class="proj-meta-cell">
-            <div class="label">Stack</div>
-            <div class="value">{stackItems.length} technologies</div>
+            <div class="label">{t('projects.stack')}</div>
+            <div class="value">{stackItems.length} {t('projects.technologies')}</div>
           </div>
         </div>
 
-        <h1 class="proj-title" data-reveal>{data.title}</h1>
+        <h1 class="proj-title" data-reveal>{project.title}</h1>
 
         <div class="proj-tags" data-reveal>
-          {stackItems.map((t: string) => (
-            <span>{t}</span>
+          {stackItems.map((tech: string) => (
+            <span>{tech}</span>
           ))}
         </div>
 
         <div class="proj-cta" data-reveal>
-          {data.github_url && (
-            <a href={data.github_url} target="_blank" rel="noopener" class="btn ghost">GitHub ↗</a>
+          {project.github_url && (
+            <a href={project.github_url} target="_blank" rel="noopener" class="btn ghost">{t('projects.github')} ↗</a>
           )}
-          {data.live_url && (
-            <a href={data.live_url} target="_blank" rel="noopener" class="btn solid">Live Demo ↗</a>
+          {project.live_url && (
+            <a href={project.live_url} target="_blank" rel="noopener" class="btn solid">{t('projects.liveDemo')} ↗</a>
           )}
         </div>
 
-        <div class="proj-content prose" data-reveal>
-          <Content />
-        </div>
-
-        {hasUi && data.images && data.images.length > 1 && (
-          <div class="proj-gallery" data-reveal>
-            <h2 class="proj-section-title">Screenshots</h2>
-            <div class="proj-gallery-grid">
-              {data.images.map((img: string, i: number) => (
-                <figure class="proj-gallery-item">
-                  <img src={img} alt={`${data.title} screenshot ${i + 1}`} loading="lazy" />
-                </figure>
-              ))}
-            </div>
-          </div>
+        {tocMarkup && (
+          <nav class="proj-toc" data-reveal aria-label={t('projects.tableOfContents')}>
+            <div class="proj-toc-title mono">{t('projects.tableOfContents')}</div>
+            <div class="proj-toc-list" set:html={tocMarkup} />
+          </nav>
         )}
 
+        <div class="proj-content prose" data-reveal set:html={contentHtml} />
+
         <div class="proj-back" data-reveal>
-          <a href="/projects" class="arrow-link"><i>→</i><b>View All Projects</b></a>
+          <a href="/projects" class="arrow-link"><i>→</i><b>{t('projects.viewAll')}</b></a>
         </div>
       </div>
     </section>
   </main>
   <ContactFooter />
-</PageHead>
+</Base>

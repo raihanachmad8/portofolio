@@ -1,103 +1,215 @@
 ---
-title: Cat Stories
+title: "Cat Stories"
 slug: cat-stories
-category: Campus Project
+category: "Campus Project"
 year: 2023
 has_ui: true
-description: "Cat adoption platform built with Express.js, Knex.js, React 18, MSSQL, Swagger, Joi validation, and Winston logging."
-role: "Backend Lead — API design, database workflows, Swagger documentation."
-stack: "Express.js,Knex.js,React 18,Vite,Tailwind CSS,MSSQL,JWT,Joi,Winston,Swagger,Jest"
+description: "Cat adoption management panel built with Express.js, Knex.js, React 18, and MSSQL, backed by 19 stored procedures and 21 table-valued functions."
+stack: "Express.js,Knex.js,React 18,Vite,Tailwind CSS,MSSQL,JWT,Joi,Winston,Swagger,Multer"
 github_url: "https://github.com/raihanachmad8/Basis-Data-CATSTORIES"
-live_url: null
+live_url: ""
 featured: false
-card_color: blue
 image_url: "/images/projects/cat-stories/cover.webp"
-images:
-  - "/images/projects/cat-stories/homepage.png"
-  - "/images/projects/cat-stories/dashboard.png"
-  - "/images/projects/cat-stories/database.png"
-  - "/images/projects/cat-stories/report.jpg"
 order: 2
 ---
 
 ## Overview
 
-Cat Stories (internally named "Platform Adopsi Kucing") was a database-focused project for a university course with a tight 2-week deadline. The system managed cat adoption data — tracking cats, adopters, and adoption records. I deliberately stepped outside my PHP comfort zone and chose Node.js + Express for the backend, making this my first project in the JavaScript backend ecosystem.
+Cat Stories is a cat adoption management panel built for a database course with a 2-week deadline. Staff register cats, buyers, breeds, shipping options, and payment methods, then process multi-cat adoptions end to end. Every backend I had built until then was PHP, so I chose Node.js and Express for this one. It became my first JavaScript backend. The project shipped on time with 33 endpoints, a 7-table MSSQL schema, and a database layer of 19 stored procedures and 21 table-valued functions.
+
+| Metric | Value |
+|---|---|
+| Database tables | 7 (MSSQL) |
+| Stored procedures | 19 |
+| Table-valued functions | 21 |
+| API endpoints | 33 |
+| Frontend | React 18 + Vite + Tailwind |
+| Deadline | 2 weeks |
 
 ## Problem
 
-- The coursework required a complete database application with REST API, validation, and documentation — in 2 weeks
-- I had only worked with PHP before this project — the Node.js ecosystem was unfamiliar territory
-- The team needed API documentation that both frontend and backend developers could reference
+- The course wanted a complete database application with a REST API, validation, and documentation, all inside 2 weeks
+- I had no Node.js experience; the Express ecosystem was new territory
+- The team needed API documentation both sides could trust without constant back-and-forth
+- Manual data validation let bad entries through and cost time during the tight deadline
 
 ## Goal
 
-- Build a REST API with Express.js and Knex.js query builder for MSSQL
-- Implement schema validation with Joi and structured logging with Winston
-- Generate interactive API documentation with Swagger
-- Build a React frontend with Vite and Tailwind CSS
+- Build a REST API with Express.js and the Knex.js query builder against MSSQL
+- Move the database logic into stored procedures and table-valued functions
+- Validate every request with Joi and log requests with Winston
+- Ship a React frontend with Vite and Tailwind for the adoption workflow
 
 ## Role
 
-I led the backend development while my teammate focused on the React frontend.
+I led the backend and designed the database layer while teammates built the React frontend. I structured the API, the validation logic, and the stored procedures.
 
-**Team:** Achmad Raihan Fahrezi Effendy (Backend Lead) + 1 teammate (Frontend)
+**Team:** Achmad Raihan Fahrezi Effendy (Backend Lead) + 2 contributors
 
 ## Architecture
 
-<div class="mermaid" set:html={`flowchart TD
-  A["React 18 + Vite"] --> B["Express.js API"]
-  B --> C["Joi Validation"]
-  B --> D["Winston Logging"]
-  B --> E["JWT Auth"]
-  B --> F["Knex.js Query Builder"]
-  F --> G[("Microsoft SQL Server")]
-  H["Swagger"] --> B
-  I["Tailwind CSS"] --> A
-`} />
+```mermaid
+flowchart TD
+    A["React 18 + Vite"] --> B["Express.js API"]
+    B --> C["Joi Validation"]
+    B --> D["Winston Logging"]
+    B --> E["JWT Auth"]
+    B --> F["Repository"]
+    F --> G["Knex.js Query Builder"]
+    G --> H["MSSQL"]
+    H --> I["Stored Procedures (19)"]
+    H --> J["Table Functions (21)"]
+    K["Swagger UI"] --> B
+    L["Multer uploads"] --> B
+```
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Frontend | React 18, Vite | User interface with fast HMR |
-| Styling | Tailwind CSS | Utility-first responsive design |
-| Backend | Express.js | REST API |
-| Query Builder | Knex.js | Database queries |
-| Validation | Joi | Schema validation |
-| Logging | Winston | Structured logging |
-| Auth | JWT | Token-based authentication |
-| Database | Microsoft SQL Server | Persistent storage |
-| Docs | Swagger (swagger-jsdoc + swagger-ui-express) | Interactive API documentation |
-| Testing | Jest + Supertest | Unit and integration tests |
-| Uploads | multer | File upload handling |
+The Express API sits in front of 7 repositories that call Knex against MSSQL. Heavy database logic lives in 19 stored procedures and 21 table-valued functions, so the service layer orchestrates and the database does the work.
+
+## Database Design
+
+Seven tables model the domain. `Kucing` (cats) holds availability status, `Transaksi` records each adoption with buyer, shipping, and payment, and `Detail_Transaksi` links each adopted cat to its transaction. A stored procedure flips a cat's status to Tidak Tersedia the moment it is adopted.
+
+```mermaid
+erDiagram
+    Jenis ||--o{ Kucing : "ID_Jenis"
+    Kucing ||--o{ Detail_Transaksi : "ID_Kucing"
+    Pembeli ||--o{ Transaksi : "ID_Pembeli"
+    Jenis_Pengiriman ||--o{ Transaksi : "ID_Jenis_Pengiriman"
+    Metode_Pembayaran ||--o{ Transaksi : "ID_Metode_Pembayaran"
+    Transaksi ||--o{ Detail_Transaksi : "ID_Transaksi"
+
+    Jenis {
+        string ID_Jenis PK
+        string Jenis_Kucing
+    }
+    Kucing {
+        string ID_Kucing PK
+        string ID_Jenis FK
+        string Nama_Kucing
+        string Foto
+        int Umur
+        string Jenis_Kelamin "Jantan / Betina"
+        date Tanggal_Masuk
+        decimal Biaya
+        string Status "Tersedia / Tidak Tersedia"
+        text Keterangan
+    }
+    Pembeli {
+        string ID_Pembeli PK
+        string Nama_Pembeli
+        text Email
+        string No_Telp
+        text Alamat
+    }
+    Jenis_Pengiriman {
+        string ID_Jenis_Pengiriman PK
+        string Jenis_Pengiriman
+    }
+    Metode_Pembayaran {
+        string ID_Metode_Pembayaran PK
+        string Metode_Pembayaran
+    }
+    Transaksi {
+        string ID_Transaksi PK
+        string ID_Pembeli FK
+        string ID_Jenis_Pengiriman FK
+        string ID_Metode_Pembayaran FK
+        decimal Total_Biaya
+        string Nomor_Resi
+        date Tanggal_Transaksi
+        text Pesan
+    }
+    Detail_Transaksi {
+        string ID_Detail_Transaksi PK
+        string ID_Transaksi FK
+        string ID_Kucing FK
+    }
+```
+
+## Adoption Flow
+
+A user picks available cats, adds buyer, shipping, and payment details, and submits. The service validates with Joi, creates the transaction and its detail rows, then runs the stored procedure that marks each adopted cat as Tidak Tersedia so nobody can adopt the same cat twice.
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as React frontend
+    participant A as Express API
+    participant S as TransaksiService
+    participant D as MSSQL
+    participant P as stored procedure
+
+    U->>F: Choose cats to adopt
+    F->>A: GET /cat-stories/kucing
+    A->>D: Query available cats
+    D-->>A: Tersedia list
+    A-->>F: Cats
+    U->>F: Fill buyer + shipping + payment
+    F->>A: POST /cat-stories/transaksi
+    A->>S: Validate (Joi)
+    S->>D: Insert Transaksi + Detail_Transaksi
+    S->>P: tambahDetailTransaksi
+    P->>D: Set Kucing.Status = Tidak Tersedia
+    D-->>S: Confirmed
+    S-->>A: Transaction created
+    A-->>F: Success with transaction id
+```
+
+![Cat Stories homepage showing available cats](/images/projects/cat-stories/homepage.png)
 
 ## Key Features
 
-- **REST API Architecture** — Clean endpoint design with consistent error handling
-- **Schema Validation** — Joi validation for every request body and query parameter
-- **Structured Logging** — Winston logger for request tracking and debugging
-- **JWT Authentication** — Token-based auth for protected endpoints
-- **Interactive API Docs** — Swagger UI for testing and documenting every endpoint
-- **File Uploads** — Multer for handling multipart form data
-- **SQL Injection Protection** — Knex.js parameterized queries against MSSQL
+- **Full CRUD Across 5 Entities**: Cats, breeds, buyers, shipping types, and payment methods
+- **Multi-Cat Adoption**: One transaction can adopt several cats, with per-cat availability checks
+- **Database Routines**: 19 stored procedures and 21 table-valued functions, including a 10-year monthly transaction pivot
+- **Availability Integrity**: Adopting a cat automatically flips its status to Tidak Tersedia
+- **Swagger UI**: Interactive documentation for testing every endpoint
+- **Joi Validation**: Every request body and query parameter validated before business logic
+- **Winston Logging**: Request tracking with custom transports
+- **Multer Uploads**: Cat photos with mime-type and size validation
+- **Parameterized Queries**: Knex against MSSQL, blocking SQL injection
+- **Search + Sort**: Every list supports keyword search and in-memory ordering
+
+![Adoption dashboard showing records and approvals](/images/projects/cat-stories/dashboard.jpg)
+
+## Routes
+
+33 endpoints cover 5 entities under the `/cat-stories` prefix, plus auth and storage.
+
+| Entity | Endpoints |
+|---|---|
+| Cats | 6 (CRUD + availability count) |
+| Breeds | 5 |
+| Buyers | 5 |
+| Shipping | 5 |
+| Payment | 5 |
+| Transactions | 3 |
+| Auth + storage | login, logout, file serving |
 
 ## Technical Decisions
 
-- Express was chosen to explore Node.js backend development beyond PHP
-- Knex.js provided a clean query builder without the overhead of a full ORM
-- Swagger was added early to keep the API contract visible and documented
-- Joi validation caught errors at the request layer before they reached business logic
-- Vite was used for fast frontend development with React
+- **Express.js** to move beyond PHP and test the JavaScript backend ecosystem
+- **Knex.js** as a query builder instead of a full ORM, keeping control over the SQL that reaches MSSQL
+- **Stored procedures and table-valued functions** for the database layer, since the course centered on MSSQL and this kept heavy queries close to the data
+- **Joi** to catch errors at the request layer before they reached business logic
+- **Swagger** added early so the API contract stayed visible to both teammates
+- **Vite** for fast React development under the 2-week deadline
+
+![Database schema for cats, adopters, and adoption records](/images/projects/cat-stories/database.png)
 
 ## Challenges
 
-- Pivoting from PHP to Node.js under a 2-week deadline required rapid learning
-- Knex.js query syntax differs from raw SQL — translating complex queries took adjustment
-- Integrating Swagger with Express required understanding OpenAPI specification format
+- Moving from PHP to Node.js under a 2-week deadline meant learning npm, middleware, and Express conventions on the fly
+- Translating business logic into 40 stored routines took careful parameter and result design
+- Knex.js query syntax differs from raw SQL, so joins and aggregations took adjustment
+- Two-plus people coordinating an API contract demanded tight, frequent communication
 
 ## Outcome
 
-The project was delivered on time with complete API documentation, validation, and logging. It demonstrated that backend concepts transfer across languages — the patterns I learned in PHP applied directly to Node.js.
+The project delivered on time with a working adoption panel, a complete MSSQL schema, and 40 database routines. The course requirement was met. More useful for me, it proved that backend architecture transfers across languages: the patterns I knew from PHP carried into Node.js. The Swagger docs became the shared reference the team used, which cut integration issues to zero.
+
+![Project report and API reference material](/images/projects/cat-stories/report.jpg)
 
 ## Final Thoughts
 
-Cat Stories taught me that the language matters less than the architecture. REST APIs, validation, logging, and documentation work the same way whether you use PHP, Node.js, or anything else. The 2-week deadline forced efficiency, and the Node.js experience opened doors to TypeScript and NestJS in later projects.
+Cat Stories taught me that the language matters less than the architecture. REST APIs, validation, logging, and documentation behave the same whether you write PHP, Node.js, or anything else. The database layer also taught me that pushing logic into stored procedures keeps the service layer thin. The 2-week deadline forced speed, and the Node.js experience opened the door to TypeScript and NestJS in later projects.

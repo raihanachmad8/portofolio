@@ -1,0 +1,218 @@
+{
+  "profile": {
+    "name": "Achmad Raihan Fahrezi Effendy",
+    "shortName": "Raihan",
+    "roleTitle": "Fullstack Software Engineer",
+    "heroSub": "Fullstack engineering — backend systems, frontend interfaces, and end-to-end product delivery.",
+    "email": "raihanachmad8@gmail.com",
+    "github": "https://github.com/raihanachmad8",
+    "linkedin": "https://www.linkedin.com/in/achmad-raihan-fahrezi-effendy-686b82259/",
+    "website": "https://raihanachmad.web.id",
+    "cv_url": "/document/cv-achmad-raihan-fahrezi-effendy-aug-26.pdf",
+    "location": "Malang Regency, East Java",
+    "aboutLead": "Fullstack engineering — backend systems, frontend interfaces, and end-to-end product delivery.",
+    "aboutParas": [
+      "I am an Informatics Engineering graduate from Politeknik Negeri Malang (GPA 3.90) with experience across the full stack — from database design and API architecture to responsive UI and deployment. My 10-month internship at DOT Indonesia taught me enterprise .NET microservices, HRIS frontend with Next.js, and critical data integrity problem-solving.",
+      "My goal is to build systems that are complete — from the database schema to the user interface — with clean architecture, reliable data flow, and production-ready deployment."
+    ],
+    "marquee": [
+      "Fullstack Engineer",
+      "TypeScript",
+      "Next.js",
+      "Node.js",
+      ".NET",
+      "React",
+      "PostgreSQL",
+      "Docker"
+    ],
+    "available": true,
+    "tickerItems": [
+      "GPA 3.90 — Politeknik Negeri Malang",
+      "Open to fullstack engineering opportunities",
+      "Portfolio v2.0 — Astro, multi-theme, Notion CMS"
+    ],
+    "facts": [
+      {
+        "value": 12,
+        "label": "Projects Completed"
+      },
+      {
+        "value": 20,
+        "label": "Technologies"
+      },
+      {
+        "value": 10,
+        "label": "Months Internship"
+      }
+    ],
+    "principles": [
+      {
+        "no": "01",
+        "title": "Fullstack Thinking",
+        "description": "End-to-end ownership from database to UI"
+      },
+      {
+        "no": "02",
+        "title": "Scalability",
+        "description": "Build systems that grow with the business"
+      },
+      {
+        "no": "03",
+        "title": "DevOps Mindset",
+        "description": "Automate everything, deploy with confidence"
+      }
+    ]
+  },
+  "skills": {
+    "backend": [
+      {
+        "name": "FastAPI",
+        "level": 60
+      },
+      {
+        "name": "Express.js",
+        "level": 80
+      },
+      {
+        "name": "NestJS",
+        "level": 80
+      },
+      {
+        "name": ".NET Core",
+        "level": 70
+      },
+      {
+        "name": "Laravel",
+        "level": 80
+      },
+      {
+        "name": "Node.js",
+        "level": 80
+      },
+      {
+        "name": "Python",
+        "level": 60
+      },
+      {
+        "name": "PHP",
+        "level": 100
+      },
+      {
+        "name": "TypeScript",
+        "level": 100
+      }
+    ],
+    "frontend": [
+      {
+        "name": "Alpine.js",
+        "level": 60
+      },
+      {
+        "name": "Ant Design",
+        "level": 60
+      },
+      {
+        "name": "Tailwind CSS",
+        "level": 80
+      },
+      {
+        "name": "Astro",
+        "level": 70
+      },
+      {
+        "name": "Next.js",
+        "level": 70
+      },
+      {
+        "name": "React",
+        "level": 80
+      }
+    ],
+    "database": [
+      {
+        "name": "Redis",
+        "level": 60
+      },
+      {
+        "name": "Eloquent ORM",
+        "level": 80
+      },
+      {
+        "name": "Drizzle ORM",
+        "level": 70
+      },
+      {
+        "name": "Prisma",
+        "level": 80
+      },
+      {
+        "name": "MSSQL",
+        "level": 60
+      },
+      {
+        "name": "PostgreSQL",
+        "level": 70
+      },
+      {
+        "name": "MySQL",
+        "level": 80
+      }
+    ],
+    "devops": [
+      {
+        "name": "Linux/VPS",
+        "level": 60
+      },
+      {
+        "name": "Kubernetes",
+        "level": 50
+      },
+      {
+        "name": "Nginx",
+        "level": 60
+      },
+      {
+        "name": "Git",
+        "level": 100
+      },
+      {
+        "name": "Docker",
+        "level": 80
+      }
+    ],
+    "tools": {
+      "backend": [
+        "Cloudflare",
+        "Vercel",
+        "Docker Compose",
+        "Linux",
+        "VS Code",
+        "Swagger",
+        "Postman"
+      ],
+      "frontend": [
+        "Cloudflare",
+        "Vercel",
+        "Docker Compose",
+        "Linux",
+        "VS Code",
+        "Swagger",
+        "Postman"
+      ],
+      "devops": [
+        "Cloudflare",
+        "Vercel",
+        "Docker Compose",
+        "Linux",
+        "VS Code",
+        "Swagger",
+        "Postman"
+      ]
+    }
+  },
+  "tickerItems": [
+    "GPA 3.90 — Politeknik Negeri Malang",
+    "Open to fullstack engineering opportunities",
+    "Portfolio v2.0 — Astro, multi-theme, Notion CMS"
+  ]
+}

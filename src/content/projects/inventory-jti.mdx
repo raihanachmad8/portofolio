@@ -1,95 +1,251 @@
 ---
-title: Inventory JTI
+title: "Inventory JTI"
 slug: inventory-jti
-category: Campus Project
+category: "Campus Project"
 year: 2023
 has_ui: true
-description: "Fullstack inventory management system built from scratch — no framework, no ORM — reverse-engineering Laravel concepts like autoloader and PHP lifecycle."
-role: "Lead Developer — fullstack architecture, native MVC, autoloader, PHP lifecycle, database abstraction."
-stack: "Native PHP,MySQL,Bootstrap,jQuery,XAMPP"
+description: "Inventory and loan management system for the JTI department, built on a custom PHP MVC engine with zero Composer dependencies, OTP email auth, multi-database support, and a 7-state loan workflow."
+stack: "Native PHP,MySQL,MSSQL,Bootstrap,jQuery,PHPMailer"
 github_url: "https://github.com/raihanachmad8/inventory-jti"
-live_url: null
+live_url: ""
 featured: true
-card_color: amber
 image_url: "/images/projects/inventory-jti/cover.webp"
-images:
-  - "/images/projects/inventory-jti/dashboard.png"
-  - "/images/projects/inventory-jti/database.png"
-  - "/images/projects/inventory-jti/screenshot.png"
-  - "/images/projects/inventory-jti/system-design.png"
 order: 1
 ---
 
 ## Overview
 
-Inventory JTI was built under a strict constraint: no framework, no ORM. The coursework for Web Dasar required students to build a complete inventory system using only native PHP. Instead of writing spaghetti code like most teams, I reverse-engineered the concepts behind Laravel — autoloader, service container, routing lifecycle — and built an MVC pattern from scratch. I learned these concepts from Programmer Zaman Now's YouTube channel, which explained PHP internals in a way that made framework patterns feel accessible.
+Inventory JTI is a full inventory and loan management system for the JTI department. Staff and students borrow equipment, track what they took, and return it with condition reports. I built it for a Web Dasar course that banned frameworks and ORMs, so I wrote the entire engine myself in native PHP. No Composer, no Laravel, no packages beyond a bundled PHPMailer. The result is a working system with 45+ routes, 10 relational tables, email OTP verification, and a 7-state loan workflow.
+
+| Metric | Value |
+|---|---|
+| Database tables | 10 |
+| Loan workflow states | 7 |
+| User roles | 3 (Admin, Dosen, Mahasiswa) |
+| Routes | 45+ |
+| External packages | 0 (PHPMailer bundled) |
+| Auth | Register + OTP email, forgot-password reset |
 
 ## Problem
 
-- The coursework forbade frameworks and ORMs, forcing students to build everything from scratch
-- Most teams produced spaghetti code because they had never built structured PHP applications without Laravel or CodeIgniter
-- I wanted to build something that felt like Laravel — structured, modular, maintainable — without using Laravel itself
+- The coursework forbade frameworks and ORMs, so every team built from scratch
+- The JTI department tracked borrowed equipment on paper, which lost items and return dates
+- Most teams produced flat scripts that grew unmanageable past a few pages
+- Five developers needed one structure they could all follow without a framework manual
 
 ## Goal
 
-- Build a native PHP MVC architecture by reverse-engineering Laravel concepts
-- Implement PHP autoloader for class loading without manual `require` statements
-- Understand PHP lifecycle: request → bootstrap → routing → controller → response
-- Create a reusable core engine that could power multiple applications
+- Build a native PHP MVC engine from Laravel's ideas, without using Laravel
+- Ship a complete loan workflow: borrow, approve, return, and condition tracking
+- Add secure auth with email verification and password recovery
+- Keep the engine database-agnostic so it can run on MySQL or MSSQL
 
 ## Role
 
-I led the fullstack architecture and core implementation for a team of 5 developers (3 active coders). I designed the autoloader, MVC pattern, routing system, and database layer that the entire application ran on.
+I led the architecture and core implementation for a team of 4, with 3 of us writing code. I designed the Router, the middleware pipeline, the repository and service layers, and the database driver abstraction the whole system ran on. I built the auth flow end to end.
 
-**Team:** Achmad Raihan Fahrezi Effendy (Lead Developer) + 4 teammates
+**Team:** Achmad Raihan Fahrezi Effendy (Lead Developer) + 3 teammates
 
 ## Architecture
 
-<div class="mermaid" set:html={`flowchart TD
-  A["PHP Request"] --> B["Autoloader"]
-  B --> C["Router"]
-  C --> D["Controller"]
-  D --> E["Service/Model"]
-  E --> F["PDO Abstraction"]
-  F --> G[("MySQL")]
-  D --> H["View Layer"]
-  H --> I["Bootstrap UI"]
-`} />
+```mermaid
+flowchart TD
+    A["Browser (Bootstrap + jQuery)"] --> B[".htaccess rewrite"]
+    B --> C["Front Controller (public/route.php)"]
+    C --> D["Router"]
+    D --> E["Middleware pipeline"]
+    E --> F["Controller"]
+    F --> G["Service"]
+    G --> H["Repository"]
+    H --> I[("Database: MySQL or MSSQL")]
+    G --> J["Validation"]
+    F --> K["View (PHP templates)"]
+```
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Autoloader | Native PHP | Class loading like Composer |
-| Routing | Custom Router | URL mapping without framework |
-| MVC | Native PHP (OOP) | Controllers, Models, Views |
-| Database | MySQL via PDO | Prepared Statements, SQL Injection prevention |
-| Frontend | Bootstrap, jQuery | Responsive UI |
-| Server | XAMPP (Apache) | Local development environment |
+The engine mirrors Laravel's flow: a front controller receives every request through `.htaccess`, the Router matches it to a controller, middleware runs before the controller, and the controller delegates to Service and Repository layers. The View layer renders PHP templates with Bootstrap.
+
+## Database Design
+
+Ten tables model users, equipment, and loans. `Transaksi` records each loan with a purpose and a collateral entry, and `DetailTransaksi` tracks the condition of each returned item.
+
+```mermaid
+erDiagram
+    Level ||--o{ Pengguna : "has"
+    Pengguna ||--o{ OTP : "receives"
+    Pengguna ||--o{ Transaksi : "borrows"
+    Maintainer ||--o{ Transaksi : "approves"
+    Status ||--o{ Transaksi : "has"
+    Transaksi ||--|{ DetailTransaksi : "contains"
+    Inventaris ||--o{ DetailTransaksi : "listed_in"
+    Kategori ||--o{ Inventaris : "categorizes"
+    Maintainer ||--o{ MaintainerInventaris : "maintains"
+    Inventaris ||--o{ MaintainerInventaris : "maintained_by"
+
+    Level {
+        string ID_Level PK
+        string Nama
+    }
+    Status {
+        string ID_Status PK
+        string Nama
+    }
+    Kategori {
+        string ID_Kategori PK
+        string Nama
+    }
+    Pengguna {
+        string ID_Pengguna PK
+        string ID_Level FK
+        string Nomor_Identitas
+        string Password
+        string Nama
+        string Email
+        string Nomor_HP
+        string Foto
+        string Status "AKTIF / TIDAK AKTIF"
+        string Salt
+    }
+    OTP {
+        string ID_OTP PK
+        string ID_Pengguna FK
+        string Kode "6 digit"
+        datetime Expired
+    }
+    Maintainer {
+        string ID_Maintainer PK
+        string Nama
+    }
+    Inventaris {
+        string ID_Inventaris PK
+        string Nama
+        int Stok
+        string ID_Kategori FK
+        string Asal "HIBAH / BELI"
+        text Deskripsi
+        string Gambar
+    }
+    MaintainerInventaris {
+        string ID_Maintainer FK
+        string ID_Inventaris FK
+    }
+    Transaksi {
+        string ID_Transaksi PK
+        string ID_Pengguna FK
+        string ID_Admin FK
+        string ID_Status FK
+        datetime StartDate
+        datetime EndDate
+        text Deskripsi_Keperluan
+        string Jaminan "collateral"
+        text Pesan
+    }
+    DetailTransaksi {
+        string ID_DetailTrc PK
+        string ID_Transaksi FK
+        string ID_Inventaris FK
+        string Kondisi "Normal / Rusak / Hilang"
+        int Jumlah
+    }
+```
+
+## Auth Flow
+
+Registration requires email verification before the account activates. The system generates a 6-digit code, emails it through PHPMailer, and only flips the user to active after the code matches. Passwords are hashed with bcrypt plus a per-user salt, and the salt is bound to the user's identity number during verification.
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant W as Web (AuthController)
+    participant S as AuthService
+    participant D as Database
+    participant M as Mailer (PHPMailer)
+
+    U->>W: Submit register form
+    W->>S: register(data)
+    S->>D: Create user (TIDAK AKTIF, bcrypt+salt)
+    S->>D: Create OTP (6-digit, expiry)
+    S->>M: Send verification email
+    M-->>U: Email with code
+    U->>W: Enter OTP
+    W->>S: verifyOTP(code)
+    S->>D: Match code + check expiry
+    S->>D: Set status AKTIF
+    S-->>U: Account activated
+    U->>W: Login with email + password
+    W->>S: login(credentials)
+    S->>D: Fetch user by email
+    S->>D: Verify bcrypt(salt + identity)
+    S-->>U: Session created
+```
+
+## Loan Workflow
+
+Every loan moves through a 7-state machine. A member submits a request with a purpose and collateral. An admin accepts or rejects it, the item leaves with a start date, and the return records each item's condition as Normal, Rusak (damaged), or Hilang (lost). A damaged or lost item sends the loan into a replacement state.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Menunggu: Member submits loan
+    Menunggu --> Diterima: Admin accepts
+    Menunggu --> Ditolak: Admin rejects
+    Diterima --> Proses: Item handed over
+    Proses --> Selesai: Returned, condition recorded
+    Diterima --> Dibatalkan: Member cancels
+    Menunggu --> Menunggu Ganti: Item damaged or lost
+    Menunggu Ganti --> Selesai: Replacement received
+    Ditolak --> [*]
+    Dibatalkan --> [*]
+    Selesai --> [*]
+```
+
+![Loan dashboard showing requests and their status](/images/projects/inventory-jti/dashboard.png)
 
 ## Key Features
 
-- **PHP Autoloader** — Built a custom autoloader that loads classes automatically, similar to Composer's `autoload.php`. No manual `require` statements needed.
-- **PHP Lifecycle Understanding** — Applied knowledge of PHP's request lifecycle: how a request flows from Apache → PHP interpreter → bootstrap → routing → controller → response.
-- **Native MVC Framework** — Built routing, controllers, models, and views without any external framework, inspired by Laravel's architecture.
-- **Database Abstraction** — PDO layer with Prepared Statements to prevent SQL Injection, without ORM safety nets.
-- **Reusable Core Engine** — The architecture powered 2 different applications from the same codebase (other teams managed only 1).
+- **Custom PHP MVC Engine**: Router, View, and middleware pipeline written from scratch, with zero Composer dependencies
+- **Repository + Service + Validation Layers**: 11 models, 11 repositories, 8 services, and 8 validation classes
+- **RBAC Middleware**: GuestOnly, AuthOnly, AdminOnly, and MemberOnly guards across 45+ routes
+- **OTP Email Auth**: Register and forgot-password flows verified by a 6-digit code sent via PHPMailer
+- **Secure Passwords**: bcrypt with a per-user salt bound to the identity number
+- **Loan Management**: Borrow with purpose and collateral, approve or reject, track start and end dates
+- **Condition Tracking**: Each returned item records Normal, Rusak, or Hilang
+- **Multi-Database**: MySQL and MSSQL behind a driver interface, switchable through config
+- **Inventory CRUD**: Items with category, stock, origin (HIBAH or BELI), and image upload
+
+## Routes
+
+The route table covers three areas: public auth, member inventory actions, and admin management.
+
+| Area | Routes |
+|---|---|
+| Auth | register, OTP verification, resend, login, logout, forgot password, OTP reset |
+| Member | dashboard, loan form, submit loan, loan history, delete history |
+| Admin | dashboard, loan data, update loan, inventory CRUD, maintainer CRUD, loan history |
+| Profile | view profile, edit profile, change password, messages, delete account |
 
 ## Technical Decisions
 
-- PHP was the course requirement, but the constraint to avoid frameworks forced deeper understanding
-- I studied Laravel's source code and Programmer Zaman Now's YouTube tutorials to understand autoloading, service containers, and routing lifecycle
-- MySQL was the database (deployed on XAMPP in campus labs)
-- PDO was chosen over mysqli for its database-agnostic abstraction layer
+- **Native PHP** because the course banned frameworks, and the constraint forced me to learn how a router, a container, and middleware work
+- **Zero Composer**: every class loads through explicit `require_once`; the only bundled code is PHPMailer. Nothing to audit, nothing to update
+- **bcrypt + per-user salt** instead of plain hashing, with the salt bound to the identity number so two identical passwords hash differently
+- **OTP by email** over phone verification, since the department runs on email and PHPMailer was already reliable
+- **MySQL + MSSQL drivers** behind one interface, so the app works in the campus labs (MySQL) and in any client environment (MSSQL)
+- **Repository pattern** to keep SQL out of controllers and services, modeled on the separation Laravel teams use
+
+![Database schema for the inventory system](/images/projects/inventory-jti/database.png)
 
 ## Challenges
 
-- Building an autoloader from scratch required understanding PHP's `spl_autoload_register` and namespace resolution
-- Reverse-engineering Laravel's routing lifecycle without documentation was a steep learning curve
-- Coordinating 5 developers on a custom architecture (not a well-documented framework) required clear conventions
+- Writing a Router and middleware pipeline from scratch meant matching every request to a pattern, and getting the `.htaccess` rewrite to feed clean paths to the front controller
+- Enforcing code quality across a team working without framework conventions demanded written standards and regular review
+- Wiring OTP email end to end required handling SMTP failures, expiry windows, and resend paths
+- Keeping the loan state machine consistent across member, admin, and history views took the most careful design
 
 ## Outcome
 
-The team produced 2 distinct applications from a single core engine — a feat other teams could not achieve with their framework-dependent approaches. The architecture was reusable and maintainable, proving that understanding fundamentals matters more than framework familiarity.
+The system shipped with 45+ routes, a full OTP auth flow, and a working loan workflow for the JTI department. The engine ran the course project and proved that a framework-grade structure is possible in plain PHP. The lecturer recognized the project for its architecture, and it earned top marks.
+
+![Second interface built on the same engine](/images/projects/inventory-jti/screenshot.png)
 
 ## Final Thoughts
 
-Inventory JTI taught me that frameworks are tools, not crutches. When you understand what a framework does under the hood — autoloading, routing, lifecycle, dependency injection — you can build better systems with or without one. The native PHP MVC I built here became the foundation for understanding every framework I used afterward. The knowledge from Programmer Zaman Now's channel made the difference between writing code and understanding code.
+Inventory JTI taught me that frameworks are tools, not crutches. Once you understand what Laravel does under the hood, routing, middleware, repositories, you can build the same structure by hand. The zero-dependency constraint made every layer intentional. The native PHP engine I built here became the foundation for how I read and evaluate every framework afterward.
