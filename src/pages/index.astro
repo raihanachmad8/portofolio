@@ -15,7 +15,17 @@ import { getRuntimeEnv } from '@lib/utils';
 import { getLocale } from '@i18n';
 
 const env = getRuntimeEnv(Astro);
-const profile = await getProfile(env);
+let profile;
+try {
+  profile = await getProfile(env);
+} catch (e) {
+  console.error('[Index] Failed to fetch profile:', (e as Error).message);
+  // Return error page or fallback
+  return new Response('Failed to load profile data. Please try again later.', {
+    status: 500,
+    headers: { 'Content-Type': 'text/plain' }
+  });
+}
 const { locale } = getLocale(Astro);
 ---
 
