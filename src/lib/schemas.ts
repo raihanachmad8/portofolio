@@ -9,7 +9,7 @@ import { DEFAULT_THEME } from './utils';
 import { LANGUAGES, THEMES } from './constants';
 
 const MIN_PROJECT_YEAR = 2020;
-const FUTURE_YEAR_BUFFER = 5;
+const MAX_PROJECT_YEAR = 2035; // Static max year to avoid runtime date issues
 const MAX_READ_TIME_MINS = 120;
 const MAX_TITLE_LENGTH = 100;
 const MAX_BLOG_TITLE_LENGTH = 200;
@@ -24,7 +24,7 @@ export const ProjectSchema = z.object({
   title: z.string().min(1, 'Title required').max(MAX_TITLE_LENGTH, 'Title too long'),
   slug: z.string().regex(/^[a-z0-9-]+$/, 'Invalid slug format').optional(),
   category: z.string().min(1, 'Category required'),
-  year: z.number().int().min(MIN_PROJECT_YEAR, 'Too old').max(new Date().getFullYear() + FUTURE_YEAR_BUFFER, 'Too far future'),
+  year: z.number().int().min(MIN_PROJECT_YEAR, 'Too old').max(MAX_PROJECT_YEAR, 'Too far future'),
   description: z.string().min(10, 'Description too short').max(MAX_DESCRIPTION_LENGTH, 'Description too long'),
   content: z.string().optional(),
   has_ui: z.boolean().default(true),
