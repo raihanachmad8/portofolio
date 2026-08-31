@@ -42,7 +42,7 @@ const { t } = getLocale(Astro);
               <img src={resolveImageUrl(pr.image_url, siteUrl)} alt={pr.title} loading="lazy" onerror="this.onerror=null; this.src='/images/placeholder.svg'; this.dataset.fallback=''" />
             </figure>
             <h3>{pr.title}</h3>
-            <p class="desc">{pr.description}</p>
+            <p class="desc">{String(pr.description)}</p>
             <div class="tags">
               {pr.stack.split(',').map((tech: string) => <span>{tech.trim()}</span>)}
             </div>

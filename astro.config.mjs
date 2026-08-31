@@ -8,6 +8,11 @@ export default defineConfig({
   output: 'server',
   adapter: cloudflare({ mode: 'pages' }),
   integrations: [tailwind(), mdx()],
+  vite: {
+    ssr: {
+      external: ['node:*'],
+    },
+  },
   i18n: {
     defaultLocale: 'en',
     locales: ['en', 'id'],
